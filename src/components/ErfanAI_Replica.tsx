@@ -74,13 +74,6 @@ const LandingPage = ({ onLogin, onRegister }: { onLogin: () => void; onRegister:
       </div>
     </header>
 
-    {/* Banner */}
-    <div className="flex items-center justify-center gap-2 py-2.5" style={{ background: "#e7e5e4" }}>
-      <ArrowRight className="h-4 w-4" style={{ color: "#525252" }} />
-      <p className="text-sm font-medium" style={{ color: "#1a1a1a" }}>
-        ErfanAgent أصبح الآن جزءًا من <span className="font-bold">Erfan</span>
-      </p>
-    </div>
 
     {/* Main content */}
     <div className="flex flex-1 flex-col items-center justify-center px-4 pb-10">
