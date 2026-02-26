@@ -30,6 +30,13 @@ import {
   LayoutGrid,
   AlignJustify,
   Send,
+  ArrowRightLeft,
+  HelpCircle,
+  Home,
+  ExternalLink,
+  User,
+  BookOpen,
+  ChevronLeft,
 } from "lucide-react";
 
 /* ═══════════════════════ LOGIN SCREEN ═══════════════════════ */
@@ -205,8 +212,8 @@ const Sidebar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
   </AnimatePresence>
 );
 
-/* ═══════════════════════ PROFILE MODAL ═══════════════════════ */
-const ProfileModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => (
+/* ═══════════════════════ PROFILE DROPDOWN ═══════════════════════ */
+const ProfileDropdown = ({ isOpen, onClose, onLogout }: { isOpen: boolean; onClose: () => void; onLogout: () => void }) => (
   <AnimatePresence>
     {isOpen && (
       <>
@@ -216,49 +223,108 @@ const ProfileModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
           exit={{ opacity: 0 }}
           onClick={onClose}
           className="fixed inset-0 z-40"
-          style={{ background: "hsl(0 0% 0% / 0.7)" }}
         />
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: -20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: -20 }}
-          transition={{ type: "spring", damping: 20, stiffness: 300 }}
-          className="fixed left-4 right-4 top-16 z-50 mx-auto max-w-sm rounded-2xl border border-border bg-card p-5 shadow-2xl"
+          initial={{ opacity: 0, y: -10, scaleY: 0.95 }}
+          animate={{ opacity: 1, y: 0, scaleY: 1 }}
+          exit={{ opacity: 0, y: -10, scaleY: 0.95 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          style={{ transformOrigin: "top left" }}
+          className="absolute left-3 top-[60px] z-50 w-[300px] rounded-2xl border border-border bg-card shadow-2xl overflow-hidden"
           dir="rtl"
         >
-          <div className="flex items-center gap-4 mb-5">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-xl font-bold text-primary-foreground">
-              E
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-foreground">Erfan Moharam</h3>
-              <p className="text-xs text-muted-foreground">nmoharam7796@gmail.com</p>
-            </div>
-          </div>
-
-          <div className="mb-5 rounded-xl bg-secondary p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">الرصيد المتبقي</span>
-              <div className="flex items-center gap-1.5">
-                <Zap className="h-4 w-4 text-accent" />
-                <span className="text-lg font-bold text-accent">300</span>
+          {/* User row */}
+          <div className="flex items-center justify-between p-4">
+            <button className="text-muted-foreground hover:text-foreground transition-colors">
+              <ArrowRightLeft className="h-4 w-4" />
+            </button>
+            <div className="flex items-center gap-3">
+              <div>
+                <h3 className="text-sm font-bold text-foreground text-left">Erfan Moharam</h3>
+                <p className="text-xs text-muted-foreground text-left">...nmoharam7796@gmail.com</p>
+              </div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+                E
               </div>
             </div>
-            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-background">
-              <div className="h-full w-3/4 rounded-full bg-accent" />
+          </div>
+
+          {/* Plan & Credits box */}
+          <div className="mx-4 mb-3 rounded-xl border border-border overflow-hidden">
+            {/* Plan row */}
+            <div className="flex items-center justify-between px-4 py-3">
+              <button className="rounded-full border border-border bg-foreground px-4 py-1 text-xs font-semibold text-background">
+                ترقية
+              </button>
+              <span className="text-sm font-bold text-foreground">مجاني</span>
+            </div>
+            {/* Dashed divider */}
+            <div className="border-t border-dashed border-border" />
+            {/* Credits row */}
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="flex items-center gap-1">
+                <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-semibold text-foreground">300</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">الأرصدة</span>
+                <Sparkles className="h-4 w-4 text-foreground" />
+              </div>
             </div>
           </div>
 
-          <div className="space-y-1">
-            <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
-              <Settings className="h-4 w-4 text-muted-foreground" />
-              الإعدادات
+          {/* Menu items */}
+          <div className="px-2">
+            {/* Knowledge */}
+            <button className="flex w-full items-center justify-end gap-3 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-secondary transition-colors">
+              <span>المعرفة</span>
+              <BookOpen className="h-5 w-5 text-muted-foreground" />
             </button>
-            <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-destructive hover:bg-secondary transition-colors">
-              <LogOut className="h-4 w-4" />
-              تسجيل الخروج
+            <div className="mx-3 border-t border-border" />
+
+            {/* Account */}
+            <button className="flex w-full items-center justify-end gap-3 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-secondary transition-colors">
+              <span>الحساب</span>
+              <User className="h-5 w-5 text-muted-foreground" />
+            </button>
+
+            {/* Settings */}
+            <button className="flex w-full items-center justify-end gap-3 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-secondary transition-colors">
+              <span>الإعدادات</span>
+              <Settings className="h-5 w-5 text-muted-foreground" />
+            </button>
+            <div className="mx-3 border-t border-border" />
+
+            {/* Home - with external link */}
+            <button className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-sm text-foreground hover:bg-secondary transition-colors">
+              <ExternalLink className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-3">
+                <span>الصفحة الرئيسية</span>
+                <Home className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </button>
+
+            {/* Help - with external link */}
+            <button className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-sm text-foreground hover:bg-secondary transition-colors">
+              <ExternalLink className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-3">
+                <span>الحصول على المساعدة</span>
+                <HelpCircle className="h-5 w-5 text-muted-foreground" />
+              </div>
+            </button>
+            <div className="mx-3 border-t border-border" />
+
+            {/* Logout */}
+            <button
+              onClick={onLogout}
+              className="flex w-full items-center justify-end gap-3 rounded-lg px-3 py-3 text-sm text-destructive hover:bg-secondary transition-colors"
+            >
+              <span>تسجيل الخروج</span>
+              <LogOut className="h-5 w-5" />
             </button>
           </div>
+          <div className="h-2" />
         </motion.div>
       </>
     )}
@@ -266,7 +332,7 @@ const ProfileModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
 );
 
 /* ═══════════════════════ APP SCREEN ═══════════════════════ */
-const AppScreen = () => {
+const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -464,7 +530,7 @@ const AppScreen = () => {
 
       {/* Overlays */}
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+      <ProfileDropdown isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} onLogout={onLogout} />
     </div>
   );
 };
@@ -486,7 +552,7 @@ const ErfanReplica = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <AppScreen />
+          <AppScreen onLogout={() => setIsLoggedIn(false)} />
         </motion.div>
       )}
     </AnimatePresence>
