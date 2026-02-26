@@ -175,9 +175,9 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => (
       >
         {/* Logo icon */}
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.3 }}
           className="mb-6 flex h-32 w-32 items-center justify-center"
         >
           <img src={erfanLogo} alt="ErfanAI" className="h-32 w-32 object-contain" />
