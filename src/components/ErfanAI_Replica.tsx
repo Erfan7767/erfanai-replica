@@ -152,11 +152,11 @@ const Sidebar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
           style={{ background: "hsl(0 0% 0% / 0.7)" }}
         />
         <motion.div
-          initial={{ x: "-100%" }}
+          initial={{ x: "100%" }}
           animate={{ x: 0 }}
-          exit={{ x: "-100%" }}
+          exit={{ x: "100%" }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="fixed left-0 top-0 z-50 flex h-full w-72 flex-col bg-background border-r border-border"
+          className="fixed right-0 top-0 z-50 flex h-full w-72 flex-col bg-background border-l border-border"
           dir="rtl"
         >
           <div className="flex items-center justify-between p-4 border-b border-border">
@@ -280,21 +280,13 @@ const AppScreen = () => {
         animate={{ y: 0, opacity: 1 }}
         className="flex items-center justify-between px-4 py-3"
       >
-        {/* Right side: Avatar + icons */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsProfileOpen(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground transition-transform hover:scale-105"
-          >
-            E
-          </button>
-          <button className="p-1.5 text-muted-foreground hover:text-foreground transition-colors">
-            <Sparkles className="h-5 w-5" />
-          </button>
-          <button className="p-1.5 text-muted-foreground hover:text-foreground transition-colors">
-            <Bell className="h-5 w-5" />
-          </button>
-        </div>
+        {/* Right side: Hamburger */}
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className="rounded-lg p-2 text-muted-foreground hover:bg-secondary transition-colors"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
 
         {/* Center: Title */}
         <div className="flex items-center gap-1.5">
@@ -302,13 +294,21 @@ const AppScreen = () => {
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </div>
 
-        {/* Left: Hamburger */}
-        <button
-          onClick={() => setIsSidebarOpen(true)}
-          className="rounded-lg p-2 text-muted-foreground hover:bg-secondary transition-colors"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
+        {/* Left side: Avatar + icons */}
+        <div className="flex items-center gap-3">
+          <button className="p-1.5 text-muted-foreground hover:text-foreground transition-colors">
+            <Bell className="h-5 w-5" />
+          </button>
+          <button className="p-1.5 text-muted-foreground hover:text-foreground transition-colors">
+            <Sparkles className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => setIsProfileOpen(true)}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground transition-transform hover:scale-105"
+          >
+            E
+          </button>
+        </div>
       </motion.header>
 
       {/* ── Scrollable Content ── */}
