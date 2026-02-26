@@ -451,6 +451,20 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [showTools, setShowTools] = useState(true);
+  const [activeChips, setActiveChips] = useState<string[]>([]);
+
+  const chipItems = [
+    { icon: Code, label: "إنشاء موقع ويب" },
+    { icon: Presentation, label: "إنشاء عروض تقديمية" },
+    { icon: Smartphone, label: "تطوير التطبيقات" },
+    { icon: Palette, label: "تصميم" },
+  ];
+
+  const toggleChip = (label: string) => {
+    setActiveChips((prev) =>
+      prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]
+    );
+  };
 
   return (
     <div className="relative flex min-h-screen flex-col bg-background font-cairo" dir="rtl">
@@ -525,10 +539,27 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
           transition={{ delay: 0.3 }}
           className="mt-6 card-gold-border rounded-2xl bg-card p-4"
         >
+          {/* Active chips tags */}
+          {activeChips.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {activeChips.map((label) => (
+                <span
+                  key={label}
+                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium"
+                  style={{ background: "hsl(217 91% 50%)", color: "#fff" }}
+                >
+                  {label}
+                  <button onClick={() => toggleChip(label)} className="hover:opacity-70">
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
           <textarea
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="قم بتعيين مهمة أو اسأل أي شيء"
+            placeholder={activeChips.length > 0 ? `المهام المفعّلة: ${activeChips.join("، ")}` : "قم بتعيين مهمة أو اسأل أي شيء"}
             rows={3}
             className="w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none leading-relaxed"
             dir="rtl"
@@ -595,21 +626,28 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
           transition={{ delay: 0.4 }}
           className="mt-5 flex flex-wrap justify-center gap-2.5"
         >
-          {[
-            { icon: Code, label: "إنشاء موقع ويب" },
-            { icon: Presentation, label: "إنشاء عروض تقديمية" },
-            { icon: Smartphone, label: "تطوير التطبيقات" },
-            { icon: Palette, label: "تصميم" },
-            { icon: MoreHorizontal, label: "المزيد" },
-          ].map((chip) => (
-            <button
-              key={chip.label}
-              className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary hover:border-accent"
-            >
-              <chip.icon className="h-4 w-4 text-accent" />
-              {chip.label}
-            </button>
-          ))}
+          {chipItems.map((chip) => {
+            const isActive = activeChips.includes(chip.label);
+            return (
+              <button
+                key={chip.label}
+                onClick={() => toggleChip(chip.label)}
+                className={`flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-all ${
+                  isActive
+                    ? "border-transparent text-white"
+                    : "border-border bg-card text-foreground hover:bg-secondary hover:border-accent"
+                }`}
+                style={isActive ? { background: "hsl(217 91% 50%)" } : undefined}
+              >
+                <chip.icon className={`h-4 w-4 ${isActive ? "text-white" : "text-accent"}`} />
+                {chip.label}
+              </button>
+            );
+          })}
+          <button className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary hover:border-accent">
+            <MoreHorizontal className="h-4 w-4 text-accent" />
+            المزيد
+          </button>
         </motion.div>
 
         {/* ── Bottom Customize Card ── */}
