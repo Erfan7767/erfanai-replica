@@ -49,7 +49,7 @@ const LandingPage = ({ onLogin, onRegister }: { onLogin: () => void; onRegister:
     <header className="flex items-center justify-between px-4 py-3">
       {/* Right: Logo */}
       <div className="flex items-center gap-2">
-        <img src={erfanLogo} alt="ErfanAI" className="h-9 w-9 object-contain" style={{ filter: "invert(1)" }} />
+        <img src={erfanLogo} alt="ErfanAI" className="h-12 w-12 object-contain" style={{ filter: "invert(1)" }} />
         <span className="text-xl font-bold" style={{ color: "#1a1a1a" }}>ErfanAI</span>
       </div>
 
@@ -161,7 +161,7 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => (
     <header className="relative z-10 flex items-center justify-end px-5 py-4">
       <div className="flex items-center gap-2">
         <span className="text-lg font-bold" style={{ color: "#e5e5e5" }}>ErfanAI</span>
-        <img src={erfanLogo} alt="ErfanAI" className="h-8 w-8 object-contain" />
+        <img src={erfanLogo} alt="ErfanAI" className="h-11 w-11 object-contain" />
       </div>
     </header>
 
@@ -178,9 +178,9 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => (
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-          className="mb-6 flex h-24 w-24 items-center justify-center"
+          className="mb-6 flex h-32 w-32 items-center justify-center"
         >
-          <img src={erfanLogo} alt="ErfanAI" className="h-24 w-24 object-contain" />
+          <img src={erfanLogo} alt="ErfanAI" className="h-32 w-32 object-contain" />
         </motion.div>
 
         {/* Title */}
