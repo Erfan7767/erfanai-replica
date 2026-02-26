@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import erfanLogo from "@/assets/erfanai-logo.png";
 import {
   Hand,
   Mail,
@@ -48,8 +49,8 @@ const LandingPage = ({ onLogin, onRegister }: { onLogin: () => void; onRegister:
     <header className="flex items-center justify-between px-4 py-3">
       {/* Right: Logo */}
       <div className="flex items-center gap-2">
-        <Hand className="h-6 w-6" style={{ color: "#1a1a1a" }} />
-        <span className="text-xl font-bold" style={{ color: "#1a1a1a" }}>ErfanAgent</span>
+        <img src={erfanLogo} alt="ErfanAI" className="h-7 w-7 object-contain" style={{ filter: "invert(1)" }} />
+        <span className="text-xl font-bold" style={{ color: "#1a1a1a" }}>ErfanAI</span>
       </div>
 
       {/* Left: Buttons + Hamburger */}
@@ -159,8 +160,8 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => (
     {/* Header with logo */}
     <header className="relative z-10 flex items-center justify-end px-5 py-4">
       <div className="flex items-center gap-2">
-        <span className="text-lg font-bold" style={{ color: "#e5e5e5" }}>ErfanAgent</span>
-        <Hand className="h-5 w-5" style={{ color: "#e5e5e5" }} />
+        <span className="text-lg font-bold" style={{ color: "#e5e5e5" }}>ErfanAI</span>
+        <img src={erfanLogo} alt="ErfanAI" className="h-6 w-6 object-contain" />
       </div>
     </header>
 
@@ -179,7 +180,7 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => (
           transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
           className="mb-6 flex h-24 w-24 items-center justify-center"
         >
-          <Hand className="h-16 w-16" style={{ color: "#e5e5e5" }} />
+          <img src={erfanLogo} alt="ErfanAI" className="h-20 w-20 object-contain" />
         </motion.div>
 
         {/* Title */}
@@ -187,7 +188,7 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => (
           تسجيل الدخول أو التسجيل
         </h1>
         <p className="mb-10 text-sm" style={{ color: "#737373" }}>
-          ابدأ الإبداع مع <span style={{ color: "#a3a3a3" }}>ErfanAgent</span>
+          ابدأ الإبداع مع <span style={{ color: "#a3a3a3" }}>ErfanAI</span>
         </p>
 
         {/* Social buttons */}
@@ -286,7 +287,7 @@ const Sidebar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
           dir="rtl"
         >
           <div className="flex items-center justify-between p-4 border-b border-border">
-            <h2 className="text-lg font-bold text-accent">ErfanAgent</h2>
+            <h2 className="text-lg font-bold text-accent">ErfanAI</h2>
             <button onClick={onClose} className="rounded-lg p-2 text-muted-foreground hover:bg-secondary transition-colors">
               <X className="h-5 w-5" />
             </button>
@@ -489,7 +490,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
 
         {/* Center: Title */}
         <div className="flex items-center gap-1.5">
-          <span className="text-sm font-semibold text-foreground">ErfanAgent Lite</span>
+          <span className="text-sm font-semibold text-foreground">ErfanAI Lite</span>
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </div>
 
@@ -646,7 +647,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
               </div>
             </div>
             <p className="text-sm font-semibold text-foreground leading-relaxed">
-              خصص <span className="text-accent">ErfanAgent</span> الخاص بك
+              خصص <span className="text-accent">ErfanAI</span> الخاص بك
             </p>
           </div>
         </motion.div>
