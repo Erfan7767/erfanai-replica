@@ -174,14 +174,9 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => (
         className="flex w-full max-w-md flex-col items-center"
       >
         {/* Logo icon */}
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          className="mb-6 flex h-32 w-32 items-center justify-center"
-        >
+        <div className="mb-6 flex h-32 w-32 items-center justify-center">
           <img src={erfanLogo} alt="ErfanAI" className="h-32 w-32 object-contain" />
-        </motion.div>
+        </div>
 
         {/* Title */}
         <h1 className="mb-2 text-2xl font-bold" style={{ color: "#f5f5f5" }}>
