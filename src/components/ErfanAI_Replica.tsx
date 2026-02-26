@@ -37,7 +37,121 @@ import {
   User,
   BookOpen,
   ChevronLeft,
+  ArrowRight,
+  Upload as UploadIcon,
 } from "lucide-react";
+
+/* ═══════════════════════ LANDING PAGE (Light) ═══════════════════════ */
+const LandingPage = ({ onLogin, onRegister }: { onLogin: () => void; onRegister: () => void }) => (
+  <div className="flex min-h-screen flex-col font-cairo" dir="rtl" style={{ background: "#f5f5f4" }}>
+    {/* Header */}
+    <header className="flex items-center justify-between px-4 py-3">
+      {/* Right: Logo */}
+      <div className="flex items-center gap-2">
+        <Hand className="h-6 w-6" style={{ color: "#1a1a1a" }} />
+        <span className="text-xl font-bold" style={{ color: "#1a1a1a" }}>ErfanAgent</span>
+      </div>
+
+      {/* Left: Buttons + Hamburger */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={onLogin}
+          className="rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
+          style={{ background: "#1a1a1a", color: "#fff" }}
+        >
+          تسجيل الدخول
+        </button>
+        <button
+          onClick={onRegister}
+          className="rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
+          style={{ borderColor: "#d4d4d4", color: "#525252" }}
+        >
+          تسجيل
+        </button>
+        <button className="p-2" style={{ color: "#525252" }}>
+          <Menu className="h-5 w-5" />
+        </button>
+      </div>
+    </header>
+
+    {/* Banner */}
+    <div className="flex items-center justify-center gap-2 py-2.5" style={{ background: "#e7e5e4" }}>
+      <ArrowRight className="h-4 w-4" style={{ color: "#525252" }} />
+      <p className="text-sm font-medium" style={{ color: "#1a1a1a" }}>
+        ErfanAgent أصبح الآن جزءًا من <span className="font-bold">Erfan</span>
+      </p>
+    </div>
+
+    {/* Main content */}
+    <div className="flex flex-1 flex-col items-center justify-center px-4 pb-10">
+      <motion.h1
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="mb-8 text-center text-2xl font-bold leading-relaxed"
+        style={{ color: "#1a1a1a" }}
+      >
+        كيف يمكنني مساعدتك؟
+      </motion.h1>
+
+      {/* Input card */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+        className="w-full max-w-lg rounded-2xl border p-4 shadow-sm"
+        style={{ background: "#fff", borderColor: "#e5e5e5" }}
+      >
+        <textarea
+          placeholder="قم بتعيين مهمة أو اسأل أي شيء"
+          rows={3}
+          className="w-full resize-none bg-transparent text-sm outline-none leading-relaxed"
+          style={{ color: "#1a1a1a", }}
+          dir="rtl"
+        />
+        <div className="mt-2 flex items-center justify-end gap-2">
+          <button
+            className="flex h-9 w-9 items-center justify-center rounded-full border transition-colors"
+            style={{ borderColor: "#d4d4d4", color: "#a3a3a3" }}
+          >
+            <UploadIcon className="h-4 w-4" />
+          </button>
+          <button
+            className="flex h-9 w-9 items-center justify-center rounded-full border transition-colors"
+            style={{ borderColor: "#d4d4d4", color: "#a3a3a3" }}
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        </div>
+      </motion.div>
+
+      {/* Quick action chips */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35 }}
+        className="mt-5 flex flex-wrap justify-center gap-2.5"
+      >
+        {[
+          { icon: Code, label: "إنشاء موقع ويب" },
+          { icon: Presentation, label: "إنشاء عروض تقديمية" },
+          { icon: Smartphone, label: "تطوير التطبيقات" },
+          { icon: Palette, label: "تصميم" },
+          { icon: MoreHorizontal, label: "المزيد" },
+        ].map((chip) => (
+          <button
+            key={chip.label}
+            className="flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-white"
+            style={{ borderColor: "#d4d4d4", color: "#525252", background: "transparent" }}
+          >
+            <chip.icon className="h-4 w-4" />
+            {chip.label}
+          </button>
+        ))}
+      </motion.div>
+    </div>
+  </div>
+);
 
 /* ═══════════════════════ LOGIN SCREEN ═══════════════════════ */
 const LoginScreen = ({ onLogin }: { onLogin: () => void }) => (
@@ -537,22 +651,26 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
 
 /* ═══════════════════════ MAIN EXPORT ═══════════════════════ */
 const ErfanReplica = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [screen, setScreen] = useState<"landing" | "login" | "app">("landing");
 
   return (
     <AnimatePresence mode="wait">
-      {!isLoggedIn ? (
-        <motion.div key="login" exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.3 }}>
-          <LoginScreen onLogin={() => setIsLoggedIn(true)} />
+      {screen === "landing" && (
+        <motion.div key="landing" exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+          <LandingPage
+            onLogin={() => setScreen("login")}
+            onRegister={() => setScreen("login")}
+          />
         </motion.div>
-      ) : (
-        <motion.div
-          key="app"
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <AppScreen onLogout={() => setIsLoggedIn(false)} />
+      )}
+      {screen === "login" && (
+        <motion.div key="login" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+          <LoginScreen onLogin={() => setScreen("app")} />
+        </motion.div>
+      )}
+      {screen === "app" && (
+        <motion.div key="app" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}>
+          <AppScreen onLogout={() => setScreen("landing")} />
         </motion.div>
       )}
     </AnimatePresence>
