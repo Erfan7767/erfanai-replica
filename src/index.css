@@ -6,57 +6,57 @@
 
 @layer base {
   :root {
-    --background: 240 6% 10%;
-    --foreground: 240 5% 96%;
+    --background: 0 0% 5%;
+    --foreground: 40 20% 95%;
 
-    --card: 240 4% 16%;
-    --card-foreground: 240 5% 96%;
+    --card: 0 0% 10%;
+    --card-foreground: 40 20% 95%;
 
-    --popover: 240 4% 16%;
-    --popover-foreground: 240 5% 96%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 40 20% 95%;
 
     --primary: 142 71% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 4% 16%;
-    --secondary-foreground: 240 5% 84%;
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 40 20% 85%;
 
-    --muted: 240 4% 16%;
-    --muted-foreground: 240 5% 65%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 55%;
 
-    --accent: 240 4% 20%;
-    --accent-foreground: 240 5% 96%;
+    --accent: 43 80% 55%;
+    --accent-foreground: 0 0% 5%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 4% 22%;
-    --input: 240 4% 16%;
-    --ring: 142 71% 45%;
+    --border: 43 40% 22%;
+    --input: 0 0% 14%;
+    --ring: 43 80% 55%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 240 6% 10%;
-    --sidebar-foreground: 240 5% 96%;
-    --sidebar-primary: 142 71% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 4% 16%;
-    --sidebar-accent-foreground: 240 5% 96%;
-    --sidebar-border: 240 4% 22%;
-    --sidebar-ring: 142 71% 45%;
-
-    /* Custom ErfanAI tokens */
-    --erfan-bg-deep: 240 6% 7%;
-    --erfan-bg: 240 6% 10%;
-    --erfan-surface: 240 4% 16%;
-    --erfan-surface-hover: 240 4% 20%;
+    /* ErfanAgent custom tokens */
+    --erfan-gold: 43 80% 55%;
+    --erfan-gold-dim: 43 50% 35%;
+    --erfan-gold-glow: 43 80% 55% / 0.15;
     --erfan-green: 142 71% 45%;
-    --erfan-green-glow: 142 71% 45% / 0.2;
-    --erfan-text: 240 5% 96%;
-    --erfan-text-muted: 240 5% 55%;
-    --erfan-border: 240 4% 22%;
-    --erfan-input-bg: 240 4% 16%;
-    --erfan-overlay: 0 0% 0% / 0.6;
+    --erfan-bg: 0 0% 5%;
+    --erfan-card: 0 0% 10%;
+    --erfan-card-border: 43 40% 22%;
+    --erfan-surface: 0 0% 14%;
+    --erfan-text: 40 20% 95%;
+    --erfan-text-muted: 0 0% 50%;
+    --erfan-overlay: 0 0% 0% / 0.7;
+
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 40 20% 95%;
+    --sidebar-primary: 43 80% 55%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 0 0% 14%;
+    --sidebar-accent-foreground: 40 20% 95%;
+    --sidebar-border: 43 40% 22%;
+    --sidebar-ring: 43 80% 55%;
   }
 }
 
@@ -71,10 +71,15 @@
   }
 }
 
-/* Dot pattern for login background */
+/* Dot pattern for login */
 .dot-pattern {
-  background-image: radial-gradient(circle, hsl(240 5% 30%) 1px, transparent 1px);
+  background-image: radial-gradient(circle, hsl(0 0% 25%) 1px, transparent 1px);
   background-size: 24px 24px;
+}
+
+/* Gold border glow for cards */
+.card-gold-border {
+  border: 1px solid hsl(43 40% 22%);
 }
 
 /* Custom scrollbar */
@@ -85,6 +90,6 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--erfan-surface));
+  background: hsl(0 0% 20%);
   border-radius: 999px;
 }
