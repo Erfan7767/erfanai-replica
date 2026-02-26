@@ -40,6 +40,9 @@ import {
   ChevronLeft,
   ArrowRight,
   Upload as UploadIcon,
+  Camera,
+  Image,
+  FileText,
 } from "lucide-react";
 
 /* ═══════════════════════ LANDING PAGE (Light) ═══════════════════════ */
@@ -453,6 +456,23 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [inputValue, setInputValue] = useState("");
   const [showTools, setShowTools] = useState(true);
   const [activeChips, setActiveChips] = useState<string[]>([]);
+  const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+
+  const fileInputRef = { current: null as HTMLInputElement | null };
+  const imageInputRef = { current: null as HTMLInputElement | null };
+  const cameraInputRef = { current: null as HTMLInputElement | null };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setAttachedFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+    }
+    setIsPlusMenuOpen(false);
+  };
+
+  const removeFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
 
   const chipItems = [
     { icon: Code, label: "إنشاء موقع ويب" },
@@ -565,11 +585,106 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
             className="w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none leading-relaxed"
             dir="rtl"
           />
+          {/* Attached files preview */}
+          {attachedFiles.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {attachedFiles.map((file, index) => (
+                <div key={index} className="flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-2.5 py-1.5 text-xs text-foreground">
+                  {file.type.startsWith("image/") ? (
+                    <Image className="h-3.5 w-3.5 text-accent" />
+                  ) : (
+                    <FileText className="h-3.5 w-3.5 text-accent" />
+                  )}
+                  <span className="max-w-[120px] truncate">{file.name}</span>
+                  <button onClick={() => removeFile(index)} className="hover:text-destructive transition-colors">
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           {/* Bottom toolbar */}
           <div className="mt-3 flex items-center justify-between">
-            <button className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-muted-foreground hover:text-foreground transition-colors">
-              <Plus className="h-5 w-5" />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setIsPlusMenuOpen(!isPlusMenuOpen)}
+                className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
+                  isPlusMenuOpen ? "bg-accent text-accent-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Plus className={`h-5 w-5 transition-transform ${isPlusMenuOpen ? "rotate-45" : ""}`} />
+              </button>
+
+              {/* Plus menu popup */}
+              <AnimatePresence>
+                {isPlusMenuOpen && (
+                  <>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="fixed inset-0 z-30"
+                      onClick={() => setIsPlusMenuOpen(false)}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute bottom-12 right-0 z-40 w-48 rounded-xl border border-border bg-card p-1.5 shadow-xl"
+                      dir="rtl"
+                    >
+                      <button
+                        onClick={() => imageInputRef.current?.click()}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors"
+                      >
+                        <Image className="h-4 w-4 text-accent" />
+                        <span>رفع صورة</span>
+                      </button>
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors"
+                      >
+                        <FileText className="h-4 w-4 text-accent" />
+                        <span>رفع ملف</span>
+                      </button>
+                      <button
+                        onClick={() => cameraInputRef.current?.click()}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors"
+                      >
+                        <Camera className="h-4 w-4 text-accent" />
+                        <span>فتح الكاميرا</span>
+                      </button>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+
+              {/* Hidden file inputs */}
+              <input
+                ref={(el) => { fileInputRef.current = el; }}
+                type="file"
+                className="hidden"
+                multiple
+                onChange={handleFileSelect}
+              />
+              <input
+                ref={(el) => { imageInputRef.current = el; }}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                multiple
+                onChange={handleFileSelect}
+              />
+              <input
+                ref={(el) => { cameraInputRef.current = el; }}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+            </div>
             <div className="flex items-center gap-1">
               <button className="rounded-lg p-2 text-muted-foreground hover:text-foreground transition-colors">
                 <SlidersHorizontal className="h-[18px] w-[18px]" />
@@ -585,7 +700,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
               </button>
               <button
                 className="mr-1 flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30"
-                disabled={!inputValue.trim()}
+                disabled={!inputValue.trim() && attachedFiles.length === 0}
               >
                 <Send className="h-[18px] w-[18px]" />
               </button>
