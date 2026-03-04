@@ -572,7 +572,26 @@ const ModelSelector = ({ isOpen, onClose, currentModel, onSelect }: { isOpen: bo
 const SettingsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const [activeTab, setActiveTab] = useState<"general" | "appearance" | "notifications" | "account">("general");
   const [language, setLanguage] = useState("العربية");
-  const [theme, setTheme] = useState("داكن");
+  const [theme, setThemeState] = useState(() => {
+    return document.documentElement.classList.contains("light") ? "فاتح" : "داكن";
+  });
+
+  const setTheme = (t: string) => {
+    setThemeState(t);
+    if (t === "فاتح") {
+      document.documentElement.classList.add("light");
+    } else if (t === "داكن") {
+      document.documentElement.classList.remove("light");
+    } else {
+      // تلقائي - check system preference
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (prefersDark) {
+        document.documentElement.classList.remove("light");
+      } else {
+        document.documentElement.classList.add("light");
+      }
+    }
+  };
   const [fontSize, setFontSize] = useState("متوسط");
   const [chatBubbleStyle, setChatBubbleStyle] = useState("حديث");
   const [notifMessages, setNotifMessages] = useState(true);
