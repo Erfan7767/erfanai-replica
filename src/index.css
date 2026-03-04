@@ -36,7 +36,6 @@
 
     --radius: 0.75rem;
 
-    /* ErfanAgent custom tokens */
     --erfan-gold: 43 80% 55%;
     --erfan-gold-dim: 43 50% 35%;
     --erfan-gold-glow: 43 80% 55% / 0.15;
@@ -57,6 +56,57 @@
     --sidebar-accent-foreground: 40 20% 95%;
     --sidebar-border: 43 40% 22%;
     --sidebar-ring: 43 80% 55%;
+  }
+
+  .light {
+    --background: 0 0% 97%;
+    --foreground: 0 0% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+
+    --primary: 142 71% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 93%;
+    --secondary-foreground: 0 0% 20%;
+
+    --muted: 0 0% 93%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 43 80% 50%;
+    --accent-foreground: 0 0% 5%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 85%;
+    --input: 0 0% 90%;
+    --ring: 43 80% 50%;
+
+    --erfan-gold: 43 80% 50%;
+    --erfan-gold-dim: 43 50% 40%;
+    --erfan-gold-glow: 43 80% 50% / 0.1;
+    --erfan-green: 142 71% 45%;
+    --erfan-bg: 0 0% 97%;
+    --erfan-card: 0 0% 100%;
+    --erfan-card-border: 0 0% 85%;
+    --erfan-surface: 0 0% 93%;
+    --erfan-text: 0 0% 10%;
+    --erfan-text-muted: 0 0% 45%;
+    --erfan-overlay: 0 0% 0% / 0.4;
+
+    --sidebar-background: 0 0% 97%;
+    --sidebar-foreground: 0 0% 10%;
+    --sidebar-primary: 43 80% 50%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 0 0% 93%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 0 0% 85%;
+    --sidebar-ring: 43 80% 50%;
   }
 }
 
