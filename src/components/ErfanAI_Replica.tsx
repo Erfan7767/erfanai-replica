@@ -569,60 +569,317 @@ const ModelSelector = ({ isOpen, onClose, currentModel, onSelect }: { isOpen: bo
 );
 
 /* ═══════════════════════ SETTINGS PANEL ═══════════════════════ */
-const SettingsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => (
-  <AnimatePresence>
-    {isOpen && (
-      <>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="fixed inset-0 z-40"
-          style={{ background: "hsl(0 0% 0% / 0.7)" }}
-        />
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          className="fixed inset-x-4 top-20 bottom-20 z-50 rounded-2xl border border-border bg-card shadow-2xl overflow-auto"
-          dir="rtl"
-        >
-          <div className="flex items-center justify-between p-4 border-b border-border">
-            <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
-              <X className="h-5 w-5" />
-            </button>
-            <h3 className="text-lg font-bold text-foreground">الإعدادات</h3>
-          </div>
-          <div className="p-6 space-y-6">
-            <div>
-              <h4 className="text-sm font-semibold text-foreground mb-3">عام</h4>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between rounded-xl bg-secondary p-4">
-                  <span className="text-xs text-accent">العربية</span>
-                  <span className="text-sm text-foreground">اللغة</span>
-                </div>
-                <div className="flex items-center justify-between rounded-xl bg-secondary p-4">
-                  <span className="text-xs text-accent">داكن</span>
-                  <span className="text-sm text-foreground">المظهر</span>
-                </div>
-              </div>
+const SettingsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const [activeTab, setActiveTab] = useState<"general" | "appearance" | "notifications" | "account">("general");
+  const [language, setLanguage] = useState("العربية");
+  const [theme, setTheme] = useState("داكن");
+  const [fontSize, setFontSize] = useState("متوسط");
+  const [chatBubbleStyle, setChatBubbleStyle] = useState("حديث");
+  const [notifMessages, setNotifMessages] = useState(true);
+  const [notifUpdates, setNotifUpdates] = useState(true);
+  const [notifSound, setNotifSound] = useState(true);
+  const [notifVibration, setNotifVibration] = useState(false);
+  const [notifEmail, setNotifEmail] = useState(false);
+
+  const tabs = [
+    { id: "general" as const, label: "عام", icon: Settings },
+    { id: "appearance" as const, label: "المظهر", icon: Palette },
+    { id: "notifications" as const, label: "الإشعارات", icon: Bell },
+    { id: "account" as const, label: "الحساب", icon: User },
+  ];
+
+  const languages = ["العربية", "English", "Français", "Español", "Deutsch", "Türkçe"];
+  const themes = ["داكن", "فاتح", "تلقائي (النظام)"];
+  const fontSizes = ["صغير", "متوسط", "كبير"];
+  const bubbleStyles = ["حديث", "كلاسيكي", "فقاعات"];
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-40"
+            style={{ background: "hsl(0 0% 0% / 0.7)" }}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="fixed inset-x-3 top-10 bottom-10 z-50 flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden"
+            dir="rtl"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+              <button onClick={onClose} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+                <X className="h-5 w-5" />
+              </button>
+              <h3 className="text-lg font-bold text-foreground">الإعدادات</h3>
+              <div className="w-8" />
             </div>
-            <div>
-              <h4 className="text-sm font-semibold text-foreground mb-3">الحساب</h4>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between rounded-xl bg-secondary p-4">
-                  <span className="text-xs text-muted-foreground">erfanmoharam7796@gmail.com</span>
-                  <span className="text-sm text-foreground">البريد</span>
-                </div>
-              </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-border px-2 overflow-x-auto scrollbar-hide">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap border-b-2 ${
+                    activeTab === tab.id
+                      ? "border-accent text-accent"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <tab.icon className="h-4 w-4" />
+                  {tab.label}
+                </button>
+              ))}
             </div>
-          </div>
-        </motion.div>
-      </>
-    )}
-  </AnimatePresence>
-);
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-5">
+              {/* ── General Tab ── */}
+              {activeTab === "general" && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+                  {/* Language */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-accent" />
+                      اللغة
+                    </h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {languages.map((lang) => (
+                        <button
+                          key={lang}
+                          onClick={() => { setLanguage(lang); toast(`تم تغيير اللغة إلى ${lang}`); }}
+                          className={`rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+                            language === lang
+                              ? "bg-accent text-accent-foreground shadow-md"
+                              : "bg-secondary text-foreground hover:bg-secondary/80"
+                          }`}
+                        >
+                          {lang}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Default Model */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                      <Zap className="h-4 w-4 text-accent" />
+                      النموذج الافتراضي
+                    </h4>
+                    <div className="space-y-2">
+                      {["ErfanAI Lite", "ErfanAI Pro", "ErfanAI Max"].map((model) => (
+                        <button
+                          key={model}
+                          onClick={() => toast(`تم تعيين ${model} كنموذج افتراضي`)}
+                          className="flex w-full items-center justify-between rounded-xl bg-secondary px-4 py-3 text-sm text-foreground hover:bg-secondary/80 transition-colors"
+                        >
+                          <Sparkles className="h-4 w-4 text-muted-foreground" />
+                          <span>{model}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Clear History */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                      <Trash2 className="h-4 w-4 text-accent" />
+                      البيانات
+                    </h4>
+                    <button
+                      onClick={() => toast("تم مسح سجل المحادثات")}
+                      className="w-full rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors"
+                    >
+                      مسح سجل المحادثات
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ── Appearance Tab ── */}
+              {activeTab === "appearance" && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+                  {/* Theme */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                      <Palette className="h-4 w-4 text-accent" />
+                      المظهر
+                    </h4>
+                    <div className="grid grid-cols-3 gap-2">
+                      {themes.map((t) => (
+                        <button
+                          key={t}
+                          onClick={() => { setTheme(t); toast(`تم تغيير المظهر إلى ${t}`); }}
+                          className={`rounded-xl px-3 py-3 text-xs font-medium transition-all ${
+                            theme === t
+                              ? "bg-accent text-accent-foreground shadow-md"
+                              : "bg-secondary text-foreground hover:bg-secondary/80"
+                          }`}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Font Size */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                      <AlignJustify className="h-4 w-4 text-accent" />
+                      حجم الخط
+                    </h4>
+                    <div className="grid grid-cols-3 gap-2">
+                      {fontSizes.map((fs) => (
+                        <button
+                          key={fs}
+                          onClick={() => { setFontSize(fs); toast(`حجم الخط: ${fs}`); }}
+                          className={`rounded-xl px-3 py-3 text-sm font-medium transition-all ${
+                            fontSize === fs
+                              ? "bg-accent text-accent-foreground shadow-md"
+                              : "bg-secondary text-foreground hover:bg-secondary/80"
+                          }`}
+                        >
+                          {fs}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Chat Bubble Style */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4 text-accent" />
+                      نمط فقاعات المحادثة
+                    </h4>
+                    <div className="grid grid-cols-3 gap-2">
+                      {bubbleStyles.map((bs) => (
+                        <button
+                          key={bs}
+                          onClick={() => { setChatBubbleStyle(bs); toast(`نمط الفقاعات: ${bs}`); }}
+                          className={`rounded-xl px-3 py-3 text-sm font-medium transition-all ${
+                            chatBubbleStyle === bs
+                              ? "bg-accent text-accent-foreground shadow-md"
+                              : "bg-secondary text-foreground hover:bg-secondary/80"
+                          }`}
+                        >
+                          {bs}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ── Notifications Tab ── */}
+              {activeTab === "notifications" && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+                  {[
+                    { label: "إشعارات الرسائل", desc: "تلقي إشعار عند وصول رسالة جديدة", value: notifMessages, setter: setNotifMessages },
+                    { label: "إشعارات التحديثات", desc: "إشعارات عن التحديثات والميزات الجديدة", value: notifUpdates, setter: setNotifUpdates },
+                    { label: "الأصوات", desc: "تشغيل صوت عند وصول إشعار", value: notifSound, setter: setNotifSound },
+                    { label: "الاهتزاز", desc: "تفعيل الاهتزاز عند وصول إشعار", value: notifVibration, setter: setNotifVibration },
+                    { label: "إشعارات البريد الإلكتروني", desc: "إرسال الإشعارات المهمة عبر البريد", value: notifEmail, setter: setNotifEmail },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className="flex items-center justify-between rounded-xl bg-secondary p-4"
+                    >
+                      <button
+                        onClick={() => { item.setter(!item.value); toast(`${item.label}: ${!item.value ? "مفعّل" : "معطّل"}`); }}
+                        className={`relative h-7 w-12 rounded-full transition-colors ${
+                          item.value ? "bg-accent" : "bg-muted-foreground/30"
+                        }`}
+                      >
+                        <div
+                          className={`absolute top-0.5 h-6 w-6 rounded-full bg-foreground shadow-md transition-transform ${
+                            item.value ? "right-0.5" : "right-[calc(100%-1.625rem)]"
+                          }`}
+                        />
+                      </button>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-foreground">{item.label}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+
+              {/* ── Account Tab ── */}
+              {activeTab === "account" && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+                  {/* Profile Info */}
+                  <div className="flex items-center gap-4 rounded-xl bg-secondary p-4">
+                    <div className="text-right flex-1">
+                      <p className="text-sm font-bold text-foreground">Erfan Moharam</p>
+                      <p className="text-xs text-muted-foreground mt-1">nmoharam7796@gmail.com</p>
+                    </div>
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+                      E
+                    </div>
+                  </div>
+
+                  {/* Plan */}
+                  <div className="rounded-xl border border-border overflow-hidden">
+                    <div className="flex items-center justify-between p-4">
+                      <button
+                        onClick={() => toast("صفحة الترقية - قريباً")}
+                        className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-foreground hover:brightness-110 transition-all"
+                      >
+                        ترقية
+                      </button>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-foreground">الخطة الحالية</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">الخطة المجانية</p>
+                      </div>
+                    </div>
+                    <div className="border-t border-border px-4 py-3 flex items-center justify-between">
+                      <span className="text-sm font-semibold text-foreground">300</span>
+                      <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <Sparkles className="h-3.5 w-3.5" />
+                        الأرصدة المتبقية
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Account Actions */}
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => toast("تغيير كلمة المرور - قريباً")}
+                      className="w-full rounded-xl bg-secondary px-4 py-3 text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors text-right"
+                    >
+                      تغيير كلمة المرور
+                    </button>
+                    <button
+                      onClick={() => toast("تصدير البيانات - قريباً")}
+                      className="w-full rounded-xl bg-secondary px-4 py-3 text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors text-right"
+                    >
+                      تصدير البيانات
+                    </button>
+                    <button
+                      onClick={() => toast.error("هل أنت متأكد من حذف الحساب؟ هذا الإجراء لا يمكن التراجع عنه.")}
+                      className="w-full rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors text-right"
+                    >
+                      حذف الحساب
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
 
 /* ═══════════════════════ PROFILE DROPDOWN ═══════════════════════ */
 const ProfileDropdown = ({ isOpen, onClose, onLogout, onOpenSettings }: { isOpen: boolean; onClose: () => void; onLogout: () => void; onOpenSettings: () => void }) => (
