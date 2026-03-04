@@ -526,6 +526,12 @@ const NotificationsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
 );
 
 /* ═══════════════════════ MODEL SELECTOR ═══════════════════════ */
+const models = [
+  { id: "ErfanAI Max", label: "ErfanAI 1.6 Max", badge: "Pro", desc: "وكيل عالي الأداء مصمم للمهام المعقدة.", badgeColor: "bg-primary text-primary-foreground" },
+  { id: "ErfanAI Pro", label: "ErfanAI 1.6", badge: "Pro", desc: "وكيل متعدد الاستخدامات قادر على معظم المهام.", badgeColor: "bg-primary text-primary-foreground" },
+  { id: "ErfanAI Lite", label: "ErfanAI 1.6 Lite", badge: null, desc: "وكيل خفيف للمهام اليومية.", badgeColor: "" },
+];
+
 const ModelSelector = ({ isOpen, onClose, currentModel, onSelect }: { isOpen: boolean; onClose: () => void; currentModel: string; onSelect: (m: string) => void }) => (
   <AnimatePresence>
     {isOpen && (
@@ -538,27 +544,43 @@ const ModelSelector = ({ isOpen, onClose, currentModel, onSelect }: { isOpen: bo
           className="fixed inset-0 z-40"
         />
         <motion.div
-          initial={{ opacity: 0, y: -10, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+          initial={{ opacity: 0, y: -10, scaleY: 0.95 }}
+          animate={{ opacity: 1, y: 0, scaleY: 1 }}
+          exit={{ opacity: 0, y: -10, scaleY: 0.95 }}
           transition={{ duration: 0.2 }}
-          className="absolute left-1/2 -translate-x-1/2 top-[60px] z-50 w-64 rounded-2xl border border-border bg-card shadow-2xl overflow-hidden"
+          style={{ transformOrigin: "top center" }}
+          className="absolute right-4 left-4 top-[56px] z-50 rounded-2xl border border-border bg-card shadow-2xl overflow-hidden"
           dir="rtl"
         >
-          <div className="p-3 border-b border-border">
-            <h3 className="text-sm font-bold text-foreground text-center">اختر النموذج</h3>
-          </div>
-          <div className="p-2">
-            {["ErfanAI Lite", "ErfanAI Pro", "ErfanAI Max"].map((model) => (
+          <div className="py-2">
+            {models.map((model, idx) => (
               <button
-                key={model}
-                onClick={() => { onSelect(model); onClose(); }}
-                className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                  currentModel === model ? "bg-accent text-accent-foreground" : "text-foreground hover:bg-secondary"
-                }`}
+                key={model.id}
+                onClick={() => { onSelect(model.id); onClose(); }}
+                className={`flex w-full items-center justify-between px-5 py-3.5 transition-colors ${
+                  idx < models.length - 1 ? "" : ""
+                } ${currentModel === model.id ? "bg-secondary/60" : "hover:bg-secondary/40"}`}
               >
-                <span>{model}</span>
-                {currentModel === model && <Sparkles className="h-4 w-4" />}
+                {/* Checkmark on left */}
+                <div className="w-6 flex items-center justify-center">
+                  {currentModel === model.id && (
+                    <svg className="h-5 w-5 text-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </div>
+                {/* Text on right */}
+                <div className="flex-1 text-right mr-0 ml-3">
+                  <div className="flex items-center gap-2 justify-end">
+                    {model.badge && (
+                      <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${model.badgeColor}`}>
+                        {model.badge}
+                      </span>
+                    )}
+                    <span className="text-sm font-semibold text-foreground">{model.label}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">{model.desc}</p>
+                </div>
               </button>
             ))}
           </div>
@@ -1165,8 +1187,10 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
           onClick={() => setIsModelSelectorOpen(true)}
           className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
         >
-          <span className="text-sm font-semibold text-foreground">{currentModel}</span>
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-semibold text-foreground">
+            {models.find(m => m.id === currentModel)?.label || currentModel}
+          </span>
         </button>
 
         {/* Left side: Avatar + icons */}
