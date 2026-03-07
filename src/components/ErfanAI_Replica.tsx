@@ -750,9 +750,9 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
                       {languages.map((lang) => (
                         <button
                           key={lang}
-                          onClick={() => { setLanguage(lang); toast(`تم تغيير اللغة إلى ${lang}`); }}
+                          onClick={() => { updateSetting("language", lang); document.documentElement.dir = (lang === "العربية" || lang === "العربية") ? "rtl" : "ltr"; toast(`تم تغيير اللغة إلى ${lang}`); }}
                           className={`rounded-xl px-4 py-3 text-sm font-medium transition-all ${
-                            language === lang
+                            settings.language === lang
                               ? "bg-accent text-accent-foreground shadow-md"
                               : "bg-secondary text-foreground hover:bg-secondary/80"
                           }`}
@@ -770,14 +770,22 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
                       النموذج الافتراضي
                     </h4>
                     <div className="space-y-2">
-                      {["ErfanAI Lite", "ErfanAI Pro", "ErfanAI Max"].map((model) => (
+                      {models.map((model) => (
                         <button
-                          key={model}
-                          onClick={() => toast(`تم تعيين ${model} كنموذج افتراضي`)}
-                          className="flex w-full items-center justify-between rounded-xl bg-secondary px-4 py-3 text-sm text-foreground hover:bg-secondary/80 transition-colors"
+                          key={model.id}
+                          onClick={() => { updateSetting("defaultModel", model.id); onChangeModel(model.id); toast(`تم تعيين ${model.label} كنموذج افتراضي`); }}
+                          className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-sm transition-colors ${
+                            settings.defaultModel === model.id
+                              ? "bg-accent text-accent-foreground"
+                              : "bg-secondary text-foreground hover:bg-secondary/80"
+                          }`}
                         >
-                          <Sparkles className="h-4 w-4 text-muted-foreground" />
-                          <span>{model}</span>
+                          {settings.defaultModel === model.id ? (
+                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                          ) : (
+                            <Sparkles className="h-4 w-4 text-muted-foreground" />
+                          )}
+                          <span>{model.label}</span>
                         </button>
                       ))}
                     </div>
@@ -790,7 +798,7 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
                       البيانات
                     </h4>
                     <button
-                      onClick={() => toast("تم مسح سجل المحادثات")}
+                      onClick={() => { onClearHistory(); toast.success("تم مسح سجل المحادثات بنجاح"); }}
                       className="w-full rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors"
                     >
                       مسح سجل المحادثات
@@ -812,9 +820,9 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
                       {themes.map((t) => (
                         <button
                           key={t}
-                          onClick={() => { setTheme(t); toast(`تم تغيير المظهر إلى ${t}`); }}
+                          onClick={() => { updateSetting("theme", t); applyTheme(t); toast(`تم تغيير المظهر إلى ${t}`); }}
                           className={`rounded-xl px-3 py-3 text-xs font-medium transition-all ${
-                            theme === t
+                            settings.theme === t
                               ? "bg-accent text-accent-foreground shadow-md"
                               : "bg-secondary text-foreground hover:bg-secondary/80"
                           }`}
@@ -835,9 +843,9 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
                       {fontSizes.map((fs) => (
                         <button
                           key={fs}
-                          onClick={() => { setFontSize(fs); toast(`حجم الخط: ${fs}`); }}
+                          onClick={() => { updateSetting("fontSize", fs); applyFontSize(fs); toast(`حجم الخط: ${fs}`); }}
                           className={`rounded-xl px-3 py-3 text-sm font-medium transition-all ${
-                            fontSize === fs
+                            settings.fontSize === fs
                               ? "bg-accent text-accent-foreground shadow-md"
                               : "bg-secondary text-foreground hover:bg-secondary/80"
                           }`}
@@ -858,9 +866,9 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
                       {bubbleStyles.map((bs) => (
                         <button
                           key={bs}
-                          onClick={() => { setChatBubbleStyle(bs); toast(`نمط الفقاعات: ${bs}`); }}
+                          onClick={() => { updateSetting("chatBubbleStyle", bs); toast(`نمط الفقاعات: ${bs}`); }}
                           className={`rounded-xl px-3 py-3 text-sm font-medium transition-all ${
-                            chatBubbleStyle === bs
+                            settings.chatBubbleStyle === bs
                               ? "bg-accent text-accent-foreground shadow-md"
                               : "bg-secondary text-foreground hover:bg-secondary/80"
                           }`}
