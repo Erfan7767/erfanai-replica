@@ -1605,18 +1605,6 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                 <SlidersHorizontal className="h-[18px] w-[18px]" />
               </button>
               <button
-                onClick={() => toast("أداة القص - قريباً")}
-                className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-              >
-                <Scissors className="h-[18px] w-[18px]" />
-              </button>
-              <button
-                onClick={() => toast("وضع الاستماع - قريباً")}
-                className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-              >
-                <Headphones className="h-[18px] w-[18px]" />
-              </button>
-              <button
                 onClick={handleMic}
                 className={`rounded-lg p-2 transition-colors ${
                   isRecording
