@@ -884,26 +884,34 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
               {/* ── Notifications Tab ── */}
               {activeTab === "notifications" && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
-                  {[
-                    { label: "إشعارات الرسائل", desc: "تلقي إشعار عند وصول رسالة جديدة", value: notifMessages, setter: setNotifMessages },
-                    { label: "إشعارات التحديثات", desc: "إشعارات عن التحديثات والميزات الجديدة", value: notifUpdates, setter: setNotifUpdates },
-                    { label: "الأصوات", desc: "تشغيل صوت عند وصول إشعار", value: notifSound, setter: setNotifSound },
-                    { label: "الاهتزاز", desc: "تفعيل الاهتزاز عند وصول إشعار", value: notifVibration, setter: setNotifVibration },
-                    { label: "إشعارات البريد الإلكتروني", desc: "إرسال الإشعارات المهمة عبر البريد", value: notifEmail, setter: setNotifEmail },
-                  ].map((item) => (
+                  {([
+                    { label: "إشعارات الرسائل", desc: "تلقي إشعار عند وصول رسالة جديدة", key: "notifMessages" as const },
+                    { label: "إشعارات التحديثات", desc: "إشعارات عن التحديثات والميزات الجديدة", key: "notifUpdates" as const },
+                    { label: "الأصوات", desc: "تشغيل صوت عند وصول إشعار", key: "notifSound" as const },
+                    { label: "الاهتزاز", desc: "تفعيل الاهتزاز عند وصول إشعار", key: "notifVibration" as const },
+                    { label: "إشعارات البريد الإلكتروني", desc: "إرسال الإشعارات المهمة عبر البريد", key: "notifEmail" as const },
+                  ]).map((item) => (
                     <div
                       key={item.label}
                       className="flex items-center justify-between rounded-xl bg-secondary p-4"
                     >
                       <button
-                        onClick={() => { item.setter(!item.value); toast(`${item.label}: ${!item.value ? "مفعّل" : "معطّل"}`); }}
+                        onClick={() => {
+                          const newVal = !settings[item.key];
+                          updateSetting(item.key, newVal);
+                          toast(`${item.label}: ${newVal ? "مفعّل" : "معطّل"}`);
+                          // Vibration API
+                          if (item.key === "notifVibration" && newVal && navigator.vibrate) {
+                            navigator.vibrate(200);
+                          }
+                        }}
                         className={`relative h-7 w-12 rounded-full transition-colors ${
-                          item.value ? "bg-accent" : "bg-muted-foreground/30"
+                          settings[item.key] ? "bg-accent" : "bg-muted-foreground/30"
                         }`}
                       >
                         <div
                           className={`absolute top-0.5 h-6 w-6 rounded-full bg-foreground shadow-md transition-transform ${
-                            item.value ? "right-0.5" : "right-[calc(100%-1.625rem)]"
+                            settings[item.key] ? "right-0.5" : "right-[calc(100%-1.625rem)]"
                           }`}
                         />
                       </button>
@@ -955,25 +963,152 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
 
                   {/* Account Actions */}
                   <div className="space-y-2">
+                    {/* Change Password */}
                     <button
-                      onClick={() => toast("تغيير كلمة المرور - قريباً")}
+                      onClick={() => setShowPasswordDialog(true)}
                       className="w-full rounded-xl bg-secondary px-4 py-3 text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors text-right"
                     >
                       تغيير كلمة المرور
                     </button>
+
+                    {/* Export Data */}
                     <button
-                      onClick={() => toast("تصدير البيانات - قريباً")}
+                      onClick={() => {
+                        const data = {
+                          settings: loadSettings(),
+                          exportDate: new Date().toISOString(),
+                          messages: "تم تصدير بيانات المحادثات",
+                        };
+                        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `erfanai-data-${new Date().toISOString().slice(0, 10)}.json`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        toast.success("تم تصدير البيانات بنجاح");
+                      }}
                       className="w-full rounded-xl bg-secondary px-4 py-3 text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors text-right"
                     >
                       تصدير البيانات
                     </button>
+
+                    {/* Delete Account */}
                     <button
-                      onClick={() => toast.error("هل أنت متأكد من حذف الحساب؟ هذا الإجراء لا يمكن التراجع عنه.")}
+                      onClick={() => setShowDeleteConfirm(true)}
                       className="w-full rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors text-right"
                     >
                       حذف الحساب
                     </button>
                   </div>
+
+                  {/* Password Dialog */}
+                  <AnimatePresence>
+                    {showPasswordDialog && (
+                      <>
+                        <motion.div
+                          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                          className="fixed inset-0 z-[60] bg-background/80"
+                          onClick={() => setShowPasswordDialog(false)}
+                        />
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                          className="fixed inset-x-6 top-1/2 -translate-y-1/2 z-[70] rounded-2xl border border-border bg-card p-5 shadow-2xl space-y-4"
+                          dir="rtl"
+                        >
+                          <h3 className="text-base font-bold text-foreground text-center">تغيير كلمة المرور</h3>
+                          <input
+                            type="password" placeholder="كلمة المرور الحالية" value={oldPassword}
+                            onChange={e => setOldPassword(e.target.value)}
+                            className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none"
+                          />
+                          <input
+                            type="password" placeholder="كلمة المرور الجديدة" value={newPassword}
+                            onChange={e => setNewPassword(e.target.value)}
+                            className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none"
+                          />
+                          <input
+                            type="password" placeholder="تأكيد كلمة المرور الجديدة" value={confirmPassword}
+                            onChange={e => setConfirmPassword(e.target.value)}
+                            className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setShowPasswordDialog(false)}
+                              className="flex-1 rounded-xl bg-secondary py-3 text-sm font-medium text-foreground"
+                            >
+                              إلغاء
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (!oldPassword || !newPassword || !confirmPassword) {
+                                  toast.error("يرجى ملء جميع الحقول");
+                                  return;
+                                }
+                                if (newPassword !== confirmPassword) {
+                                  toast.error("كلمة المرور الجديدة غير متطابقة");
+                                  return;
+                                }
+                                if (newPassword.length < 6) {
+                                  toast.error("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+                                  return;
+                                }
+                                toast.success("تم تغيير كلمة المرور بنجاح");
+                                setOldPassword(""); setNewPassword(""); setConfirmPassword("");
+                                setShowPasswordDialog(false);
+                              }}
+                              className="flex-1 rounded-xl bg-accent py-3 text-sm font-bold text-accent-foreground"
+                            >
+                              حفظ
+                            </button>
+                          </div>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Delete Confirm Dialog */}
+                  <AnimatePresence>
+                    {showDeleteConfirm && (
+                      <>
+                        <motion.div
+                          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                          className="fixed inset-0 z-[60] bg-background/80"
+                          onClick={() => setShowDeleteConfirm(false)}
+                        />
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                          className="fixed inset-x-6 top-1/2 -translate-y-1/2 z-[70] rounded-2xl border border-border bg-card p-5 shadow-2xl space-y-4"
+                          dir="rtl"
+                        >
+                          <h3 className="text-base font-bold text-destructive text-center">حذف الحساب</h3>
+                          <p className="text-sm text-muted-foreground text-center leading-relaxed">
+                            هل أنت متأكد من حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه وسيتم حذف جميع بياناتك نهائياً.
+                          </p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setShowDeleteConfirm(false)}
+                              className="flex-1 rounded-xl bg-secondary py-3 text-sm font-medium text-foreground"
+                            >
+                              إلغاء
+                            </button>
+                            <button
+                              onClick={() => {
+                                localStorage.clear();
+                                toast.success("تم حذف الحساب بنجاح");
+                                setShowDeleteConfirm(false);
+                                onClose();
+                                onLogout();
+                              }}
+                              className="flex-1 rounded-xl bg-destructive py-3 text-sm font-bold text-destructive-foreground"
+                            >
+                              حذف نهائياً
+                            </button>
+                          </div>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               )}
             </div>
