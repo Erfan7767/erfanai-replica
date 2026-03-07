@@ -1295,7 +1295,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [currentModel, setCurrentModel] = useState("ErfanAI Lite");
+  const [currentModel, setCurrentModel] = useState(() => loadSettings().defaultModel || "ErfanAI Lite");
   const [inputValue, setInputValue] = useState("");
   const [showTools, setShowTools] = useState(true);
   const [activeChips, setActiveChips] = useState<string[]>([]);
@@ -1303,6 +1303,13 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [messages, setMessages] = useState<{ text: string; isUser: boolean; files?: File[] }[]>([]);
   const [isRecording, setIsRecording] = useState(false);
+
+  // Apply saved settings on mount
+  useState(() => {
+    const s = loadSettings();
+    applyTheme(s.theme);
+    applyFontSize(s.fontSize);
+  });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
