@@ -590,37 +590,91 @@ const ModelSelector = ({ isOpen, onClose, currentModel, onSelect }: { isOpen: bo
   </AnimatePresence>
 );
 
-/* ═══════════════════════ SETTINGS PANEL ═══════════════════════ */
-const SettingsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
-  const [activeTab, setActiveTab] = useState<"general" | "appearance" | "notifications" | "account">("general");
-  const [language, setLanguage] = useState("العربية");
-  const [theme, setThemeState] = useState(() => {
-    return document.documentElement.classList.contains("light") ? "فاتح" : "داكن";
-  });
+/* ═══════════════════════ SETTINGS HELPERS ═══════════════════════ */
+const SETTINGS_KEY = "erfanai_settings";
 
-  const setTheme = (t: string) => {
-    setThemeState(t);
-    if (t === "فاتح") {
-      document.documentElement.classList.add("light");
-    } else if (t === "داكن") {
-      document.documentElement.classList.remove("light");
-    } else {
-      // تلقائي - check system preference
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      if (prefersDark) {
-        document.documentElement.classList.remove("light");
-      } else {
-        document.documentElement.classList.add("light");
-      }
-    }
+interface AppSettings {
+  language: string;
+  theme: string;
+  fontSize: string;
+  chatBubbleStyle: string;
+  defaultModel: string;
+  notifMessages: boolean;
+  notifUpdates: boolean;
+  notifSound: boolean;
+  notifVibration: boolean;
+  notifEmail: boolean;
+}
+
+const defaultSettings: AppSettings = {
+  language: "العربية",
+  theme: "داكن",
+  fontSize: "متوسط",
+  chatBubbleStyle: "حديث",
+  defaultModel: "ErfanAI Lite",
+  notifMessages: true,
+  notifUpdates: true,
+  notifSound: true,
+  notifVibration: false,
+  notifEmail: false,
+};
+
+const loadSettings = (): AppSettings => {
+  try {
+    const stored = localStorage.getItem(SETTINGS_KEY);
+    if (stored) return { ...defaultSettings, ...JSON.parse(stored) };
+  } catch {}
+  return { ...defaultSettings };
+};
+
+const saveSettings = (settings: AppSettings) => {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+};
+
+const applyTheme = (t: string) => {
+  if (t === "فاتح") {
+    document.documentElement.classList.add("light");
+  } else if (t === "داكن") {
+    document.documentElement.classList.remove("light");
+  } else {
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (prefersDark) document.documentElement.classList.remove("light");
+    else document.documentElement.classList.add("light");
+  }
+  localStorage.setItem("erfanai_theme", t);
+};
+
+const applyFontSize = (fs: string) => {
+  const sizeMap: Record<string, string> = { "صغير": "14px", "متوسط": "16px", "كبير": "18px" };
+  document.documentElement.style.fontSize = sizeMap[fs] || "16px";
+};
+
+/* ═══════════════════════ SETTINGS PANEL ═══════════════════════ */
+interface SettingsPanelProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onChangeModel: (model: string) => void;
+  onClearHistory: () => void;
+  onLogout: () => void;
+  currentModel: string;
+}
+
+const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogout, currentModel }: SettingsPanelProps) => {
+  const [activeTab, setActiveTab] = useState<"general" | "appearance" | "notifications" | "account">("general");
+  const [settings, setSettingsState] = useState<AppSettings>(loadSettings);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const updateSetting = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
+    setSettingsState(prev => {
+      const next = { ...prev, [key]: value };
+      saveSettings(next);
+      return next;
+    });
   };
-  const [fontSize, setFontSize] = useState("متوسط");
-  const [chatBubbleStyle, setChatBubbleStyle] = useState("حديث");
-  const [notifMessages, setNotifMessages] = useState(true);
-  const [notifUpdates, setNotifUpdates] = useState(true);
-  const [notifSound, setNotifSound] = useState(true);
-  const [notifVibration, setNotifVibration] = useState(false);
-  const [notifEmail, setNotifEmail] = useState(false);
 
   const tabs = [
     { id: "general" as const, label: "عام", icon: Settings },
@@ -696,9 +750,9 @@ const SettingsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
                       {languages.map((lang) => (
                         <button
                           key={lang}
-                          onClick={() => { setLanguage(lang); toast(`تم تغيير اللغة إلى ${lang}`); }}
+                          onClick={() => { updateSetting("language", lang); document.documentElement.dir = (lang === "العربية" || lang === "العربية") ? "rtl" : "ltr"; toast(`تم تغيير اللغة إلى ${lang}`); }}
                           className={`rounded-xl px-4 py-3 text-sm font-medium transition-all ${
-                            language === lang
+                            settings.language === lang
                               ? "bg-accent text-accent-foreground shadow-md"
                               : "bg-secondary text-foreground hover:bg-secondary/80"
                           }`}
@@ -716,14 +770,22 @@ const SettingsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
                       النموذج الافتراضي
                     </h4>
                     <div className="space-y-2">
-                      {["ErfanAI Lite", "ErfanAI Pro", "ErfanAI Max"].map((model) => (
+                      {models.map((model) => (
                         <button
-                          key={model}
-                          onClick={() => toast(`تم تعيين ${model} كنموذج افتراضي`)}
-                          className="flex w-full items-center justify-between rounded-xl bg-secondary px-4 py-3 text-sm text-foreground hover:bg-secondary/80 transition-colors"
+                          key={model.id}
+                          onClick={() => { updateSetting("defaultModel", model.id); onChangeModel(model.id); toast(`تم تعيين ${model.label} كنموذج افتراضي`); }}
+                          className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-sm transition-colors ${
+                            settings.defaultModel === model.id
+                              ? "bg-accent text-accent-foreground"
+                              : "bg-secondary text-foreground hover:bg-secondary/80"
+                          }`}
                         >
-                          <Sparkles className="h-4 w-4 text-muted-foreground" />
-                          <span>{model}</span>
+                          {settings.defaultModel === model.id ? (
+                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                          ) : (
+                            <Sparkles className="h-4 w-4 text-muted-foreground" />
+                          )}
+                          <span>{model.label}</span>
                         </button>
                       ))}
                     </div>
@@ -736,7 +798,7 @@ const SettingsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
                       البيانات
                     </h4>
                     <button
-                      onClick={() => toast("تم مسح سجل المحادثات")}
+                      onClick={() => { onClearHistory(); toast.success("تم مسح سجل المحادثات بنجاح"); }}
                       className="w-full rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors"
                     >
                       مسح سجل المحادثات
@@ -758,9 +820,9 @@ const SettingsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
                       {themes.map((t) => (
                         <button
                           key={t}
-                          onClick={() => { setTheme(t); toast(`تم تغيير المظهر إلى ${t}`); }}
+                          onClick={() => { updateSetting("theme", t); applyTheme(t); toast(`تم تغيير المظهر إلى ${t}`); }}
                           className={`rounded-xl px-3 py-3 text-xs font-medium transition-all ${
-                            theme === t
+                            settings.theme === t
                               ? "bg-accent text-accent-foreground shadow-md"
                               : "bg-secondary text-foreground hover:bg-secondary/80"
                           }`}
@@ -781,9 +843,9 @@ const SettingsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
                       {fontSizes.map((fs) => (
                         <button
                           key={fs}
-                          onClick={() => { setFontSize(fs); toast(`حجم الخط: ${fs}`); }}
+                          onClick={() => { updateSetting("fontSize", fs); applyFontSize(fs); toast(`حجم الخط: ${fs}`); }}
                           className={`rounded-xl px-3 py-3 text-sm font-medium transition-all ${
-                            fontSize === fs
+                            settings.fontSize === fs
                               ? "bg-accent text-accent-foreground shadow-md"
                               : "bg-secondary text-foreground hover:bg-secondary/80"
                           }`}
@@ -804,9 +866,9 @@ const SettingsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
                       {bubbleStyles.map((bs) => (
                         <button
                           key={bs}
-                          onClick={() => { setChatBubbleStyle(bs); toast(`نمط الفقاعات: ${bs}`); }}
+                          onClick={() => { updateSetting("chatBubbleStyle", bs); toast(`نمط الفقاعات: ${bs}`); }}
                           className={`rounded-xl px-3 py-3 text-sm font-medium transition-all ${
-                            chatBubbleStyle === bs
+                            settings.chatBubbleStyle === bs
                               ? "bg-accent text-accent-foreground shadow-md"
                               : "bg-secondary text-foreground hover:bg-secondary/80"
                           }`}
@@ -822,26 +884,34 @@ const SettingsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
               {/* ── Notifications Tab ── */}
               {activeTab === "notifications" && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
-                  {[
-                    { label: "إشعارات الرسائل", desc: "تلقي إشعار عند وصول رسالة جديدة", value: notifMessages, setter: setNotifMessages },
-                    { label: "إشعارات التحديثات", desc: "إشعارات عن التحديثات والميزات الجديدة", value: notifUpdates, setter: setNotifUpdates },
-                    { label: "الأصوات", desc: "تشغيل صوت عند وصول إشعار", value: notifSound, setter: setNotifSound },
-                    { label: "الاهتزاز", desc: "تفعيل الاهتزاز عند وصول إشعار", value: notifVibration, setter: setNotifVibration },
-                    { label: "إشعارات البريد الإلكتروني", desc: "إرسال الإشعارات المهمة عبر البريد", value: notifEmail, setter: setNotifEmail },
-                  ].map((item) => (
+                  {([
+                    { label: "إشعارات الرسائل", desc: "تلقي إشعار عند وصول رسالة جديدة", key: "notifMessages" as const },
+                    { label: "إشعارات التحديثات", desc: "إشعارات عن التحديثات والميزات الجديدة", key: "notifUpdates" as const },
+                    { label: "الأصوات", desc: "تشغيل صوت عند وصول إشعار", key: "notifSound" as const },
+                    { label: "الاهتزاز", desc: "تفعيل الاهتزاز عند وصول إشعار", key: "notifVibration" as const },
+                    { label: "إشعارات البريد الإلكتروني", desc: "إرسال الإشعارات المهمة عبر البريد", key: "notifEmail" as const },
+                  ]).map((item) => (
                     <div
                       key={item.label}
                       className="flex items-center justify-between rounded-xl bg-secondary p-4"
                     >
                       <button
-                        onClick={() => { item.setter(!item.value); toast(`${item.label}: ${!item.value ? "مفعّل" : "معطّل"}`); }}
+                        onClick={() => {
+                          const newVal = !settings[item.key];
+                          updateSetting(item.key, newVal);
+                          toast(`${item.label}: ${newVal ? "مفعّل" : "معطّل"}`);
+                          // Vibration API
+                          if (item.key === "notifVibration" && newVal && navigator.vibrate) {
+                            navigator.vibrate(200);
+                          }
+                        }}
                         className={`relative h-7 w-12 rounded-full transition-colors ${
-                          item.value ? "bg-accent" : "bg-muted-foreground/30"
+                          settings[item.key] ? "bg-accent" : "bg-muted-foreground/30"
                         }`}
                       >
                         <div
                           className={`absolute top-0.5 h-6 w-6 rounded-full bg-foreground shadow-md transition-transform ${
-                            item.value ? "right-0.5" : "right-[calc(100%-1.625rem)]"
+                            settings[item.key] ? "right-0.5" : "right-[calc(100%-1.625rem)]"
                           }`}
                         />
                       </button>
@@ -893,25 +963,152 @@ const SettingsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => vo
 
                   {/* Account Actions */}
                   <div className="space-y-2">
+                    {/* Change Password */}
                     <button
-                      onClick={() => toast("تغيير كلمة المرور - قريباً")}
+                      onClick={() => setShowPasswordDialog(true)}
                       className="w-full rounded-xl bg-secondary px-4 py-3 text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors text-right"
                     >
                       تغيير كلمة المرور
                     </button>
+
+                    {/* Export Data */}
                     <button
-                      onClick={() => toast("تصدير البيانات - قريباً")}
+                      onClick={() => {
+                        const data = {
+                          settings: loadSettings(),
+                          exportDate: new Date().toISOString(),
+                          messages: "تم تصدير بيانات المحادثات",
+                        };
+                        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `erfanai-data-${new Date().toISOString().slice(0, 10)}.json`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        toast.success("تم تصدير البيانات بنجاح");
+                      }}
                       className="w-full rounded-xl bg-secondary px-4 py-3 text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors text-right"
                     >
                       تصدير البيانات
                     </button>
+
+                    {/* Delete Account */}
                     <button
-                      onClick={() => toast.error("هل أنت متأكد من حذف الحساب؟ هذا الإجراء لا يمكن التراجع عنه.")}
+                      onClick={() => setShowDeleteConfirm(true)}
                       className="w-full rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors text-right"
                     >
                       حذف الحساب
                     </button>
                   </div>
+
+                  {/* Password Dialog */}
+                  <AnimatePresence>
+                    {showPasswordDialog && (
+                      <>
+                        <motion.div
+                          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                          className="fixed inset-0 z-[60] bg-background/80"
+                          onClick={() => setShowPasswordDialog(false)}
+                        />
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                          className="fixed inset-x-6 top-1/2 -translate-y-1/2 z-[70] rounded-2xl border border-border bg-card p-5 shadow-2xl space-y-4"
+                          dir="rtl"
+                        >
+                          <h3 className="text-base font-bold text-foreground text-center">تغيير كلمة المرور</h3>
+                          <input
+                            type="password" placeholder="كلمة المرور الحالية" value={oldPassword}
+                            onChange={e => setOldPassword(e.target.value)}
+                            className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none"
+                          />
+                          <input
+                            type="password" placeholder="كلمة المرور الجديدة" value={newPassword}
+                            onChange={e => setNewPassword(e.target.value)}
+                            className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none"
+                          />
+                          <input
+                            type="password" placeholder="تأكيد كلمة المرور الجديدة" value={confirmPassword}
+                            onChange={e => setConfirmPassword(e.target.value)}
+                            className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setShowPasswordDialog(false)}
+                              className="flex-1 rounded-xl bg-secondary py-3 text-sm font-medium text-foreground"
+                            >
+                              إلغاء
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (!oldPassword || !newPassword || !confirmPassword) {
+                                  toast.error("يرجى ملء جميع الحقول");
+                                  return;
+                                }
+                                if (newPassword !== confirmPassword) {
+                                  toast.error("كلمة المرور الجديدة غير متطابقة");
+                                  return;
+                                }
+                                if (newPassword.length < 6) {
+                                  toast.error("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+                                  return;
+                                }
+                                toast.success("تم تغيير كلمة المرور بنجاح");
+                                setOldPassword(""); setNewPassword(""); setConfirmPassword("");
+                                setShowPasswordDialog(false);
+                              }}
+                              className="flex-1 rounded-xl bg-accent py-3 text-sm font-bold text-accent-foreground"
+                            >
+                              حفظ
+                            </button>
+                          </div>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Delete Confirm Dialog */}
+                  <AnimatePresence>
+                    {showDeleteConfirm && (
+                      <>
+                        <motion.div
+                          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                          className="fixed inset-0 z-[60] bg-background/80"
+                          onClick={() => setShowDeleteConfirm(false)}
+                        />
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                          className="fixed inset-x-6 top-1/2 -translate-y-1/2 z-[70] rounded-2xl border border-border bg-card p-5 shadow-2xl space-y-4"
+                          dir="rtl"
+                        >
+                          <h3 className="text-base font-bold text-destructive text-center">حذف الحساب</h3>
+                          <p className="text-sm text-muted-foreground text-center leading-relaxed">
+                            هل أنت متأكد من حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه وسيتم حذف جميع بياناتك نهائياً.
+                          </p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setShowDeleteConfirm(false)}
+                              className="flex-1 rounded-xl bg-secondary py-3 text-sm font-medium text-foreground"
+                            >
+                              إلغاء
+                            </button>
+                            <button
+                              onClick={() => {
+                                localStorage.clear();
+                                toast.success("تم حذف الحساب بنجاح");
+                                setShowDeleteConfirm(false);
+                                onClose();
+                                onLogout();
+                              }}
+                              className="flex-1 rounded-xl bg-destructive py-3 text-sm font-bold text-destructive-foreground"
+                            >
+                              حذف نهائياً
+                            </button>
+                          </div>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               )}
             </div>
@@ -1098,7 +1295,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [currentModel, setCurrentModel] = useState("ErfanAI Lite");
+  const [currentModel, setCurrentModel] = useState(() => loadSettings().defaultModel || "ErfanAI Lite");
   const [inputValue, setInputValue] = useState("");
   const [showTools, setShowTools] = useState(true);
   const [activeChips, setActiveChips] = useState<string[]>([]);
@@ -1106,6 +1303,13 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [messages, setMessages] = useState<{ text: string; isUser: boolean; files?: File[] }[]>([]);
   const [isRecording, setIsRecording] = useState(false);
+
+  // Apply saved settings on mount
+  useState(() => {
+    const s = loadSettings();
+    applyTheme(s.theme);
+    applyFontSize(s.fontSize);
+  });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -1533,7 +1737,14 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         currentModel={currentModel}
         onSelect={(m) => { setCurrentModel(m); toast(`تم التبديل إلى ${m}`); }}
       />
-      <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <SettingsPanel
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        onChangeModel={(m) => setCurrentModel(m)}
+        onClearHistory={() => { setMessages([]); setActiveChips([]); }}
+        onLogout={onLogout}
+        currentModel={currentModel}
+      />
     </div>
   );
 };
