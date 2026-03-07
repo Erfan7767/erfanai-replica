@@ -590,37 +590,91 @@ const ModelSelector = ({ isOpen, onClose, currentModel, onSelect }: { isOpen: bo
   </AnimatePresence>
 );
 
-/* ═══════════════════════ SETTINGS PANEL ═══════════════════════ */
-const SettingsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
-  const [activeTab, setActiveTab] = useState<"general" | "appearance" | "notifications" | "account">("general");
-  const [language, setLanguage] = useState("العربية");
-  const [theme, setThemeState] = useState(() => {
-    return document.documentElement.classList.contains("light") ? "فاتح" : "داكن";
-  });
+/* ═══════════════════════ SETTINGS HELPERS ═══════════════════════ */
+const SETTINGS_KEY = "erfanai_settings";
 
-  const setTheme = (t: string) => {
-    setThemeState(t);
-    if (t === "فاتح") {
-      document.documentElement.classList.add("light");
-    } else if (t === "داكن") {
-      document.documentElement.classList.remove("light");
-    } else {
-      // تلقائي - check system preference
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      if (prefersDark) {
-        document.documentElement.classList.remove("light");
-      } else {
-        document.documentElement.classList.add("light");
-      }
-    }
+interface AppSettings {
+  language: string;
+  theme: string;
+  fontSize: string;
+  chatBubbleStyle: string;
+  defaultModel: string;
+  notifMessages: boolean;
+  notifUpdates: boolean;
+  notifSound: boolean;
+  notifVibration: boolean;
+  notifEmail: boolean;
+}
+
+const defaultSettings: AppSettings = {
+  language: "العربية",
+  theme: "داكن",
+  fontSize: "متوسط",
+  chatBubbleStyle: "حديث",
+  defaultModel: "ErfanAI Lite",
+  notifMessages: true,
+  notifUpdates: true,
+  notifSound: true,
+  notifVibration: false,
+  notifEmail: false,
+};
+
+const loadSettings = (): AppSettings => {
+  try {
+    const stored = localStorage.getItem(SETTINGS_KEY);
+    if (stored) return { ...defaultSettings, ...JSON.parse(stored) };
+  } catch {}
+  return { ...defaultSettings };
+};
+
+const saveSettings = (settings: AppSettings) => {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+};
+
+const applyTheme = (t: string) => {
+  if (t === "فاتح") {
+    document.documentElement.classList.add("light");
+  } else if (t === "داكن") {
+    document.documentElement.classList.remove("light");
+  } else {
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (prefersDark) document.documentElement.classList.remove("light");
+    else document.documentElement.classList.add("light");
+  }
+  localStorage.setItem("erfanai_theme", t);
+};
+
+const applyFontSize = (fs: string) => {
+  const sizeMap: Record<string, string> = { "صغير": "14px", "متوسط": "16px", "كبير": "18px" };
+  document.documentElement.style.fontSize = sizeMap[fs] || "16px";
+};
+
+/* ═══════════════════════ SETTINGS PANEL ═══════════════════════ */
+interface SettingsPanelProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onChangeModel: (model: string) => void;
+  onClearHistory: () => void;
+  onLogout: () => void;
+  currentModel: string;
+}
+
+const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogout, currentModel }: SettingsPanelProps) => {
+  const [activeTab, setActiveTab] = useState<"general" | "appearance" | "notifications" | "account">("general");
+  const [settings, setSettingsState] = useState<AppSettings>(loadSettings);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const updateSetting = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
+    setSettingsState(prev => {
+      const next = { ...prev, [key]: value };
+      saveSettings(next);
+      return next;
+    });
   };
-  const [fontSize, setFontSize] = useState("متوسط");
-  const [chatBubbleStyle, setChatBubbleStyle] = useState("حديث");
-  const [notifMessages, setNotifMessages] = useState(true);
-  const [notifUpdates, setNotifUpdates] = useState(true);
-  const [notifSound, setNotifSound] = useState(true);
-  const [notifVibration, setNotifVibration] = useState(false);
-  const [notifEmail, setNotifEmail] = useState(false);
 
   const tabs = [
     { id: "general" as const, label: "عام", icon: Settings },
