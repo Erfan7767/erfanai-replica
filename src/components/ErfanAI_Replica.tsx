@@ -1730,7 +1730,14 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         currentModel={currentModel}
         onSelect={(m) => { setCurrentModel(m); toast(`تم التبديل إلى ${m}`); }}
       />
-      <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <SettingsPanel
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        onChangeModel={(m) => setCurrentModel(m)}
+        onClearHistory={() => { setMessages([]); setActiveChips([]); }}
+        onLogout={onLogout}
+        currentModel={currentModel}
+      />
     </div>
   );
 };
