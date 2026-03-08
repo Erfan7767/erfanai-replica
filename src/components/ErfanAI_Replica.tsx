@@ -251,6 +251,160 @@ const Sidebar = ({ isOpen, onClose, onNewTask, onNavigate }: { isOpen: boolean; 
   );
 };
 
+/* ═══════════════════════ SEARCH CONVERSATIONS PANEL ═══════════════════════ */
+const SearchConversationsPanel = ({ isOpen, onClose, messages, onSelectMessage }: { isOpen: boolean; onClose: () => void; messages: { text: string; isUser: boolean; files?: File[] }[]; onSelectMessage: (msg: string) => void }) => {
+  const { lang } = useLang();
+  const dir = isRTL(lang) ? "rtl" : "ltr";
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredMessages = searchQuery.trim()
+    ? messages.filter(m => m.text.toLowerCase().includes(searchQuery.toLowerCase()))
+    : messages;
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40" style={{ background: "hsl(0 0% 0% / 0.7)" }} />
+          <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className="fixed inset-x-3 top-10 bottom-10 z-50 flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden" dir={dir}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+              <button onClick={onClose} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"><X className="h-5 w-5" /></button>
+              <h3 className="text-lg font-bold text-foreground">{t(lang, "search.title")}</h3>
+              <div className="w-8" />
+            </div>
+            <div className="px-4 py-3 border-b border-border">
+              <div className="flex items-center gap-2 rounded-xl bg-secondary px-3 py-2.5">
+                <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+                <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={t(lang, "search.placeholder")} className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground" autoFocus dir={dir} />
+                {searchQuery && <button onClick={() => setSearchQuery("")} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>}
+              </div>
+              {searchQuery && <p className="mt-2 text-xs text-muted-foreground">{filteredMessages.length} {t(lang, "search.results_count")}</p>}
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center gap-3">
+                  <MessageSquare className="h-12 w-12 text-muted-foreground/30" />
+                  <p className="text-sm text-muted-foreground">{t(lang, "search.no_conversations")}</p>
+                  <p className="text-xs text-muted-foreground/60">{t(lang, "search.start_chatting")}</p>
+                </div>
+              ) : filteredMessages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center gap-3">
+                  <Search className="h-12 w-12 text-muted-foreground/30" />
+                  <p className="text-sm text-muted-foreground">{t(lang, "search.no_results")}</p>
+                </div>
+              ) : (
+                filteredMessages.map((msg, i) => {
+                  const highlightText = (text: string) => {
+                    if (!searchQuery.trim()) return text;
+                    const parts = text.split(new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+                    return parts.map((part, j) => part.toLowerCase() === searchQuery.toLowerCase() ? <span key={j} className="bg-accent/40 rounded px-0.5">{part}</span> : part);
+                  };
+                  return (
+                    <button key={i} onClick={() => { onSelectMessage(msg.text); onClose(); }} className={`flex w-full items-start gap-3 rounded-xl px-4 py-3 text-sm transition-colors hover:bg-secondary ${msg.isUser ? "border-l-2 border-accent" : "border-l-2 border-muted-foreground/20"}`}>
+                      <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${msg.isUser ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>{msg.isUser ? "أ" : "E"}</div>
+                      <div className={`flex-1 ${isRTL(lang) ? "text-right" : "text-left"}`}>
+                        <p className="text-foreground leading-relaxed line-clamp-2">{highlightText(msg.text)}</p>
+                        {msg.files && msg.files.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {msg.files.map((f, fi) => <span key={fi} className="text-xs text-muted-foreground bg-secondary rounded px-1.5 py-0.5">{f.name}</span>)}
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
+/* ═══════════════════════ DISCOVER PANEL ═══════════════════════ */
+const discoverTemplates = [
+  { category: "discover.cat_coding", icon: Code, items: [
+    { titleAr: "أنشئ لي موقع ويب بسيط", titleEn: "Create a simple website", prompt: "أنشئ لي موقع ويب بسيط باستخدام HTML و CSS" },
+    { titleAr: "اكتب كود Python", titleEn: "Write Python code", prompt: "اكتب لي كود Python لحساب الأعداد الأولية" },
+    { titleAr: "صحح الأخطاء البرمجية", titleEn: "Debug my code", prompt: "ساعدني في تصحيح الأخطاء في الكود التالي" },
+  ]},
+  { category: "discover.cat_writing", icon: FileText, items: [
+    { titleAr: "اكتب مقال احترافي", titleEn: "Write a professional article", prompt: "اكتب لي مقال احترافي عن الذكاء الاصطناعي" },
+    { titleAr: "صياغة بريد إلكتروني", titleEn: "Draft an email", prompt: "ساعدني في كتابة بريد إلكتروني رسمي" },
+    { titleAr: "تلخيص نص طويل", titleEn: "Summarize a text", prompt: "لخص لي النص التالي في نقاط رئيسية" },
+  ]},
+  { category: "discover.cat_design", icon: Palette, items: [
+    { titleAr: "اقترح تصميم واجهة", titleEn: "Suggest UI design", prompt: "اقترح لي تصميم واجهة مستخدم لتطبيق متجر إلكتروني" },
+    { titleAr: "اختيار ألوان متناسقة", titleEn: "Choose color palette", prompt: "ساعدني في اختيار مجموعة ألوان متناسقة لعلامتي التجارية" },
+    { titleAr: "تصميم شعار", titleEn: "Design a logo", prompt: "أعطني أفكار لتصميم شعار لشركة تقنية" },
+  ]},
+  { category: "discover.cat_learning", icon: BookOpen, items: [
+    { titleAr: "اشرح مفهوم برمجي", titleEn: "Explain a concept", prompt: "اشرح لي مفهوم الـ API بطريقة مبسطة" },
+    { titleAr: "خطة تعلم برمجة", titleEn: "Learning plan", prompt: "ضع لي خطة لتعلم البرمجة من الصفر في 3 أشهر" },
+    { titleAr: "اختبار معلوماتي", titleEn: "Quiz me", prompt: "اختبرني في أساسيات JavaScript" },
+  ]},
+  { category: "discover.cat_business", icon: Presentation, items: [
+    { titleAr: "كتابة خطة عمل", titleEn: "Write business plan", prompt: "ساعدني في كتابة خطة عمل لمشروع تقني ناشئ" },
+    { titleAr: "تحليل السوق", titleEn: "Market analysis", prompt: "قم بتحليل سوق التطبيقات في المنطقة العربية" },
+    { titleAr: "استراتيجية تسويقية", titleEn: "Marketing strategy", prompt: "اقترح استراتيجية تسويقية لإطلاق منتج جديد" },
+  ]},
+  { category: "discover.cat_fun", icon: Sparkles, items: [
+    { titleAr: "اكتب قصة قصيرة", titleEn: "Write a short story", prompt: "اكتب لي قصة قصيرة خيالية مشوقة" },
+    { titleAr: "ألغاز ذكاء", titleEn: "Brain teasers", prompt: "أعطني 5 ألغاز ذكاء صعبة مع حلولها" },
+    { titleAr: "نكت ذكية", titleEn: "Smart jokes", prompt: "أخبرني بنكت ذكية عن البرمجة" },
+  ]},
+];
+
+const DiscoverPanel = ({ isOpen, onClose, onUseTemplate }: { isOpen: boolean; onClose: () => void; onUseTemplate: (prompt: string) => void }) => {
+  const { lang } = useLang();
+  const dir = isRTL(lang) ? "rtl" : "ltr";
+  const [activeCategory, setActiveCategory] = useState(0);
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40" style={{ background: "hsl(0 0% 0% / 0.7)" }} />
+          <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className="fixed inset-x-3 top-10 bottom-10 z-50 flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden" dir={dir}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+              <button onClick={onClose} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"><X className="h-5 w-5" /></button>
+              <div className="text-center">
+                <h3 className="text-lg font-bold text-foreground">{t(lang, "discover.title")}</h3>
+                <p className="text-xs text-muted-foreground">{t(lang, "discover.subtitle")}</p>
+              </div>
+              <div className="w-8" />
+            </div>
+            <div className="flex gap-1.5 px-4 py-3 overflow-x-auto scrollbar-hide border-b border-border">
+              {discoverTemplates.map((cat, i) => (
+                <button key={i} onClick={() => setActiveCategory(i)} className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors ${activeCategory === i ? "bg-accent text-accent-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
+                  <cat.icon className="h-3.5 w-3.5" />
+                  {t(lang, cat.category)}
+                </button>
+              ))}
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {discoverTemplates[activeCategory].items.map((item, i) => (
+                <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="rounded-xl border border-border bg-secondary/50 p-4 hover:bg-secondary transition-colors">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <h4 className="text-sm font-semibold text-foreground">{isRTL(lang) ? item.titleAr : item.titleEn}</h4>
+                      <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{item.prompt}</p>
+                    </div>
+                    <button onClick={() => { onUseTemplate(item.prompt); onClose(); toast.success(t(lang, "discover.template_used")); }} className="shrink-0 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-accent-foreground hover:brightness-110 transition-all active:scale-95">
+                      {t(lang, "discover.try_it")}
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
 /* ═══════════════════════ NOTIFICATIONS PANEL ═══════════════════════ */
 const NotificationsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const { lang } = useLang();
