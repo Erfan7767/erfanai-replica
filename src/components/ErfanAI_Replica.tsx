@@ -953,6 +953,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [messages, setMessages] = useState<{ text: string; isUser: boolean; files?: File[] }[]>([]);
   const [isRecording, setIsRecording] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isDiscoverOpen, setIsDiscoverOpen] = useState(false);
 
   useState(() => {
     const s = loadSettings();
