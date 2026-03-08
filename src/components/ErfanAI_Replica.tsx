@@ -951,7 +951,17 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [activeChips, setActiveChips] = useState<string[]>([]);
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-  const [messages, setMessages] = useState<{ text: string; isUser: boolean; files?: File[] }[]>([]);
+  const [messages, setMessages] = useState<{ text: string; isUser: boolean; files?: File[] }[]>(() => {
+    try {
+      const saved = localStorage.getItem("erfanai_messages");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("erfanai_messages", JSON.stringify(messages.map(m => ({ text: m.text, isUser: m.isUser }))));
+  }, [messages]);
   const [isRecording, setIsRecording] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isDiscoverOpen, setIsDiscoverOpen] = useState(false);
