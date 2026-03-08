@@ -1156,11 +1156,18 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       </div>
 
       {/* Overlays */}
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} onNewTask={() => { setInputValue(""); setMessages([]); setActiveChips([]); toast(t(lang, "sidebar.new_task")); }} onNavigate={(page) => { toast(`${t(lang, `sidebar.${page}` as any)} - ${t(lang, "coming_soon")}`); }} />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} onNewTask={() => { setInputValue(""); setMessages([]); setActiveChips([]); toast(t(lang, "new_task.created")); }} onNavigate={(page) => { 
+        if (page === "search") { setIsSearchOpen(true); }
+        else if (page === "discover") { setIsDiscoverOpen(true); }
+        else if (page === "chats") { toast(`${t(lang, "sidebar.chats")} - ${t(lang, "coming_soon")}`); }
+        else if (page === "agents") { toast(`${t(lang, "sidebar.agents")} - ${t(lang, "coming_soon")}`); }
+      }} />
       <ProfileDropdown isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} onLogout={onLogout} onOpenSettings={() => setIsSettingsOpen(true)} />
       <NotificationsPanel isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
       <ModelSelector isOpen={isModelSelectorOpen} onClose={() => setIsModelSelectorOpen(false)} currentModel={currentModel} onSelect={(m) => { setCurrentModel(m); toast(`${t(lang, "model.switched_to")} ${m}`); }} />
       <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} onChangeModel={(m) => setCurrentModel(m)} onClearHistory={() => { setMessages([]); setActiveChips([]); }} onLogout={onLogout} currentModel={currentModel} />
+      <SearchConversationsPanel isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} messages={messages} onSelectMessage={(msg) => { setInputValue(msg); }} />
+      <DiscoverPanel isOpen={isDiscoverOpen} onClose={() => setIsDiscoverOpen(false)} onUseTemplate={(prompt) => { setInputValue(prompt); }} />
     </div>
   );
 };
