@@ -2769,6 +2769,9 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                         if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
                         if (waveformIntervalRef.current) clearInterval(waveformIntervalRef.current);
                         if (meetingAudioRef.current) { meetingAudioRef.current.getTracks().forEach(t => t.stop()); meetingAudioRef.current = null; }
+                        stopSpeechRecognition();
+                        setLiveTranscript("");
+                        setCommittedTranscript("");
                         toast(t(lang, "meeting.discarded"));
                       }}
                       className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
