@@ -10,7 +10,7 @@ import {
   Palette, MoreHorizontal, LayoutGrid, Send, ArrowRightLeft,
   HelpCircle, Home, ExternalLink, User, BookOpen, ChevronLeft,
   ArrowRight, Upload as UploadIcon, Camera, Image, FileText, Copy,
-  Share2, Trash2, Volume2, VolumeX,
+  Share2, Trash2, Volume2, VolumeX, Download,
   CalendarCheck, Target, Table, BarChart3, Play, AudioLines, MessageCircle, BookCopy, Clock, Pause, RotateCcw, Save,
 } from "lucide-react";
 
@@ -2047,20 +2047,66 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [meetingSummary, setMeetingSummary] = useState("");
   const [meetingWaveform, setMeetingWaveform] = useState<number[]>(Array(30).fill(0));
   const waveformIntervalRef = useRef<any>(null);
-  const meetingAudioRef = useRef<MediaStream | null>(null);
+   const meetingAudioRef = useRef<MediaStream | null>(null);
   const meetingAnalyserRef = useRef<AnalyserNode | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const [editingMeetingId, setEditingMeetingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
-  const [savedMeetings, setSavedMeetings] = useState<{ id: string; duration: number; date: string; title: string; notes?: string; summary?: string }[]>(() => {
+  const [savedMeetings, setSavedMeetings] = useState<{ id: string; duration: number; date: string; title: string; notes?: string; summary?: string; audioUrl?: string }[]>(() => {
     try { const s = localStorage.getItem("erfanai_meetings"); if (s) return JSON.parse(s); } catch {} return [];
   });
-  const [playbackMeeting, setPlaybackMeeting] = useState<{ id: string; duration: number; date: string; title: string; notes?: string; summary?: string } | null>(null);
+  const [playbackMeeting, setPlaybackMeeting] = useState<{ id: string; duration: number; date: string; title: string; notes?: string; summary?: string; audioUrl?: string } | null>(null);
   const [playbackSeconds, setPlaybackSeconds] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const playbackTimerRef = useRef<any>(null);
-  const [viewingMeeting, setViewingMeeting] = useState<{ id: string; duration: number; date: string; title: string; notes?: string; summary?: string } | null>(null);
+  const [viewingMeeting, setViewingMeeting] = useState<{ id: string; duration: number; date: string; title: string; notes?: string; summary?: string; audioUrl?: string } | null>(null);
+  const [exportMenuId, setExportMenuId] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
   const lastTranscriptRef = useRef<string>("");
+
+  // ── Export helpers ──
+  const exportMeetingAsTxt = (meeting: typeof savedMeetings[0]) => {
+    const content = [
+      meeting.title,
+      `─────────────────────────`,
+      `${meeting.date}`,
+      `${Math.floor(meeting.duration / 60)}:${(meeting.duration % 60).toString().padStart(2, "0")}`,
+      "",
+      meeting.summary ? `${t(lang, "meeting.summary_label")}:\n${meeting.summary}` : "",
+      meeting.notes ? `\n${t(lang, "meeting.notes_label")}:\n${meeting.notes}` : "",
+    ].filter(Boolean).join("\n");
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `${meeting.title}.txt`; a.click(); URL.revokeObjectURL(url);
+    toast.success(t(lang, "meeting.exported"));
+  };
+
+  const exportMeetingAsPdf = (meeting: typeof savedMeetings[0]) => {
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${meeting.title}</title><style>body{font-family:Arial,sans-serif;padding:40px;max-width:700px;margin:0 auto;color:#1a1a1a;direction:${isRTL(lang)?"rtl":"ltr"}}h1{font-size:22px;border-bottom:2px solid #333;padding-bottom:10px}p{line-height:1.8;margin:8px 0}.meta{color:#666;font-size:13px;margin-bottom:20px}.section{background:#f5f5f5;padding:16px;border-radius:8px;margin:16px 0}h3{font-size:15px;color:#333;margin:0 0 8px 0}</style></head><body><h1>${meeting.title}</h1><p class="meta">${meeting.date} — ${Math.floor(meeting.duration / 60)}:${(meeting.duration % 60).toString().padStart(2, "0")}</p>${meeting.summary ? `<div class="section"><h3>${t(lang, "meeting.summary_label")}</h3><p>${meeting.summary}</p></div>` : ""}${meeting.notes ? `<div class="section"><h3>${t(lang, "meeting.notes_label")}</h3><p>${meeting.notes.replace(/\n/g, "<br>")}</p></div>` : ""}<p style="color:#999;font-size:11px;margin-top:40px;text-align:center">ErfanAI — Meeting Minutes</p></body></html>`;
+    const win = window.open("", "_blank");
+    if (win) { win.document.write(html); win.document.close(); win.print(); }
+    toast.success(t(lang, "meeting.exported"));
+  };
+
+  const exportMeetingAudio = (meeting: typeof savedMeetings[0]) => {
+    if (meeting.audioUrl) {
+      const a = document.createElement("a"); a.href = meeting.audioUrl; a.download = `${meeting.title}.webm`; a.click();
+      toast.success(t(lang, "meeting.exported"));
+    } else {
+      toast.error(t(lang, "meeting.no_audio"));
+    }
+  };
+
+  const shareMeeting = async (meeting: typeof savedMeetings[0]) => {
+    const text = [meeting.title, meeting.date, `${Math.floor(meeting.duration / 60)}:${(meeting.duration % 60).toString().padStart(2, "0")}`, meeting.summary || "", meeting.notes || ""].filter(Boolean).join("\n");
+    if (navigator.share) {
+      try { await navigator.share({ title: meeting.title, text }); } catch {}
+    } else {
+      await navigator.clipboard.writeText(text);
+      toast.success(t(lang, "meeting.copied"));
+    }
+  };
 
   useState(() => {
     const s = loadSettings();
@@ -2598,6 +2644,21 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                     {!viewingMeeting.summary && !viewingMeeting.notes && (
                       <p className="text-sm text-muted-foreground italic">{t(lang, "meeting.no_content")}</p>
                     )}
+                    {/* Export & Share buttons */}
+                    <div className="flex items-center gap-2 pt-2 border-t border-border">
+                      <button onClick={() => exportMeetingAsTxt(viewingMeeting)} className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary transition-colors">
+                        <FileText className="h-3 w-3" />{t(lang, "meeting.export_txt")}
+                      </button>
+                      <button onClick={() => exportMeetingAsPdf(viewingMeeting)} className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary transition-colors">
+                        <BookOpen className="h-3 w-3" />{t(lang, "meeting.export_pdf")}
+                      </button>
+                      <button onClick={() => exportMeetingAudio(viewingMeeting)} className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary transition-colors">
+                        <Volume2 className="h-3 w-3" />{t(lang, "meeting.export_audio")}
+                      </button>
+                      <button onClick={() => shareMeeting(viewingMeeting)} className="flex items-center gap-1.5 rounded-lg border border-accent/30 bg-accent/5 px-3 py-1.5 text-xs font-medium text-accent hover:bg-accent/10 transition-colors">
+                        <Share2 className="h-3 w-3" />{t(lang, "meeting.share")}
+                      </button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -2669,12 +2730,21 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                             if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
                             if (waveformIntervalRef.current) clearInterval(waveformIntervalRef.current);
                             if (meetingAudioRef.current) { meetingAudioRef.current.getTracks().forEach(t => t.stop()); meetingAudioRef.current = null; }
-                            // Generate summary
+                            // Stop MediaRecorder & save audio
+                            let audioUrl: string | undefined;
+                            if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+                              mediaRecorderRef.current.onstop = () => {
+                                const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+                                audioUrl = URL.createObjectURL(blob);
+                                // Update the latest meeting with audio
+                                setSavedMeetings(prev => { const u = prev.map((m, i) => i === 0 ? { ...m, audioUrl } : m); localStorage.setItem("erfanai_meetings", JSON.stringify(u)); return u; });
+                              };
+                              mediaRecorderRef.current.stop();
+                            }
                             const mins = Math.floor(meetingSeconds / 60);
                             const summaryText = t(lang, "meeting.auto_summary").replace("{mins}", String(mins || 1));
                             setMeetingSummary(summaryText);
-                            // Save meeting
-                            const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, notes: "", summary: summaryText };
+                            const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, notes: "", summary: summaryText, audioUrl };
                             const updated = [newMeeting, ...savedMeetings];
                             setSavedMeetings(updated);
                             localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
@@ -2724,10 +2794,19 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                             if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
                             if (waveformIntervalRef.current) clearInterval(waveformIntervalRef.current);
                             if (meetingAudioRef.current) { meetingAudioRef.current.getTracks().forEach(t => t.stop()); meetingAudioRef.current = null; }
+                            let audioUrl2: string | undefined;
+                            if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+                              mediaRecorderRef.current.onstop = () => {
+                                const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+                                audioUrl2 = URL.createObjectURL(blob);
+                                setSavedMeetings(prev => { const u = prev.map((m, i) => i === 0 ? { ...m, audioUrl: audioUrl2 } : m); localStorage.setItem("erfanai_meetings", JSON.stringify(u)); return u; });
+                              };
+                              mediaRecorderRef.current.stop();
+                            }
                             const mins = Math.floor(meetingSeconds / 60);
                             const summaryText = t(lang, "meeting.auto_summary").replace("{mins}", String(mins || 1));
                             setMeetingSummary(summaryText);
-                            const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, notes: "", summary: summaryText };
+                            const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, notes: "", summary: summaryText, audioUrl: audioUrl2 };
                             const updated = [newMeeting, ...savedMeetings];
                             setSavedMeetings(updated);
                             localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
@@ -2745,6 +2824,14 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                           try {
                             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                             meetingAudioRef.current = stream;
+                            // Start MediaRecorder for audio export
+                            audioChunksRef.current = [];
+                            try {
+                              const recorder = new MediaRecorder(stream);
+                              recorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+                              recorder.start();
+                              mediaRecorderRef.current = recorder;
+                            } catch {}
                             const audioCtx = new AudioContext();
                             const source = audioCtx.createMediaStreamSource(stream);
                             const analyser = audioCtx.createAnalyser();
@@ -2761,7 +2848,6 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                               setMeetingWaveform(newWave);
                             }, 100);
                           } catch {
-                            // Fallback: simulate waveform if mic not available
                             waveformIntervalRef.current = setInterval(() => {
                               setMeetingWaveform(Array.from({ length: 30 }, () => Math.random() * 0.7 + 0.1));
                             }, 200);
@@ -2953,7 +3039,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                             {meeting.summary && <p className="text-xs text-accent/70 truncate mt-0.5">{meeting.summary.slice(0, 60)}...</p>}
                           </div>
                         </div>
-                        <div className="flex items-center gap-0.5">
+                        <div className="flex items-center gap-0.5 flex-wrap">
                           <button
                             onClick={(e) => { e.stopPropagation(); setEditingMeetingId(meeting.id); setEditingTitle(meeting.title); }}
                             className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
@@ -2967,6 +3053,45 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                           >
                             <Play className="h-4 w-4" />
                           </button>
+                          {/* Export dropdown */}
+                          <div className="relative">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setExportMenuId(exportMenuId === meeting.id ? null : meeting.id); }}
+                              className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                              title={t(lang, "meeting.export")}
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                            </button>
+                            <AnimatePresence>
+                              {exportMenuId === meeting.id && (
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                                  className="absolute top-full right-0 z-50 mt-1 w-44 rounded-xl border border-border bg-card p-1.5 shadow-xl"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <button onClick={() => { exportMeetingAsTxt(meeting); setExportMenuId(null); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary transition-colors">
+                                    <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                                    {t(lang, "meeting.export_txt")}
+                                  </button>
+                                  <button onClick={() => { exportMeetingAsPdf(meeting); setExportMenuId(null); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary transition-colors">
+                                    <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                                    {t(lang, "meeting.export_pdf")}
+                                  </button>
+                                  <button onClick={() => { exportMeetingAudio(meeting); setExportMenuId(null); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary transition-colors">
+                                    <Volume2 className="h-3.5 w-3.5 text-muted-foreground" />
+                                    {t(lang, "meeting.export_audio")}
+                                  </button>
+                                  <div className="h-px bg-border my-1" />
+                                  <button onClick={() => { shareMeeting(meeting); setExportMenuId(null); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary transition-colors">
+                                    <Share2 className="h-3.5 w-3.5 text-muted-foreground" />
+                                    {t(lang, "meeting.share")}
+                                  </button>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
