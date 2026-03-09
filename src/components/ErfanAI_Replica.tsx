@@ -933,6 +933,172 @@ const ChatMessage = ({ message, isUser, files }: { message: string; isUser: bool
   </motion.div>
 );
 
+/* ═══════════════════════ KNOWLEDGE PANEL ═══════════════════════ */
+const KNOWLEDGE_KEY = "erfanai_knowledge";
+interface KnowledgeItem { id: string; title: string; content: string; enabled: boolean; createdAt: number; updatedAt: number; }
+
+const KnowledgePanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const { lang } = useLang();
+  const dir = isRTL(lang) ? "rtl" : "ltr";
+  const [items, setItems] = useState<KnowledgeItem[]>(() => {
+    try { const s = localStorage.getItem(KNOWLEDGE_KEY); if (s) return JSON.parse(s); } catch {} return [];
+  });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formTitle, setFormTitle] = useState("");
+  const [formContent, setFormContent] = useState("");
+
+  const saveItems = (newItems: KnowledgeItem[]) => {
+    setItems(newItems);
+    localStorage.setItem(KNOWLEDGE_KEY, JSON.stringify(newItems));
+  };
+
+  const handleAdd = () => {
+    if (!formTitle.trim() || !formContent.trim()) return;
+    const newItem: KnowledgeItem = { id: Date.now().toString(), title: formTitle.trim(), content: formContent.trim(), enabled: true, createdAt: Date.now(), updatedAt: Date.now() };
+    saveItems([newItem, ...items]);
+    setFormTitle(""); setFormContent(""); setIsAdding(false);
+    toast(t(lang, "knowledge.saved"));
+  };
+
+  const handleUpdate = () => {
+    if (!editingId || !formTitle.trim() || !formContent.trim()) return;
+    saveItems(items.map(i => i.id === editingId ? { ...i, title: formTitle.trim(), content: formContent.trim(), updatedAt: Date.now() } : i));
+    setFormTitle(""); setFormContent(""); setEditingId(null);
+    toast(t(lang, "knowledge.updated"));
+  };
+
+  const handleDelete = (id: string) => {
+    saveItems(items.filter(i => i.id !== id));
+    toast(t(lang, "knowledge.deleted"));
+  };
+
+  const handleToggle = (id: string) => {
+    saveItems(items.map(i => i.id === id ? { ...i, enabled: !i.enabled } : i));
+  };
+
+  const startEdit = (item: KnowledgeItem) => {
+    setEditingId(item.id); setFormTitle(item.title); setFormContent(item.content); setIsAdding(false);
+  };
+
+  const cancelForm = () => { setIsAdding(false); setEditingId(null); setFormTitle(""); setFormContent(""); };
+
+  const filtered = items.filter(i => !searchQuery || i.title.toLowerCase().includes(searchQuery.toLowerCase()) || i.content.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-50 bg-black/50" />
+          <motion.div initial={{ opacity: 0, y: 40, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 40, scale: 0.95 }} transition={{ duration: 0.3 }} className="fixed inset-x-3 top-8 bottom-8 z-50 mx-auto max-w-lg overflow-hidden rounded-2xl border border-border bg-card shadow-2xl flex flex-col" dir={dir}>
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-secondary transition-colors">
+                {isRTL(lang) ? <ArrowRight className="h-5 w-5 text-foreground" /> : <ArrowLeft className="h-5 w-5 text-foreground" />}
+              </button>
+              <div className="text-center flex-1">
+                <h2 className="text-lg font-bold text-foreground">{t(lang, "knowledge.title")}</h2>
+                <p className="text-xs text-muted-foreground">{items.length} {t(lang, "knowledge.items_count")}</p>
+              </div>
+              <button onClick={() => { setIsAdding(true); setEditingId(null); setFormTitle(""); setFormContent(""); }} className="rounded-lg p-1.5 text-accent hover:bg-secondary transition-colors">
+                <Plus className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Subtitle */}
+            <div className="px-4 py-3 bg-secondary/30 border-b border-border">
+              <p className="text-xs text-muted-foreground text-center">{t(lang, "knowledge.subtitle")}</p>
+            </div>
+
+            {/* Search */}
+            {items.length > 0 && (
+              <div className="px-4 py-3 border-b border-border">
+                <div className="flex items-center gap-2 rounded-xl bg-secondary px-3 py-2.5">
+                  <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={t(lang, "knowledge.search_placeholder")} className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground" />
+                  {searchQuery && <button onClick={() => setSearchQuery("")} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>}
+                </div>
+              </div>
+            )}
+
+            {/* Add/Edit Form */}
+            <AnimatePresence>
+              {(isAdding || editingId) && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-b border-border">
+                  <div className="p-4 space-y-3 bg-accent/5">
+                    <div>
+                      <label className="text-xs font-semibold text-foreground mb-1 block">{t(lang, "knowledge.title_label")}</label>
+                      <input value={formTitle} onChange={e => setFormTitle(e.target.value)} placeholder={t(lang, "knowledge.title_placeholder")} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-accent transition-colors placeholder:text-muted-foreground" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-foreground mb-1 block">{t(lang, "knowledge.content_label")}</label>
+                      <textarea value={formContent} onChange={e => setFormContent(e.target.value)} placeholder={t(lang, "knowledge.content_placeholder")} rows={4} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-accent transition-colors placeholder:text-muted-foreground resize-none" />
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={editingId ? handleUpdate : handleAdd} disabled={!formTitle.trim() || !formContent.trim()} className="flex-1 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-accent-foreground hover:opacity-90 transition-opacity disabled:opacity-40">
+                        {t(lang, "knowledge.save")}
+                      </button>
+                      <button onClick={cancelForm} className="flex-1 rounded-xl border border-border bg-secondary px-4 py-2.5 text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors">
+                        {t(lang, "profile.cancel")}
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Items List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {filtered.length === 0 && !isAdding && !editingId ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">
+                    <BookOpen className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">{t(lang, "knowledge.empty")}</p>
+                  <p className="text-xs text-muted-foreground mt-1 max-w-[250px]">{t(lang, "knowledge.empty_desc")}</p>
+                  <button onClick={() => { setIsAdding(true); setFormTitle(""); setFormContent(""); }} className="mt-4 flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-accent-foreground hover:opacity-90 transition-opacity">
+                    <Plus className="h-4 w-4" />
+                    {t(lang, "knowledge.add")}
+                  </button>
+                </div>
+              ) : (
+                filtered.map(item => (
+                  <motion.div key={item.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className={`rounded-xl border ${item.enabled ? "border-border bg-secondary/30" : "border-border/50 bg-secondary/10 opacity-60"} overflow-hidden transition-all`}>
+                    <div className="flex items-start justify-between p-3.5 gap-3">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-semibold text-foreground truncate">{item.title}</h4>
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">{item.content}</p>
+                        <p className="text-[10px] text-muted-foreground/60 mt-2">
+                          {new Date(item.updatedAt).toLocaleDateString(lang === "العربية" ? "ar-SA" : "en-US", { year: "numeric", month: "short", day: "numeric" })}
+                        </p>
+                      </div>
+                      <button onClick={() => handleToggle(item.id)} className={`mt-1 h-5 w-9 rounded-full transition-colors shrink-0 relative ${item.enabled ? "bg-accent" : "bg-muted-foreground/30"}`}>
+                        <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${item.enabled ? (isRTL(lang) ? "left-0.5" : "right-0.5") : (isRTL(lang) ? "right-0.5" : "left-0.5")}`} />
+                      </button>
+                    </div>
+                    <div className="flex border-t border-border/50">
+                      <button onClick={() => startEdit(item)} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors">
+                        <BookOpen className="h-3.5 w-3.5" />
+                        {t(lang, "knowledge.edit")}
+                      </button>
+                      <div className="w-px bg-border/50" />
+                      <button onClick={() => handleDelete(item.id)} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs text-destructive hover:bg-destructive/5 transition-colors">
+                        <Trash2 className="h-3.5 w-3.5" />
+                        {t(lang, "knowledge.delete")}
+                      </button>
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
 /* ═══════════════════════ PROFILE PANEL ═══════════════════════ */
 const PROFILE_KEY = "erfanai_profile";
 const defaultProfile = { name: "Erfan Moharam", email: "nmoharam7796@gmail.com", avatar: null as string | null };
