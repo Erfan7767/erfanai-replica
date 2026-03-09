@@ -1027,6 +1027,11 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
 const ProfileDropdown = ({ isOpen, onClose, onLogout, onOpenSettings, onOpenProfile, onOpenKnowledge, onUpgrade, onHome, onHelp }: { isOpen: boolean; onClose: () => void; onLogout: () => void; onOpenSettings: () => void; onOpenProfile: () => void; onOpenKnowledge: () => void; onUpgrade: () => void; onHome: () => void; onHelp: () => void }) => {
   const { lang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
+  const { user } = useAuth();
+  const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
+  const displayEmail = user?.email || "";
+  const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
+  const truncatedEmail = displayEmail.length > 25 ? "..." + displayEmail.slice(-22) : displayEmail;
   return (
     <AnimatePresence>
       {isOpen && (
@@ -1037,10 +1042,14 @@ const ProfileDropdown = ({ isOpen, onClose, onLogout, onOpenSettings, onOpenProf
               <button onClick={() => { toast(t(lang, "profile.switch_account")); onClose(); }} className="text-muted-foreground hover:text-foreground transition-colors"><ArrowRightLeft className="h-4 w-4" /></button>
               <div className="flex items-center gap-3">
                 <div>
-                  <h3 className={`text-sm font-bold text-foreground ${isRTL(lang) ? "text-left" : "text-right"}`}>Erfan Moharam</h3>
-                  <p className={`text-xs text-muted-foreground ${isRTL(lang) ? "text-left" : "text-right"}`}>...nmoharam7796@gmail.com</p>
+                  <h3 className={`text-sm font-bold text-foreground ${isRTL(lang) ? "text-left" : "text-right"}`}>{displayName}</h3>
+                  <p className={`text-xs text-muted-foreground ${isRTL(lang) ? "text-left" : "text-right"}`}>{truncatedEmail}</p>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">E</div>
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={displayName} className="h-12 w-12 rounded-full object-cover" />
+                ) : (
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">{displayName.trim().charAt(0).toUpperCase()}</div>
+                )}
               </div>
             </div>
 
@@ -1689,14 +1698,26 @@ const defaultProfile = { name: "Erfan Moharam", email: "nmoharam7796@gmail.com",
 const ProfilePanel = ({ isOpen, onClose, onLogout }: { isOpen: boolean; onClose: () => void; onLogout: () => void }) => {
   const { lang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
+  const { user } = useAuth();
+  const authName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
+  const authEmail = user?.email || "";
+  const authAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
   const [isKnowledgePanelOpen, setIsKnowledgePanelOpen] = useState(false);
   const [profile, setProfile] = useState(() => {
     try {
       const s = localStorage.getItem(PROFILE_KEY);
       if (s) return { ...defaultProfile, ...JSON.parse(s) };
     } catch {}
-    return { ...defaultProfile };
+    return { name: authName, email: authEmail, avatar: authAvatar };
   });
+  // Sync with auth data when user changes
+  useEffect(() => {
+    setProfile(prev => {
+      const stored = localStorage.getItem(PROFILE_KEY);
+      if (stored) return prev; // user has custom profile, keep it
+      return { name: authName, email: authEmail, avatar: authAvatar };
+    });
+  }, [authName, authEmail, authAvatar]);
   const [editName, setEditName] = useState(profile.name);
   const [isEditing, setIsEditing] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -2582,26 +2603,31 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     applyFontSize(s.fontSize);
   });
 
+  const { user } = useAuth();
+  const authName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
+  const authEmail = user?.email || "";
+  const authAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
+
   const [headerProfile, setHeaderProfile] = useState(() => {
     try {
       const s = localStorage.getItem(PROFILE_KEY);
       if (s) return { ...defaultProfile, ...JSON.parse(s) };
     } catch {}
-    return { ...defaultProfile };
+    return { name: authName, email: authEmail, avatar: authAvatar };
   });
 
   useEffect(() => {
     const sync = () => {
       try {
         const s = localStorage.getItem(PROFILE_KEY);
-        if (s) setHeaderProfile({ ...defaultProfile, ...JSON.parse(s) });
+        if (s) { setHeaderProfile({ ...defaultProfile, ...JSON.parse(s) }); return; }
       } catch {}
+      setHeaderProfile({ name: authName, email: authEmail, avatar: authAvatar });
     };
     window.addEventListener("storage", sync);
-    // Poll every second to catch same-tab saves
     const id = setInterval(sync, 1000);
     return () => { window.removeEventListener("storage", sync); clearInterval(id); };
-  }, []);
+  }, [authName, authEmail, authAvatar]);
 
   useEffect(() => {
     const creditsHandler = () => setIsCreditsOpen(true);
