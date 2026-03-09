@@ -2252,9 +2252,88 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     const userMsg = inputValue;
     setInputValue("");
     setAttachedFiles([]);
+
+    // Generate context-aware task steps based on user message
+    const generateSteps = (msg: string): { label: string; icon: TaskStep["icon"] }[] => {
+      const lower = msg.toLowerCase();
+      if (lower.includes("موقع") || lower.includes("website") || lower.includes("صفحة") || lower.includes("page")) {
+        return [
+          { label: t(lang, "task.analyzing_request"), icon: "search" },
+          { label: t(lang, "task.planning_structure"), icon: "edit" },
+          { label: t(lang, "task.generating_code"), icon: "terminal" },
+          { label: t(lang, "task.applying_styles"), icon: "sparkles" },
+          { label: t(lang, "task.final_review"), icon: "check" },
+        ];
+      } else if (lower.includes("تصميم") || lower.includes("design") || lower.includes("صورة") || lower.includes("image")) {
+        return [
+          { label: t(lang, "task.understanding_vision"), icon: "search" },
+          { label: t(lang, "task.preparing_design"), icon: "edit" },
+          { label: t(lang, "task.generating_assets"), icon: "sparkles" },
+          { label: t(lang, "task.final_check"), icon: "check" },
+        ];
+      } else if (lower.includes("كود") || lower.includes("code") || lower.includes("برمج") || lower.includes("program")) {
+        return [
+          { label: t(lang, "task.analyzing_requirements"), icon: "search" },
+          { label: t(lang, "task.writing_code"), icon: "terminal" },
+          { label: t(lang, "task.testing_code"), icon: "terminal" },
+          { label: t(lang, "task.optimizing"), icon: "sparkles" },
+          { label: t(lang, "task.final_verification"), icon: "check" },
+        ];
+      } else {
+        return [
+          { label: t(lang, "task.analyzing_request"), icon: "search" },
+          { label: t(lang, "task.processing"), icon: "terminal" },
+          { label: t(lang, "task.generating_response"), icon: "edit" },
+          { label: t(lang, "task.final_check"), icon: "check" },
+        ];
+      }
+    };
+
+    const rawSteps = generateSteps(userMsg);
+    const taskSteps: TaskStep[] = rawSteps.map((s, i) => ({
+      id: `step-${Date.now()}-${i}`,
+      label: s.label,
+      icon: s.icon,
+      status: "pending" as const,
+    }));
+
+    // Add initial AI message with all steps pending
+    const aiMsgIndex = { current: -1 };
+    setMessages(prev => {
+      aiMsgIndex.current = prev.length;
+      return [...prev, { text: "", isUser: false, steps: taskSteps.map((s, i) => ({ ...s, status: i === 0 ? "running" : "pending" })) as TaskStep[] }];
+    });
+
+    // Progressively update each step
+    taskSteps.forEach((_, stepIdx) => {
+      setTimeout(() => {
+        setMessages(prev => {
+          const updated = [...prev];
+          const lastAi = updated.length - 1;
+          if (updated[lastAi] && !updated[lastAi].isUser && updated[lastAi].steps) {
+            const newSteps = updated[lastAi].steps!.map((s, i) => ({
+              ...s,
+              status: i < stepIdx + 1 ? "done" as const : i === stepIdx + 1 ? "running" as const : "pending" as const,
+            }));
+            updated[lastAi] = { ...updated[lastAi], steps: newSteps };
+          }
+          return updated;
+        });
+      }, (stepIdx + 1) * 800);
+    });
+
+    // Final: mark all done and add response text
     setTimeout(() => {
-      setMessages(prev => [...prev, { text: t(lang, "app.ai_response"), isUser: false }]);
-    }, 1200);
+      setMessages(prev => {
+        const updated = [...prev];
+        const lastAi = updated.length - 1;
+        if (updated[lastAi] && !updated[lastAi].isUser && updated[lastAi].steps) {
+          const doneSteps = updated[lastAi].steps!.map(s => ({ ...s, status: "done" as const }));
+          updated[lastAi] = { ...updated[lastAi], text: t(lang, "app.ai_response"), steps: doneSteps };
+        }
+        return updated;
+      });
+    }, (taskSteps.length + 1) * 800);
   };
 
   const handleMic = async () => {
