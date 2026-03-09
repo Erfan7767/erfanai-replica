@@ -2011,39 +2011,72 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         {/* Bottom Customize Card */}
         {messages.length === 0 && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: 0.5, duration: 0.5, type: "spring", stiffness: 120 }}
-            whileHover={{ scale: 1.02, y: -2, boxShadow: "0 8px 30px -8px hsl(var(--accent) / 0.3)" }}
-            whileTap={{ scale: 0.97 }}
-            className="mt-6 card-gold-border overflow-hidden rounded-2xl bg-card cursor-pointer transition-colors"
+            initial={{ opacity: 0, y: 30, scale: 0.9 }}
+            animate={{ opacity: 1, y: [30, -5, 0], scale: [0.9, 1.02, 1] }}
+            transition={{ delay: 0.5, duration: 0.7, ease: "easeOut" }}
+            whileHover={{ scale: 1.03, y: -4, boxShadow: "0 12px 40px -10px hsl(var(--accent) / 0.4)" }}
+            whileTap={{ scale: 0.95 }}
+            className="mt-6 overflow-hidden rounded-2xl bg-card cursor-pointer border border-border relative"
             onClick={() => toast(t(lang, "coming_soon"))}
           >
-            <div className="flex items-center gap-4 p-5">
+            {/* Animated gradient border */}
+            <motion.div
+              className="absolute inset-0 rounded-2xl pointer-events-none"
+              style={{ background: "linear-gradient(90deg, hsl(var(--accent)/0.4), hsl(var(--accent)/0.1), hsl(var(--accent)/0.4))", backgroundSize: "200% 100%" }}
+              animate={{ backgroundPosition: ["0% 0%", "200% 0%"] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            />
+            <div className="relative flex items-center gap-4 p-5 bg-card rounded-2xl m-[1px]">
               <motion.div
                 className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-xl bg-secondary gap-1"
-                animate={{ rotate: [0, -3, 3, -2, 0] }}
-                transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 4, ease: "easeInOut" }}
+                animate={{ rotate: [0, -5, 5, -3, 3, 0], scale: [1, 1.05, 1] }}
+                transition={{ duration: 3, repeat: Infinity, repeatDelay: 2, ease: "easeInOut" }}
               >
-                <motion.div animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}>
+                <motion.div
+                  animate={{ scale: [1, 1.3, 1], rotate: [0, 15, -15, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 2.5, ease: "easeInOut" }}
+                >
                   <LayoutGrid className="h-6 w-6 text-accent" />
                 </motion.div>
                 <div className="flex flex-col gap-0.5">
-                  <motion.div initial={{ width: 0 }} animate={{ width: 32 }} transition={{ delay: 0.7, duration: 0.4 }} className="h-[2px] rounded-full bg-muted-foreground/40" />
-                  <motion.div initial={{ width: 0 }} animate={{ width: 24 }} transition={{ delay: 0.9, duration: 0.4 }} className="h-[2px] rounded-full bg-muted-foreground/30" />
+                  <motion.div
+                    animate={{ width: [0, 32, 20, 32], opacity: [0.3, 0.6, 0.3, 0.6] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                    className="h-[2px] rounded-full bg-accent/50"
+                  />
+                  <motion.div
+                    animate={{ width: [0, 24, 16, 24], opacity: [0.2, 0.5, 0.2, 0.5] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+                    className="h-[2px] rounded-full bg-accent/40"
+                  />
                 </div>
               </motion.div>
-              <p className="text-sm font-semibold text-foreground leading-relaxed">
-                {t(lang, "app.customize")}{" "}
+              <div className="text-sm font-semibold text-foreground leading-relaxed">
                 <motion.span
-                  className="text-accent inline-block"
-                  animate={{ scale: [1, 1.08, 1] }}
-                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 5, ease: "easeInOut" }}
+                  className="inline-block"
+                  animate={{ opacity: [0, 1] }}
+                  transition={{ delay: 0.6, duration: 0.4 }}
+                >
+                  {t(lang, "app.customize")}{" "}
+                </motion.span>
+                <motion.span
+                  className="text-accent inline-block font-bold"
+                  animate={{
+                    scale: [1, 1.12, 1],
+                    textShadow: ["0 0 0px hsl(var(--accent)/0)", "0 0 12px hsl(var(--accent)/0.5)", "0 0 0px hsl(var(--accent)/0)"],
+                  }}
+                  transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1.5, ease: "easeInOut" }}
                 >
                   ErfanAI
                 </motion.span>{" "}
-                {t(lang, "app.your")}
-              </p>
+                <motion.span
+                  className="inline-block"
+                  animate={{ opacity: [0, 1] }}
+                  transition={{ delay: 0.8, duration: 0.4 }}
+                >
+                  {t(lang, "app.your")}
+                </motion.span>
+              </div>
             </div>
           </motion.div>
         )}
