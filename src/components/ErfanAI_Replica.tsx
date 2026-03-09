@@ -1317,6 +1317,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [inputValue, setInputValue] = useState("");
   const [activeChips, setActiveChips] = useState<string[]>([]);
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [messages, setMessages] = useState<{ text: string; isUser: boolean; files?: File[] }[]>(() => {
     try {
@@ -1601,11 +1602,37 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                 </button>
               );
             })}
-            <button onClick={() => toast(t(lang, "coming_soon"))} className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary hover:border-accent active:scale-95">
-              <MoreHorizontal className="h-4 w-4 text-accent" />
-              {t(lang, "chip.more")}
-            </button>
-          </motion.div>
+            <div className="relative">
+              <button onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)} className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary hover:border-accent active:scale-95">
+                <MoreHorizontal className="h-4 w-4 text-accent" />
+                {t(lang, "chip.more")}
+              </button>
+              <AnimatePresence>
+                {isMoreMenuOpen && (
+                  <>
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-30" onClick={() => setIsMoreMenuOpen(false)} />
+                    <motion.div initial={{ opacity: 0, y: 8, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.95 }} transition={{ duration: 0.15 }} className={`absolute bottom-12 ${isRTL(lang) ? "right-0" : "left-0"} z-40 w-56 rounded-xl border border-border bg-card p-1.5 shadow-xl`} dir={dir}>
+                      {[
+                        { icon: CalendarCheck, key: "more.schedule_task" },
+                        { icon: Target, key: "more.wide_research" },
+                        { icon: Table, key: "more.spreadsheet" },
+                        { icon: BarChart3, key: "more.visualization" },
+                        { icon: Play, key: "more.video" },
+                        { icon: AudioLines, key: "more.audio" },
+                        { icon: MessageCircle, key: "more.chat_mode" },
+                        { icon: BookCopy, key: "more.playbook", hasExternal: true },
+                      ].map((item) => (
+                        <button key={item.key} onClick={() => { toast(t(lang, item.key)); setIsMoreMenuOpen(false); }} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
+                          <item.icon className="h-4 w-4 text-muted-foreground" />
+                          <span className="flex-1 text-start">{t(lang, item.key)}</span>
+                          {item.hasExternal && <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />}
+                        </button>
+                      ))}
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
         )}
 
         {/* Bottom Customize Card */}
