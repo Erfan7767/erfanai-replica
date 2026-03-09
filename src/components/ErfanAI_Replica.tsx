@@ -1232,57 +1232,189 @@ const ExecutionPanel = ({
         )}
       </AnimatePresence>
 
-      {/* Collapsed Bar / Preview with Live Thumbnail */}
-      <button
+      {/* Collapsed Bar / Preview with Enhanced Animated Thumbnail */}
+      <motion.button
         onClick={onToggleExpand}
         className="w-full flex items-center gap-3 px-4 py-3 bg-secondary/50 hover:bg-secondary/80 transition-colors"
+        whileHover={{ scale: 1.005 }}
+        whileTap={{ scale: 0.995 }}
       >
-        {/* Live Code Thumbnail Preview */}
-        <div className="h-12 w-16 rounded-lg overflow-hidden bg-[#1a1a1a] shrink-0 border border-border p-1.5">
-          <div className="h-full w-full flex flex-col gap-0.5 overflow-hidden">
+        {/* Live Code Thumbnail Preview with Enhanced Animations */}
+        <motion.div 
+          className="h-14 w-20 rounded-xl overflow-hidden shrink-0 border border-border relative"
+          style={{ background: "linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%)" }}
+          animate={!isAllDone ? { 
+            boxShadow: [
+              "0 0 0px hsl(var(--accent)/0)",
+              "0 0 12px hsl(var(--accent)/0.3)",
+              "0 0 0px hsl(var(--accent)/0)"
+            ]
+          } : {}}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          {/* Scanline Effect */}
+          {!isAllDone && (
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: "linear-gradient(180deg, transparent 0%, hsl(var(--accent)/0.08) 50%, transparent 100%)",
+                height: "30%"
+              }}
+              animate={{ y: ["-100%", "400%"] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+            />
+          )}
+          
+          {/* Code Lines Container */}
+          <div className="h-full w-full flex flex-col gap-[3px] p-1.5 overflow-hidden relative z-10">
             {getPreviewLines().map((line, i) => (
               <motion.div
-                key={i}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: i * 0.1 }}
-                className="flex items-center gap-1"
+                key={`${line}-${i}`}
+                initial={{ opacity: 0, x: -10, scaleX: 0 }}
+                animate={{ 
+                  opacity: 1, 
+                  x: 0, 
+                  scaleX: 1,
+                }}
+                transition={{ 
+                  delay: i * 0.12, 
+                  duration: 0.3,
+                  ease: "easeOut"
+                }}
+                className="flex items-center gap-1 origin-left"
               >
-                <div 
-                  className={`h-[3px] rounded-full ${
+                {/* Line Number Indicator */}
+                <motion.div 
+                  className="h-[4px] w-[4px] rounded-full shrink-0"
+                  style={{ 
+                    background: line.startsWith("$") ? "#22c55e" : 
+                               line.startsWith("✓") ? "hsl(var(--accent))" : 
+                               "#525252"
+                  }}
+                  animate={line.startsWith("✓") ? {
+                    scale: [1, 1.3, 1],
+                    opacity: [1, 0.8, 1]
+                  } : {}}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                />
+                {/* Code Line */}
+                <motion.div 
+                  className={`h-[4px] rounded-full ${
                     line.startsWith("$") ? "bg-green-400" : 
                     line.startsWith("✓") ? "bg-accent" : 
-                    "bg-muted-foreground/40"
+                    "bg-muted-foreground/50"
                   }`}
-                  style={{ width: `${Math.min(line.length * 1.5, 100)}%` }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(line.length * 2, 100)}%` }}
+                  transition={{ 
+                    delay: i * 0.12 + 0.1, 
+                    duration: 0.4,
+                    ease: "easeOut"
+                  }}
                 />
               </motion.div>
             ))}
+            
+            {/* Typing Cursor Effect */}
+            {!isAllDone && (
+              <motion.div
+                className="flex items-center gap-1 mt-auto"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                <motion.div 
+                  className="h-[4px] w-[2px] bg-accent rounded-full"
+                  animate={{ opacity: [1, 0, 1] }}
+                  transition={{ duration: 0.8, repeat: Infinity }}
+                />
+                <motion.div 
+                  className="h-[4px] bg-muted-foreground/30 rounded-full"
+                  animate={{ width: ["0%", "40%", "60%", "40%"] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+              </motion.div>
+            )}
+            
+            {/* Success Checkmark Overlay when done */}
+            <AnimatePresence>
+              {isAllDone && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  className="absolute inset-0 flex items-center justify-center bg-green-500/10 backdrop-blur-[1px]"
+                >
+                  <motion.div
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", damping: 12, stiffness: 200 }}
+                    className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500/20 border border-green-500/40"
+                  >
+                    <Check className="h-3.5 w-3.5 text-green-400" />
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        </div>
+          
+          {/* Corner Glow Effect */}
+          {!isAllDone && (
+            <motion.div
+              className="absolute -top-2 -right-2 h-6 w-6 rounded-full blur-md"
+              style={{ background: "hsl(var(--accent)/0.4)" }}
+              animate={{ 
+                opacity: [0.3, 0.6, 0.3],
+                scale: [1, 1.2, 1]
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          )}
+        </motion.div>
 
         {/* Progress Info */}
         <div className="flex-1 flex items-center gap-2">
-          <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-[10px] ${
-            isAllDone ? "bg-green-500/15 text-green-500" : "bg-blue-500/15 text-blue-500"
-          }`}>
+          <motion.div 
+            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-[10px] ${
+              isAllDone ? "bg-green-500/15 text-green-500" : "bg-blue-500/15 text-blue-500"
+            }`}
+            animate={!isAllDone ? { scale: [1, 1.1, 1] } : {}}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          >
             {isAllDone ? (
-              <Check className="h-3 w-3" />
+              <motion.div
+                initial={{ scale: 0, rotate: -90 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", damping: 10 }}
+              >
+                <Check className="h-3 w-3" />
+              </motion.div>
             ) : (
               <Loader2 className="h-3 w-3 animate-spin" />
             )}
-          </div>
-          <span className="text-xs text-muted-foreground truncate">
+          </motion.div>
+          <motion.span 
+            className="text-xs text-muted-foreground truncate"
+            key={currentStep?.label || "done"}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+          >
             {isAllDone 
               ? t(lang, "execution.completed")
               : currentStep?.label || t(lang, "execution.processing")
             }
-          </span>
+          </motion.span>
         </div>
 
         {/* Expand/Collapse Icon */}
-        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-      </button>
+        <motion.div
+          animate={{ rotate: isExpanded ? 180 : 0 }}
+          transition={{ type: "spring", damping: 15 }}
+        >
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        </motion.div>
+      </motion.button>
     </motion.div>
   );
 };
