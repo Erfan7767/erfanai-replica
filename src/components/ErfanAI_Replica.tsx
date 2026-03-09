@@ -2713,6 +2713,24 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                   ))}
                 </div>
 
+                {/* Live Transcript Display */}
+                {sttEnabled && (meetingState === "recording" || meetingState === "paused" || meetingState === "stopped") && (committedTranscript || liveTranscript) && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="rounded-xl bg-secondary/50 border border-border p-3 space-y-1 max-h-32 overflow-y-auto"
+                  >
+                    <p className="text-xs font-semibold text-accent flex items-center gap-1.5">
+                      <MessageSquare className="h-3 w-3" />
+                      {t(lang, "meeting.stt_transcript")}
+                    </p>
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                      {committedTranscript}
+                      {liveTranscript && <span className="text-muted-foreground italic">{liveTranscript}</span>}
+                    </p>
+                  </motion.div>
+                )}
+
                 <p className="text-sm text-muted-foreground">
                   {meetingState === "stopped" && meetingSummary ? meetingSummary : t(lang, "meeting.summary_auto")}
                 </p>
