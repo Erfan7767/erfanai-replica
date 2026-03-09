@@ -359,20 +359,64 @@ const translations: Record<string, Record<Lang, string>> = {
 
   // ── Notifications ──
   "notif.title": {
-    "العربية": "الإشعارات",
-    "English": "Notifications",
-    "Français": "Notifications",
-    "Español": "Notificaciones",
-    "Deutsch": "Benachrichtigungen",
-    "Türkçe": "Bildirimler",
+    "العربية": "الإشعارات", "English": "Notifications", "Français": "Notifications", "Español": "Notificaciones", "Deutsch": "Benachrichtigungen", "Türkçe": "Bildirimler",
   },
   "notif.empty": {
-    "العربية": "لا توجد إشعارات جديدة",
-    "English": "No new notifications",
-    "Français": "Aucune nouvelle notification",
-    "Español": "Sin notificaciones nuevas",
-    "Deutsch": "Keine neuen Benachrichtigungen",
-    "Türkçe": "Yeni bildirim yok",
+    "العربية": "لا توجد إشعارات جديدة", "English": "No new notifications", "Français": "Aucune nouvelle notification", "Español": "Sin notificaciones nuevas", "Deutsch": "Keine neuen Benachrichtigungen", "Türkçe": "Yeni bildirim yok",
+  },
+  "notif.mark_all_read": {
+    "العربية": "تحديد الكل كمقروء", "English": "Mark all as read", "Français": "Tout marquer comme lu", "Español": "Marcar todo como leído", "Deutsch": "Alle als gelesen markieren", "Türkçe": "Tümünü okundu işaretle",
+  },
+  "notif.clear_all": {
+    "العربية": "مسح الكل", "English": "Clear all", "Français": "Tout effacer", "Español": "Borrar todo", "Deutsch": "Alle löschen", "Türkçe": "Tümünü temizle",
+  },
+  "notif.just_now": {
+    "العربية": "الآن", "English": "Just now", "Français": "À l'instant", "Español": "Ahora", "Deutsch": "Gerade eben", "Türkçe": "Şimdi",
+  },
+  "notif.minutes_ago": {
+    "العربية": "د", "English": "m ago", "Français": "min", "Español": "min", "Deutsch": "Min", "Türkçe": "dk önce",
+  },
+  "notif.hours_ago": {
+    "العربية": "س", "English": "h ago", "Français": "h", "Español": "h", "Deutsch": "Std", "Türkçe": "sa önce",
+  },
+  "notif.days_ago": {
+    "العربية": "ي", "English": "d ago", "Français": "j", "Español": "d", "Deutsch": "T", "Türkçe": "gün önce",
+  },
+  "notif.welcome_title": {
+    "العربية": "مرحباً بك في ErfanAI! 🎉", "English": "Welcome to ErfanAI! 🎉", "Français": "Bienvenue sur ErfanAI ! 🎉", "Español": "¡Bienvenido a ErfanAI! 🎉", "Deutsch": "Willkommen bei ErfanAI! 🎉", "Türkçe": "ErfanAI'ye hoş geldiniz! 🎉",
+  },
+  "notif.welcome_body": {
+    "العربية": "يسعدنا انضمامك! لديك 300 رصيد مجاني للبدء. استكشف الميزات واستمتع بالتجربة.", "English": "Glad to have you! You have 300 free credits to start. Explore features and enjoy the experience.", "Français": "Ravis de vous avoir ! Vous avez 300 crédits gratuits pour commencer.", "Español": "¡Encantados de tenerte! Tienes 300 créditos gratis para empezar.", "Deutsch": "Schön, dass Sie dabei sind! Sie haben 300 kostenlose Credits zum Starten.", "Türkçe": "Sizi aramızda görmekten mutluyuz! Başlamak için 300 ücretsiz krediniz var.",
+  },
+  "notif.update_title": {
+    "العربية": "تحديث جديد: ErfanAI 1.6 🚀", "English": "New Update: ErfanAI 1.6 🚀", "Français": "Mise à jour : ErfanAI 1.6 🚀", "Español": "Nueva actualización: ErfanAI 1.6 🚀", "Deutsch": "Neues Update: ErfanAI 1.6 🚀", "Türkçe": "Yeni güncelleme: ErfanAI 1.6 🚀",
+  },
+  "notif.update_body": {
+    "العربية": "نماذج أسرع، دعم الصوت، أدوات جديدة للبرمجة والتصميم. جرّب الآن!", "English": "Faster models, voice support, new coding & design tools. Try now!", "Français": "Modèles plus rapides, support vocal, nouveaux outils. Essayez maintenant !", "Español": "Modelos más rápidos, soporte de voz, nuevas herramientas. ¡Pruébalo!", "Deutsch": "Schnellere Modelle, Sprachunterstützung, neue Tools. Jetzt testen!", "Türkçe": "Daha hızlı modeller, ses desteği, yeni araçlar. Şimdi deneyin!",
+  },
+  "notif.tip_title": {
+    "العربية": "💡 نصيحة: استخدم الأوامر الصوتية", "English": "💡 Tip: Use voice commands", "Français": "💡 Astuce : Utilisez les commandes vocales", "Español": "💡 Consejo: Usa comandos de voz", "Deutsch": "💡 Tipp: Sprachbefehle nutzen", "Türkçe": "💡 İpucu: Sesli komutları kullanın",
+  },
+  "notif.tip_body": {
+    "العربية": "اضغط على أيقونة الميكرفون واسأل ErfanAI بصوتك للحصول على إجابات أسرع.", "English": "Tap the microphone icon and ask ErfanAI with your voice for faster answers.", "Français": "Appuyez sur le micro et parlez à ErfanAI pour des réponses plus rapides.", "Español": "Toca el micrófono y pregunta a ErfanAI con tu voz para respuestas más rápidas.", "Deutsch": "Tippen Sie auf das Mikrofon und fragen Sie ErfanAI per Sprache.", "Türkçe": "Mikrofon simgesine dokunun ve daha hızlı yanıtlar için sesle sorun.",
+  },
+  "notif.promo_title": {
+    "العربية": "⭐ ترقية إلى Pro بخصم 40%", "English": "⭐ Upgrade to Pro – 40% off", "Français": "⭐ Passez au Pro – 40% de réduction", "Español": "⭐ Actualiza a Pro – 40% de descuento", "Deutsch": "⭐ Upgrade auf Pro – 40% Rabatt", "Türkçe": "⭐ Pro'ya yükseltin – %40 indirim",
+  },
+  "notif.promo_body": {
+    "العربية": "احصل على رسائل غير محدودة ووصول لجميع النماذج المتقدمة مع خطة Pro السنوية.", "English": "Get unlimited messages and access to all advanced models with the yearly Pro plan.", "Français": "Messages illimités et accès à tous les modèles avancés avec le plan Pro annuel.", "Español": "Mensajes ilimitados y acceso a todos los modelos avanzados con el plan Pro anual.", "Deutsch": "Unbegrenzte Nachrichten und Zugriff auf alle erweiterten Modelle mit dem jährlichen Pro-Plan.", "Türkçe": "Yıllık Pro planıyla sınırsız mesaj ve tüm gelişmiş modellere erişim.",
+  },
+  "notif.security_title": {
+    "العربية": "🔒 تم تأمين حسابك", "English": "🔒 Your account is secured", "Français": "🔒 Votre compte est sécurisé", "Español": "🔒 Tu cuenta está protegida", "Deutsch": "🔒 Ihr Konto ist gesichert", "Türkçe": "🔒 Hesabınız güvende",
+  },
+  "notif.security_body": {
+    "العربية": "تم تسجيل دخول ناجح. إذا لم تكن أنت، قم بتغيير كلمة المرور فوراً.", "English": "Successful login detected. If this wasn't you, change your password immediately.", "Français": "Connexion réussie détectée. Si ce n'était pas vous, changez votre mot de passe.", "Español": "Inicio de sesión detectado. Si no fuiste tú, cambia tu contraseña.", "Deutsch": "Erfolgreiche Anmeldung erkannt. Falls nicht Sie, ändern Sie sofort Ihr Passwort.", "Türkçe": "Başarılı giriş algılandı. Siz değilseniz, şifrenizi hemen değiştirin.",
+  },
+  "notif.cleared": {
+    "العربية": "تم مسح جميع الإشعارات", "English": "All notifications cleared", "Français": "Toutes les notifications supprimées", "Español": "Todas las notificaciones borradas", "Deutsch": "Alle Benachrichtigungen gelöscht", "Türkçe": "Tüm bildirimler temizlendi",
+  },
+  "notif.marked_read": {
+    "العربية": "تم تحديد الكل كمقروء", "English": "All marked as read", "Français": "Tout marqué comme lu", "Español": "Todo marcado como leído", "Deutsch": "Alle als gelesen markiert", "Türkçe": "Tümü okundu olarak işaretlendi",
   },
 
   // ── Model Selector ──
