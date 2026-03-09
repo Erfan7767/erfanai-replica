@@ -1167,6 +1167,27 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     applyFontSize(s.fontSize);
   });
 
+  const [headerProfile, setHeaderProfile] = useState(() => {
+    try {
+      const s = localStorage.getItem(PROFILE_KEY);
+      if (s) return { ...defaultProfile, ...JSON.parse(s) };
+    } catch {}
+    return { ...defaultProfile };
+  });
+
+  useEffect(() => {
+    const sync = () => {
+      try {
+        const s = localStorage.getItem(PROFILE_KEY);
+        if (s) setHeaderProfile({ ...defaultProfile, ...JSON.parse(s) });
+      } catch {}
+    };
+    window.addEventListener("storage", sync);
+    // Poll every second to catch same-tab saves
+    const id = setInterval(sync, 1000);
+    return () => { window.removeEventListener("storage", sync); clearInterval(id); };
+  }, []);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
