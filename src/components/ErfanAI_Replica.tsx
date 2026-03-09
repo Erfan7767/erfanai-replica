@@ -1084,9 +1084,147 @@ const stepIconMap = {
 
 const stepStatusColors = {
   pending: "bg-muted-foreground/20 text-muted-foreground",
-  running: "bg-accent/15 text-accent border border-accent/30",
+  running: "bg-blue-500/15 text-blue-500 border border-blue-500/30",
   done: "bg-green-500/15 text-green-500 border border-green-500/30",
   error: "bg-destructive/15 text-destructive border border-destructive/30",
+};
+
+/* ═══════════════════════ EXECUTION PANEL (Manus-style) ═══════════════════════ */
+const ExecutionPanel = ({ 
+  steps, 
+  isVisible, 
+  isExpanded, 
+  onToggleExpand,
+  previewImage,
+  finalMessage
+}: { 
+  steps: TaskStep[]; 
+  isVisible: boolean; 
+  isExpanded: boolean; 
+  onToggleExpand: () => void;
+  previewImage?: string;
+  finalMessage?: string;
+}) => {
+  const { lang } = useLang();
+  const dir = isRTL(lang) ? "rtl" : "ltr";
+  const completedSteps = steps.filter(s => s.status === "done").length;
+  const totalSteps = steps.length;
+  const isAllDone = completedSteps === totalSteps && totalSteps > 0;
+  const currentStep = steps.find(s => s.status === "running");
+
+  if (!isVisible) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      className="mb-4 rounded-2xl border border-border bg-card overflow-hidden shadow-xl"
+      dir={dir}
+    >
+      {/* Expanded Content - Task Steps */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
+          >
+            <div className="p-4 space-y-3 max-h-[50vh] overflow-y-auto">
+              {steps.map((step, i) => {
+                const Icon = stepIconMap[step.icon] || Terminal;
+                return (
+                  <motion.div
+                    key={step.id}
+                    initial={{ opacity: 0, x: isRTL(lang) ? 15 : -15 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05, duration: 0.25 }}
+                    className="flex items-start gap-3"
+                  >
+                    <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs transition-all ${stepStatusColors[step.status]}`}>
+                      {step.status === "running" ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : step.status === "done" ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Icon className="h-4 w-4" />
+                      )}
+                    </div>
+                    <div className="flex-1 pt-0.5">
+                      <span className={`text-sm leading-relaxed ${
+                        step.status === "done" 
+                          ? "text-muted-foreground" 
+                          : step.status === "running" 
+                            ? "text-foreground font-medium" 
+                            : "text-muted-foreground/50"
+                      }`}>
+                        {step.label}
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              })}
+
+              {/* Final AI Response */}
+              {isAllDone && finalMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 pt-4 border-t border-border"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent/15">
+                      <Sparkles className="h-4 w-4 text-accent" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-foreground leading-relaxed">{finalMessage}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Collapsed Bar / Preview */}
+      <button
+        onClick={onToggleExpand}
+        className="w-full flex items-center gap-3 px-4 py-3 bg-secondary/50 hover:bg-secondary/80 transition-colors"
+      >
+        {/* Preview Image Thumbnail */}
+        {previewImage && (
+          <div className="h-10 w-14 rounded-lg overflow-hidden bg-muted shrink-0 border border-border">
+            <img src={previewImage} alt="" className="h-full w-full object-cover" />
+          </div>
+        )}
+
+        {/* Progress Info */}
+        <div className="flex-1 flex items-center gap-2">
+          <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-[10px] ${
+            isAllDone ? "bg-green-500/15 text-green-500" : "bg-blue-500/15 text-blue-500"
+          }`}>
+            {isAllDone ? (
+              <Check className="h-3 w-3" />
+            ) : (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            )}
+          </div>
+          <span className="text-xs text-muted-foreground truncate">
+            {isAllDone 
+              ? t(lang, "execution.completed")
+              : currentStep?.label || t(lang, "execution.processing")
+            }
+          </span>
+        </div>
+
+        {/* Expand/Collapse Icon */}
+        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+      </button>
+    </motion.div>
+  );
 };
 
 const TaskExecutionSteps = ({ steps }: { steps: TaskStep[] }) => {
