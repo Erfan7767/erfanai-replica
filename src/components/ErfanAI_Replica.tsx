@@ -2594,6 +2594,12 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                         onClick={() => {
                           setMeetingState("stopped");
                           if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
+                          // Save meeting
+                          const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `Meeting #${savedMeetings.length + 1}` };
+                          const updated = [newMeeting, ...savedMeetings];
+                          setSavedMeetings(updated);
+                          localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
+                          toast.success("Meeting saved!");
                         }}
                         className="flex items-center gap-2 rounded-xl bg-destructive text-destructive-foreground px-4 py-2.5 text-sm font-semibold hover:bg-destructive/90 transition-colors"
                       >
