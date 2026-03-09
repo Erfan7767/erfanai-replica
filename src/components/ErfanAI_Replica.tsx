@@ -2924,6 +2924,9 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                           setMeetingSeconds(0);
                           setMeetingNotes("");
                           setMeetingSummary("");
+                          setLiveTranscript("");
+                          setCommittedTranscript("");
+                          if (sttEnabled) startSpeechRecognition();
                           meetingTimerRef.current = setInterval(() => {
                             setMeetingSeconds(prev => {
                               if (prev >= 7200) { clearInterval(meetingTimerRef.current); setMeetingState("stopped"); return prev; }
