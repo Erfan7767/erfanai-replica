@@ -122,6 +122,30 @@ const translations: Record<string, Record<Lang, string>> = {
     "Deutsch": "Mehr",
     "Türkçe": "Daha fazla",
   },
+  "more.schedule_task": {
+    "العربية": "جدولة مهمة", "English": "Schedule task", "Français": "Planifier une tâche", "Español": "Programar tarea", "Deutsch": "Aufgabe planen", "Türkçe": "Görev planla",
+  },
+  "more.wide_research": {
+    "العربية": "بحث موسّع", "English": "Wide Research", "Français": "Recherche étendue", "Español": "Investigación amplia", "Deutsch": "Umfangreiche Recherche", "Türkçe": "Geniş araştırma",
+  },
+  "more.spreadsheet": {
+    "العربية": "جدول بيانات", "English": "Spreadsheet", "Français": "Tableur", "Español": "Hoja de cálculo", "Deutsch": "Tabellenkalkulation", "Türkçe": "Elektronik tablo",
+  },
+  "more.visualization": {
+    "العربية": "تصوّر بياني", "English": "Visualization", "Français": "Visualisation", "Español": "Visualización", "Deutsch": "Visualisierung", "Türkçe": "Görselleştirme",
+  },
+  "more.video": {
+    "العربية": "فيديو", "English": "Video", "Français": "Vidéo", "Español": "Vídeo", "Deutsch": "Video", "Türkçe": "Video",
+  },
+  "more.audio": {
+    "العربية": "صوت", "English": "Audio", "Français": "Audio", "Español": "Audio", "Deutsch": "Audio", "Türkçe": "Ses",
+  },
+  "more.chat_mode": {
+    "العربية": "وضع المحادثة", "English": "Chat mode", "Français": "Mode chat", "Español": "Modo chat", "Deutsch": "Chat-Modus", "Türkçe": "Sohbet modu",
+  },
+  "more.playbook": {
+    "العربية": "دليل التشغيل", "English": "Playbook", "Français": "Guide", "Español": "Manual", "Deutsch": "Playbook", "Türkçe": "Oyun kitabı",
+  },
 
   // ── Login Screen ──
   "login.title": {
