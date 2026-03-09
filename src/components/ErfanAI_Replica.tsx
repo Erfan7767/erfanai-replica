@@ -11,7 +11,7 @@ import {
   HelpCircle, Home, ExternalLink, User, BookOpen, ChevronLeft,
   ArrowRight, Upload as UploadIcon, Camera, Image, FileText, Copy,
   Share2, Trash2, Volume2, VolumeX,
-  CalendarCheck, Target, Table, BarChart3, Play, AudioLines, MessageCircle, BookCopy, Clock, Pause, RotateCcw, Save, Download,
+  CalendarCheck, Target, Table, BarChart3, Play, AudioLines, MessageCircle, BookCopy, Clock, Pause, RotateCcw, Save,
 } from "lucide-react";
 
 /* ═══════════════════════ LANGUAGE CONTEXT ═══════════════════════ */
@@ -2966,51 +2966,6 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                             className="rounded-lg p-2 text-accent hover:bg-accent/10 transition-colors"
                           >
                             <Play className="h-4 w-4" />
-                          </button>
-                          {/* Export as TXT */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const mins = Math.floor(meeting.duration / 60);
-                              const secs = (meeting.duration % 60).toString().padStart(2, "0");
-                              let content = `${meeting.title}\n`;
-                              content += `${"─".repeat(40)}\n`;
-                              content += `${t(lang, "meeting.export_date")}: ${meeting.date}\n`;
-                              content += `${t(lang, "meeting.export_duration")}: ${mins}:${secs}\n\n`;
-                              if (meeting.summary) { content += `${t(lang, "meeting.summary_label")}\n${meeting.summary}\n\n`; }
-                              if (meeting.notes) { content += `${t(lang, "meeting.notes_label")}\n${meeting.notes}\n`; }
-                              const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-                              const url = URL.createObjectURL(blob);
-                              const a = document.createElement("a");
-                              a.href = url; a.download = `${meeting.title.replace(/\s+/g, "_")}.txt`; a.click();
-                              URL.revokeObjectURL(url);
-                              toast.success(t(lang, "meeting.exported"));
-                            }}
-                            className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-                            title={t(lang, "meeting.export_txt")}
-                          >
-                            <Download className="h-3.5 w-3.5" />
-                          </button>
-                          {/* Share */}
-                          <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              const mins = Math.floor(meeting.duration / 60);
-                              const secs = (meeting.duration % 60).toString().padStart(2, "0");
-                              let text = `${meeting.title}\n${t(lang, "meeting.export_duration")}: ${mins}:${secs}\n`;
-                              if (meeting.summary) text += `\n${meeting.summary}`;
-                              if (meeting.notes) text += `\n\n${t(lang, "meeting.notes_label")}:\n${meeting.notes}`;
-                              if (navigator.share) {
-                                try { await navigator.share({ title: meeting.title, text }); } catch {}
-                              } else {
-                                await navigator.clipboard.writeText(text);
-                                toast.success(t(lang, "meeting.copied"));
-                              }
-                            }}
-                            className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-                            title={t(lang, "meeting.share")}
-                          >
-                            <Share2 className="h-3.5 w-3.5" />
                           </button>
                           <button
                             onClick={(e) => {
