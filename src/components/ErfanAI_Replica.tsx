@@ -11,6 +11,7 @@ import {
   HelpCircle, Home, ExternalLink, User, BookOpen, ChevronLeft,
   ArrowRight, Upload as UploadIcon, Camera, Image, FileText, Copy,
   Share2, Trash2, Volume2, VolumeX,
+  CalendarCheck, Target, Table, BarChart3, Play, AudioLines, MessageCircle, BookCopy,
 } from "lucide-react";
 
 /* ═══════════════════════ LANGUAGE CONTEXT ═══════════════════════ */
