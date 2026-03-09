@@ -1864,6 +1864,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfilePanelOpen, setIsProfilePanelOpen] = useState(false);
   const [isKnowledgeOpen, setIsKnowledgeOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isCreditsOpen, setIsCreditsOpen] = useState(false);
   const [currentModel, setCurrentModel] = useState(() => loadSettings().defaultModel || "ErfanAI Lite");
   const [inputValue, setInputValue] = useState("");
   const [activeChips, setActiveChips] = useState<string[]>([]);
@@ -2278,12 +2280,14 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         else if (page === "chats") { toast(`${t(lang, "sidebar.chats")} - ${t(lang, "coming_soon")}`); }
         else if (page === "agents") { toast(`${t(lang, "sidebar.agents")} - ${t(lang, "coming_soon")}`); }
       }} />
-      <ProfileDropdown isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} onLogout={onLogout} onOpenSettings={() => setIsSettingsOpen(true)} onOpenProfile={() => setIsProfilePanelOpen(true)} onOpenKnowledge={() => setIsKnowledgeOpen(true)} />
+      <ProfileDropdown isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} onLogout={onLogout} onOpenSettings={() => setIsSettingsOpen(true)} onOpenProfile={() => setIsProfilePanelOpen(true)} onOpenKnowledge={() => setIsKnowledgeOpen(true)} onUpgrade={() => setMorePanel("upgrade_pro")} onHome={onLogout} onHelp={() => setIsHelpOpen(true)} />
       <NotificationsPanel isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
       <ModelSelector isOpen={isModelSelectorOpen} onClose={() => setIsModelSelectorOpen(false)} currentModel={currentModel} onSelect={(m) => { setCurrentModel(m); toast(`${t(lang, "model.switched_to")} ${m}`); }} />
       <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} onChangeModel={(m) => setCurrentModel(m)} onClearHistory={() => { setMessages([]); setActiveChips([]); }} onLogout={onLogout} currentModel={currentModel} />
       <ProfilePanel isOpen={isProfilePanelOpen} onClose={() => setIsProfilePanelOpen(false)} onLogout={onLogout} />
       <KnowledgePanel isOpen={isKnowledgeOpen} onClose={() => setIsKnowledgeOpen(false)} />
+      <HelpPanel isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} onUpgrade={() => { setIsHelpOpen(false); setMorePanel("upgrade_pro"); }} />
+      <CreditsPanel isOpen={isCreditsOpen} onClose={() => setIsCreditsOpen(false)} onUpgrade={() => { setIsCreditsOpen(false); setMorePanel("upgrade_pro"); }} messagesCount={messages.filter(m => m.isUser).length} />
       <SearchConversationsPanel isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} messages={messages} onSelectMessage={(msg) => { setInputValue(msg); }} />
       <DiscoverPanel isOpen={isDiscoverOpen} onClose={() => setIsDiscoverOpen(false)} onUseTemplate={(prompt) => { setInputValue(prompt); }} />
       <ScheduleTaskPanel isOpen={morePanel === "schedule_task"} onClose={() => setMorePanel(null)} />
