@@ -1106,6 +1106,7 @@ const defaultProfile = { name: "Erfan Moharam", email: "nmoharam7796@gmail.com",
 const ProfilePanel = ({ isOpen, onClose, onLogout }: { isOpen: boolean; onClose: () => void; onLogout: () => void }) => {
   const { lang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
+  const [isKnowledgePanelOpen, setIsKnowledgePanelOpen] = useState(false);
   const [profile, setProfile] = useState(() => {
     try {
       const s = localStorage.getItem(PROFILE_KEY);
@@ -1263,7 +1264,7 @@ const ProfilePanel = ({ isOpen, onClose, onLogout }: { isOpen: boolean; onClose:
               {/* Knowledge */}
               <div className="rounded-xl border border-border bg-secondary/50 overflow-hidden">
                 <button
-                  onClick={() => toast(t(lang, "coming_soon"))}
+                  onClick={() => setIsKnowledgePanelOpen(true)}
                   className={`flex w-full items-center ${isRTL(lang) ? "justify-end" : "justify-start"} gap-3 px-4 py-4 text-sm text-foreground hover:bg-secondary transition-colors`}
                 >
                   {!isRTL(lang) && <BookOpen className="h-5 w-5 text-accent shrink-0" />}
