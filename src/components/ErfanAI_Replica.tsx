@@ -2779,15 +2779,24 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                             if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
                             if (waveformIntervalRef.current) clearInterval(waveformIntervalRef.current);
                             if (meetingAudioRef.current) { meetingAudioRef.current.getTracks().forEach(t => t.stop()); meetingAudioRef.current = null; }
+                            let audioUrl2: string | undefined;
+                            if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+                              mediaRecorderRef.current.onstop = () => {
+                                const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+                                audioUrl2 = URL.createObjectURL(blob);
+                                setSavedMeetings(prev => { const u = prev.map((m, i) => i === 0 ? { ...m, audioUrl: audioUrl2 } : m); localStorage.setItem("erfanai_meetings", JSON.stringify(u)); return u; });
+                              };
+                              mediaRecorderRef.current.stop();
+                            }
                             const mins = Math.floor(meetingSeconds / 60);
                             const summaryText = t(lang, "meeting.auto_summary").replace("{mins}", String(mins || 1));
                             setMeetingSummary(summaryText);
-                            const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, notes: "", summary: summaryText };
+                            const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, notes: "", summary: summaryText, audioUrl: audioUrl2 };
                             const updated = [newMeeting, ...savedMeetings];
                             setSavedMeetings(updated);
                             localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
                             toast.success(t(lang, "meeting.saved"));
-                          }}
+                          }
                           className="flex items-center gap-2 rounded-xl bg-destructive text-destructive-foreground px-4 py-2.5 text-sm font-semibold hover:bg-destructive/90 transition-colors"
                         >
                           <X className="h-4 w-4" />
