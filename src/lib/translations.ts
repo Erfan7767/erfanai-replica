@@ -1069,14 +1069,6 @@ const translations: Record<string, Record<Lang, string>> = {
     "Deutsch": "Ihr eigenes",
     "Türkçe": "kendinize ait",
   },
-  "app.customize_back": {
-    "العربية": "اختر الألوان، اللغة، والنموذج المفضل لتجربة فريدة تناسبك",
-    "English": "Choose colors, language & preferred model for a unique experience",
-    "Français": "Choisissez couleurs, langue et modèle préféré",
-    "Español": "Elige colores, idioma y modelo preferido",
-    "Deutsch": "Wählen Sie Farben, Sprache & bevorzugtes Modell",
-    "Türkçe": "Renkler, dil ve tercih edilen modeli seçin",
-  },
   "app.files_attached": {
     "العربية": "تم إرفاق",
     "English": "Attached",

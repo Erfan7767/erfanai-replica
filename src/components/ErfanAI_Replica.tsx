@@ -2008,62 +2008,77 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
           </motion.div>
         )}
 
-        {/* Bottom Customize Card - Auto Flip */}
+        {/* Bottom Customize Card */}
         {messages.length === 0 && (
-          <div className="mt-6 perspective-[800px]" style={{ perspective: "800px" }}>
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.9 }}
+            animate={{ opacity: 1, y: [30, -5, 0], scale: [0.9, 1.02, 1] }}
+            transition={{ delay: 0.5, duration: 0.7, ease: "easeOut" }}
+            whileHover={{ scale: 1.03, y: -4, boxShadow: "0 12px 40px -10px hsl(var(--accent) / 0.4)" }}
+            whileTap={{ scale: 0.95 }}
+            className="mt-6 overflow-hidden rounded-2xl bg-card cursor-pointer border border-border relative"
+            onClick={() => toast(t(lang, "coming_soon"))}
+          >
+            {/* Animated gradient border */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0, rotateY: [0, 0, 180, 180, 360, 360] }}
-              transition={{
-                opacity: { delay: 0.5, duration: 0.4 },
-                y: { delay: 0.5, duration: 0.5 },
-                rotateY: { duration: 6, repeat: Infinity, repeatDelay: 1, times: [0, 0.3, 0.4, 0.7, 0.8, 1], ease: "easeInOut" },
-              }}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="relative cursor-pointer"
-              style={{ transformStyle: "preserve-3d" }}
-              onClick={() => toast(t(lang, "coming_soon"))}
-            >
-              {/* Front Face */}
-              <div className="rounded-2xl border border-border bg-card overflow-hidden" style={{ backfaceVisibility: "hidden" }}>
-                <div className="flex items-center gap-4 p-5 relative">
+              className="absolute inset-0 rounded-2xl pointer-events-none"
+              style={{ background: "linear-gradient(90deg, hsl(var(--accent)/0.4), hsl(var(--accent)/0.1), hsl(var(--accent)/0.4))", backgroundSize: "200% 100%" }}
+              animate={{ backgroundPosition: ["0% 0%", "200% 0%"] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            />
+            <div className="relative flex items-center gap-4 p-5 bg-card rounded-2xl m-[1px]">
+              <motion.div
+                className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-xl bg-secondary gap-1"
+                animate={{ rotate: [0, -5, 5, -3, 3, 0], scale: [1, 1.05, 1] }}
+                transition={{ duration: 3, repeat: Infinity, repeatDelay: 2, ease: "easeInOut" }}
+              >
+                <motion.div
+                  animate={{ scale: [1, 1.3, 1], rotate: [0, 15, -15, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 2.5, ease: "easeInOut" }}
+                >
+                  <LayoutGrid className="h-6 w-6 text-accent" />
+                </motion.div>
+                <div className="flex flex-col gap-0.5">
                   <motion.div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{ background: "linear-gradient(90deg, transparent, hsl(var(--accent)/0.06), transparent)", backgroundSize: "200% 100%" }}
-                    animate={{ backgroundPosition: ["0% 0%", "200% 0%"] }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+                    animate={{ width: [0, 32, 20, 32], opacity: [0.3, 0.6, 0.3, 0.6] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                    className="h-[2px] rounded-full bg-accent/50"
                   />
-                  <div className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-xl bg-secondary gap-1 relative">
-                    <LayoutGrid className="h-6 w-6 text-accent" />
-                    <div className="flex flex-col gap-0.5">
-                      <div className="h-[2px] w-8 rounded-full bg-muted-foreground/40" />
-                      <div className="h-[2px] w-6 rounded-full bg-muted-foreground/30" />
-                    </div>
-                  </div>
-                  <p className="text-sm font-semibold text-foreground leading-relaxed">
-                    {t(lang, "app.customize")} <span className="text-accent font-bold">ErfanAI</span> {t(lang, "app.your")}
-                  </p>
-                </div>
-              </div>
-
-              {/* Back Face */}
-              <div className="absolute inset-0 rounded-2xl border border-accent/30 bg-card overflow-hidden" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
-                <div className="flex items-center gap-4 p-5 h-full relative">
                   <motion.div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{ background: "linear-gradient(135deg, hsl(var(--accent)/0.08), transparent, hsl(var(--accent)/0.08))" }}
+                    animate={{ width: [0, 24, 16, 24], opacity: [0.2, 0.5, 0.2, 0.5] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+                    className="h-[2px] rounded-full bg-accent/40"
                   />
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-accent/10">
-                    <Sparkles className="h-7 w-7 text-accent" />
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed flex-1">
-                    {t(lang, "app.customize_back")}
-                  </p>
                 </div>
+              </motion.div>
+              <div className="text-sm font-semibold text-foreground leading-relaxed">
+                <motion.span
+                  className="inline-block"
+                  animate={{ opacity: [0, 1] }}
+                  transition={{ delay: 0.6, duration: 0.4 }}
+                >
+                  {t(lang, "app.customize")}{" "}
+                </motion.span>
+                <motion.span
+                  className="text-accent inline-block font-bold"
+                  animate={{
+                    scale: [1, 1.12, 1],
+                    textShadow: ["0 0 0px hsl(var(--accent)/0)", "0 0 12px hsl(var(--accent)/0.5)", "0 0 0px hsl(var(--accent)/0)"],
+                  }}
+                  transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1.5, ease: "easeInOut" }}
+                >
+                  ErfanAI
+                </motion.span>{" "}
+                <motion.span
+                  className="inline-block"
+                  animate={{ opacity: [0, 1] }}
+                  transition={{ delay: 0.8, duration: 0.4 }}
+                >
+                  {t(lang, "app.your")}
+                </motion.span>
               </div>
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         )}
 
         {messages.length === 0 && (
