@@ -1918,9 +1918,11 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   }, []);
 
   useEffect(() => {
-    const handler = () => setIsCreditsOpen(true);
-    window.addEventListener("open-credits", handler);
-    return () => window.removeEventListener("open-credits", handler);
+    const creditsHandler = () => setIsCreditsOpen(true);
+    const upgradeHandler = () => setMorePanel("upgrade_pro");
+    window.addEventListener("open-credits", creditsHandler);
+    window.addEventListener("open-upgrade", upgradeHandler);
+    return () => { window.removeEventListener("open-credits", creditsHandler); window.removeEventListener("open-upgrade", upgradeHandler); };
   }, []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
