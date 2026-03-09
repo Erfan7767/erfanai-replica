@@ -2064,6 +2064,37 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [exportMenuId, setExportMenuId] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
   const lastTranscriptRef = useRef<string>("");
+  const [sttEnabled, setSttEnabled] = useState(false);
+  const [liveTranscript, setLiveTranscript] = useState("");
+  const [committedTranscript, setCommittedTranscript] = useState("");
+
+  // ── Speech-to-Text helpers ──
+  const startSpeechRecognition = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) { toast.error(t(lang, "meeting.stt_not_supported")); return; }
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = lang === "العربية" ? "ar" : lang === "English" ? "en-US" : lang === "Français" ? "fr-FR" : lang === "Español" ? "es-ES" : lang === "Deutsch" ? "de-DE" : lang === "Türkçe" ? "tr-TR" : "en-US";
+    recognition.onresult = (event: any) => {
+      let interim = "";
+      let final = "";
+      for (let i = 0; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) { final += transcript + " "; } else { interim += transcript; }
+      }
+      if (final) { setCommittedTranscript(prev => prev + final); }
+      setLiveTranscript(interim);
+    };
+    recognition.onerror = () => {};
+    recognition.onend = () => { if (recognitionRef.current && sttEnabled) { try { recognition.start(); } catch {} } };
+    recognition.start();
+    recognitionRef.current = recognition;
+  };
+
+  const stopSpeechRecognition = () => {
+    if (recognitionRef.current) { try { recognitionRef.current.stop(); } catch {} recognitionRef.current = null; }
+  };
 
   // ── Export helpers ──
   const exportMeetingAsTxt = (meeting: typeof savedMeetings[0]) => {
