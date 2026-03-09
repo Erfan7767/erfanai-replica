@@ -2655,6 +2655,124 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                   Download app
                 </button>
               </motion.div>
+
+              {/* Playback Panel */}
+              <AnimatePresence>
+                {playbackMeeting && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    className="rounded-2xl border border-accent/30 bg-card p-5 space-y-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Play className="h-4 w-4 text-accent" />
+                        <span className="text-sm font-semibold text-foreground">{playbackMeeting.title}</span>
+                      </div>
+                      <button onClick={() => { setPlaybackMeeting(null); setIsPlaying(false); setPlaybackSeconds(0); if (playbackTimerRef.current) clearInterval(playbackTimerRef.current); }} className="rounded-lg p-1 text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+                    </div>
+                    
+                    {/* Progress bar */}
+                    <div className="space-y-2">
+                      <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
+                        <motion.div 
+                          className="h-full rounded-full bg-accent"
+                          style={{ width: `${playbackMeeting.duration > 0 ? (playbackSeconds / playbackMeeting.duration) * 100 : 0}%` }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground font-mono">
+                        <span>{Math.floor(playbackSeconds / 60)}:{(playbackSeconds % 60).toString().padStart(2, "0")}</span>
+                        <span>{Math.floor(playbackMeeting.duration / 60)}:{(playbackMeeting.duration % 60).toString().padStart(2, "0")}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-center gap-4">
+                      <button onClick={() => { setPlaybackSeconds(0); }} className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+                        <RotateCcw className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (isPlaying) {
+                            setIsPlaying(false);
+                            if (playbackTimerRef.current) clearInterval(playbackTimerRef.current);
+                          } else {
+                            setIsPlaying(true);
+                            playbackTimerRef.current = setInterval(() => {
+                              setPlaybackSeconds(prev => {
+                                if (prev >= (playbackMeeting?.duration || 0)) {
+                                  clearInterval(playbackTimerRef.current);
+                                  setIsPlaying(false);
+                                  return prev;
+                                }
+                                return prev + 1;
+                              });
+                            }, 1000);
+                          }
+                        }}
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-accent-foreground hover:bg-accent/90 transition-colors"
+                      >
+                        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Saved Meetings List */}
+              {savedMeetings.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="space-y-3"
+                >
+                  <div className="flex items-center gap-2 px-1">
+                    <Clock className="h-4 w-4 text-accent" />
+                    <span className="text-sm font-semibold text-foreground">Previous Recordings</span>
+                    <span className="text-xs text-muted-foreground">({savedMeetings.length})</span>
+                  </div>
+                  {savedMeetings.map((meeting, idx) => (
+                    <motion.div
+                      key={meeting.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="rounded-xl border border-border bg-card p-4 flex items-center justify-between hover:bg-secondary/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10">
+                          <Mic className="h-4 w-4 text-accent" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{meeting.title}</p>
+                          <p className="text-xs text-muted-foreground">{meeting.date} • {Math.floor(meeting.duration / 60)}:{(meeting.duration % 60).toString().padStart(2, "0")}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => { setPlaybackMeeting(meeting); setPlaybackSeconds(0); setIsPlaying(false); if (playbackTimerRef.current) clearInterval(playbackTimerRef.current); }}
+                          className="rounded-lg p-2 text-accent hover:bg-accent/10 transition-colors"
+                        >
+                          <Play className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            const updated = savedMeetings.filter(m => m.id !== meeting.id);
+                            setSavedMeetings(updated);
+                            localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
+                            if (playbackMeeting?.id === meeting.id) { setPlaybackMeeting(null); setIsPlaying(false); if (playbackTimerRef.current) clearInterval(playbackTimerRef.current); }
+                            toast("Recording deleted");
+                          }}
+                          className="rounded-lg p-2 text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
             </div>
 
             {/* Bottom disabled input */}
