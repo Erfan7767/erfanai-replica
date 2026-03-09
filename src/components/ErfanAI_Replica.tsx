@@ -2040,16 +2040,25 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [isDiscoverOpen, setIsDiscoverOpen] = useState(false);
   const [isRecordingDialogOpen, setIsRecordingDialogOpen] = useState(false);
   const [isMeetingViewOpen, setIsMeetingViewOpen] = useState(false);
-  const [meetingState, setMeetingState] = useState<"idle" | "recording" | "stopped">("idle");
+  const [meetingState, setMeetingState] = useState<"idle" | "recording" | "paused" | "stopped">("idle");
   const [meetingSeconds, setMeetingSeconds] = useState(0);
   const meetingTimerRef = useRef<any>(null);
-  const [savedMeetings, setSavedMeetings] = useState<{ id: string; duration: number; date: string; title: string }[]>(() => {
+  const [meetingNotes, setMeetingNotes] = useState("");
+  const [meetingSummary, setMeetingSummary] = useState("");
+  const [meetingWaveform, setMeetingWaveform] = useState<number[]>(Array(30).fill(0));
+  const waveformIntervalRef = useRef<any>(null);
+  const meetingAudioRef = useRef<MediaStream | null>(null);
+  const meetingAnalyserRef = useRef<AnalyserNode | null>(null);
+  const [editingMeetingId, setEditingMeetingId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  const [savedMeetings, setSavedMeetings] = useState<{ id: string; duration: number; date: string; title: string; notes?: string; summary?: string }[]>(() => {
     try { const s = localStorage.getItem("erfanai_meetings"); if (s) return JSON.parse(s); } catch {} return [];
   });
-  const [playbackMeeting, setPlaybackMeeting] = useState<{ id: string; duration: number; date: string; title: string } | null>(null);
+  const [playbackMeeting, setPlaybackMeeting] = useState<{ id: string; duration: number; date: string; title: string; notes?: string; summary?: string } | null>(null);
   const [playbackSeconds, setPlaybackSeconds] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const playbackTimerRef = useRef<any>(null);
+  const [viewingMeeting, setViewingMeeting] = useState<{ id: string; duration: number; date: string; title: string; notes?: string; summary?: string } | null>(null);
   const recognitionRef = useRef<any>(null);
   const lastTranscriptRef = useRef<string>("");
 
