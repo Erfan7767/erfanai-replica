@@ -1917,6 +1917,12 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     return () => { window.removeEventListener("storage", sync); clearInterval(id); };
   }, []);
 
+  useEffect(() => {
+    const handler = () => setIsCreditsOpen(true);
+    window.addEventListener("open-credits", handler);
+    return () => window.removeEventListener("open-credits", handler);
+  }, []);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
