@@ -1147,6 +1147,7 @@ const ProfilePanel = ({ isOpen, onClose, onLogout }: { isOpen: boolean; onClose:
   };
 
   return (
+    <>
     <AnimatePresence>
       {isOpen && (
         <>
