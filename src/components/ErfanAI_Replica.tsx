@@ -11,7 +11,7 @@ import {
   HelpCircle, Home, ExternalLink, User, BookOpen, ChevronLeft,
   ArrowRight, Upload as UploadIcon, Camera, Image, FileText, Copy,
   Share2, Trash2, Volume2, VolumeX,
-  CalendarCheck, Target, Table, BarChart3, Play, AudioLines, MessageCircle, BookCopy,
+  CalendarCheck, Target, Table, BarChart3, Play, AudioLines, MessageCircle, BookCopy, Clock, Pause, RotateCcw, Save,
 } from "lucide-react";
 
 /* ═══════════════════════ LANGUAGE CONTEXT ═══════════════════════ */
@@ -2043,6 +2043,13 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [meetingState, setMeetingState] = useState<"idle" | "recording" | "stopped">("idle");
   const [meetingSeconds, setMeetingSeconds] = useState(0);
   const meetingTimerRef = useRef<any>(null);
+  const [savedMeetings, setSavedMeetings] = useState<{ id: string; duration: number; date: string; title: string }[]>(() => {
+    try { const s = localStorage.getItem("erfanai_meetings"); if (s) return JSON.parse(s); } catch {} return [];
+  });
+  const [playbackMeeting, setPlaybackMeeting] = useState<{ id: string; duration: number; date: string; title: string } | null>(null);
+  const [playbackSeconds, setPlaybackSeconds] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const playbackTimerRef = useRef<any>(null);
   const recognitionRef = useRef<any>(null);
   const lastTranscriptRef = useRef<string>("");
 
