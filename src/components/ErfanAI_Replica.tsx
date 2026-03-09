@@ -2038,6 +2038,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isDiscoverOpen, setIsDiscoverOpen] = useState(false);
+  const [isRecordingDialogOpen, setIsRecordingDialogOpen] = useState(false);
   const recognitionRef = useRef<any>(null);
   const lastTranscriptRef = useRef<string>("");
 
@@ -2299,7 +2300,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
               <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileSelect} />
             </div>
             <div className="flex items-center gap-1">
-              <button onClick={() => toast(t(lang, "coming_soon"))} className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"><SlidersHorizontal className="h-[18px] w-[18px]" /></button>
+              <button onClick={() => setIsRecordingDialogOpen(true)} className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"><SlidersHorizontal className="h-[18px] w-[18px]" /></button>
               <button onClick={handleMic} className={`rounded-lg p-2 transition-colors ${isRecording ? "text-red-500 bg-red-500/10 animate-pulse" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}><Mic className="h-[18px] w-[18px]" /></button>
               <button onClick={handleSend} className={`${isRTL(lang) ? "mr-1" : "ml-1"} flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-muted-foreground transition-colors hover:text-foreground hover:bg-accent hover:text-accent-foreground disabled:opacity-30`} disabled={!inputValue.trim() && attachedFiles.length === 0}><Send className="h-[18px] w-[18px]" /></button>
             </div>
