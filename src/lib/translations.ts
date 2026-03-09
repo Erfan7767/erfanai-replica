@@ -1659,7 +1659,6 @@ const translations: Record<string, Record<Lang, string>> = {
   "meeting.joining": {
     "العربية": "جارٍ الانضمام...", "English": "Joining meeting...", "Français": "Rejoindre la réunion...", "Español": "Uniéndose a la reunión...", "Deutsch": "Meeting beitreten...", "Türkçe": "Toplantıya katılınıyor...",
   },
-  },
   "meeting.pause": {
     "العربية": "إيقاف مؤقت", "English": "Pause", "Français": "Pause", "Español": "Pausar", "Deutsch": "Pause", "Türkçe": "Duraklat",
   },
