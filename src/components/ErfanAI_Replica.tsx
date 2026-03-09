@@ -829,7 +829,7 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
 };
 
 /* ═══════════════════════ PROFILE DROPDOWN ═══════════════════════ */
-const ProfileDropdown = ({ isOpen, onClose, onLogout, onOpenSettings, onOpenProfile, onOpenKnowledge }: { isOpen: boolean; onClose: () => void; onLogout: () => void; onOpenSettings: () => void; onOpenProfile: () => void; onOpenKnowledge: () => void }) => {
+const ProfileDropdown = ({ isOpen, onClose, onLogout, onOpenSettings, onOpenProfile, onOpenKnowledge, onUpgrade, onHome, onHelp }: { isOpen: boolean; onClose: () => void; onLogout: () => void; onOpenSettings: () => void; onOpenProfile: () => void; onOpenKnowledge: () => void; onUpgrade: () => void; onHome: () => void; onHelp: () => void }) => {
   const { lang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
   return (
