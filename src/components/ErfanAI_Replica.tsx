@@ -10,7 +10,7 @@ import {
   Palette, MoreHorizontal, LayoutGrid, Send, ArrowRightLeft,
   HelpCircle, Home, ExternalLink, User, BookOpen, ChevronLeft,
   ArrowRight, Upload as UploadIcon, Camera, Image, FileText, Copy,
-  Share2, Trash2, Volume2, VolumeX, Download,
+  Share2, Trash2, Volume2, VolumeX, Download, Check, Loader2, Terminal, Pencil,
   CalendarCheck, Target, Table, BarChart3, Play, AudioLines, MessageCircle, BookCopy, Clock, Pause, RotateCcw, Save,
 } from "lucide-react";
 
