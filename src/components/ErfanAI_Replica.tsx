@@ -1638,6 +1638,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [activeChips, setActiveChips] = useState<string[]>([]);
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const [morePanel, setMorePanel] = useState<string | null>(null);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [messages, setMessages] = useState<{ text: string; isUser: boolean; files?: File[] }[]>(() => {
     try {
