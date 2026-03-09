@@ -3024,7 +3024,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                             {meeting.summary && <p className="text-xs text-accent/70 truncate mt-0.5">{meeting.summary.slice(0, 60)}...</p>}
                           </div>
                         </div>
-                        <div className="flex items-center gap-0.5">
+                        <div className="flex items-center gap-0.5 flex-wrap">
                           <button
                             onClick={(e) => { e.stopPropagation(); setEditingMeetingId(meeting.id); setEditingTitle(meeting.title); }}
                             className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
@@ -3038,6 +3038,45 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                           >
                             <Play className="h-4 w-4" />
                           </button>
+                          {/* Export dropdown */}
+                          <div className="relative">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setExportMenuId(exportMenuId === meeting.id ? null : meeting.id); }}
+                              className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                              title={t(lang, "meeting.export")}
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                            </button>
+                            <AnimatePresence>
+                              {exportMenuId === meeting.id && (
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                                  className="absolute top-full right-0 z-50 mt-1 w-44 rounded-xl border border-border bg-card p-1.5 shadow-xl"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <button onClick={() => { exportMeetingAsTxt(meeting); setExportMenuId(null); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary transition-colors">
+                                    <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                                    {t(lang, "meeting.export_txt")}
+                                  </button>
+                                  <button onClick={() => { exportMeetingAsPdf(meeting); setExportMenuId(null); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary transition-colors">
+                                    <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                                    {t(lang, "meeting.export_pdf")}
+                                  </button>
+                                  <button onClick={() => { exportMeetingAudio(meeting); setExportMenuId(null); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary transition-colors">
+                                    <Volume2 className="h-3.5 w-3.5 text-muted-foreground" />
+                                    {t(lang, "meeting.export_audio")}
+                                  </button>
+                                  <div className="h-px bg-border my-1" />
+                                  <button onClick={() => { shareMeeting(meeting); setExportMenuId(null); }} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary transition-colors">
+                                    <Share2 className="h-3.5 w-3.5 text-muted-foreground" />
+                                    {t(lang, "meeting.share")}
+                                  </button>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
