@@ -1633,6 +1633,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                 )}
               </AnimatePresence>
             </div>
+          </motion.div>
         )}
 
         {/* Bottom Customize Card */}
