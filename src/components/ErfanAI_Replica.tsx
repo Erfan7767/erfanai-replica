@@ -1619,7 +1619,56 @@ const PlaybookPanel = ({ isOpen, onClose, onUse }: { isOpen: boolean; onClose: (
   );
 };
 
-const AlignJustify = ({ className }: { className?: string }) => (
+/* ═══════════════════════ UPGRADE PRO PANEL ═══════════════════════ */
+const UpgradeProPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const { lang } = useLang();
+  const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
+  const features = ["pro.feature_1", "pro.feature_2", "pro.feature_3", "pro.feature_4", "pro.feature_5", "pro.feature_6"];
+
+  return (
+    <MorePanelWrapper isOpen={isOpen} onClose={onClose} title={t(lang, "pro.title")} icon={Zap}>
+      <div className="space-y-5">
+        {/* Hero */}
+        <div className="text-center">
+          <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/15">
+            <Zap className="h-8 w-8 text-accent" />
+          </div>
+          <p className="text-sm text-muted-foreground">{t(lang, "pro.subtitle")}</p>
+        </div>
+
+        {/* Billing toggle */}
+        <div className="flex items-center justify-center gap-1 rounded-xl bg-secondary p-1">
+          <button onClick={() => setBilling("monthly")} className={`flex-1 rounded-lg py-2.5 text-xs font-semibold transition-colors ${billing === "monthly" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>{t(lang, "pro.monthly")}</button>
+          <button onClick={() => setBilling("yearly")} className={`flex-1 rounded-lg py-2.5 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 ${billing === "yearly" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>
+            {t(lang, "pro.yearly")}
+            <span className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold text-accent">{t(lang, "pro.save")}</span>
+          </button>
+        </div>
+
+        {/* Price */}
+        <div className="text-center">
+          <span className="text-3xl font-bold text-foreground">{t(lang, billing === "monthly" ? "pro.price_monthly" : "pro.price_yearly")}</span>
+        </div>
+
+        {/* Features */}
+        <div className="space-y-2.5">
+          {features.map(f => (
+            <div key={f} className="flex items-center gap-3 rounded-xl bg-secondary px-4 py-3">
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-accent/20"><Sparkles className="h-3 w-3 text-accent" /></div>
+              <span className="text-sm text-foreground">{t(lang, f)}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Subscribe button */}
+        <button onClick={() => { toast.success(t(lang, "pro.subscribe")); onClose(); }} className="w-full rounded-xl bg-accent text-accent-foreground py-3.5 text-sm font-bold hover:opacity-90 transition-opacity active:scale-[0.98]">
+          {t(lang, "pro.subscribe")}
+        </button>
+      </div>
+    </MorePanelWrapper>
+  );
+};
+
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
 );
 
