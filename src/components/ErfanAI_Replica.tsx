@@ -1167,6 +1167,27 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     applyFontSize(s.fontSize);
   });
 
+  const [headerProfile, setHeaderProfile] = useState(() => {
+    try {
+      const s = localStorage.getItem(PROFILE_KEY);
+      if (s) return { ...defaultProfile, ...JSON.parse(s) };
+    } catch {}
+    return { ...defaultProfile };
+  });
+
+  useEffect(() => {
+    const sync = () => {
+      try {
+        const s = localStorage.getItem(PROFILE_KEY);
+        if (s) setHeaderProfile({ ...defaultProfile, ...JSON.parse(s) });
+      } catch {}
+    };
+    window.addEventListener("storage", sync);
+    // Poll every second to catch same-tab saves
+    const id = setInterval(sync, 1000);
+    return () => { window.removeEventListener("storage", sync); clearInterval(id); };
+  }, []);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -1227,7 +1248,13 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         <div className="flex items-center gap-3">
           <button onClick={() => setIsNotificationsOpen(true)} className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"><Bell className="h-5 w-5" /></button>
           <button onClick={() => toast(`✨ ${t(lang, "coming_soon")}`)} className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"><Sparkles className="h-5 w-5" /></button>
-          <button onClick={() => setIsProfileOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground transition-transform hover:scale-105">E</button>
+          <button onClick={() => setIsProfileOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-full bg-primary overflow-hidden transition-transform hover:scale-105">
+            {headerProfile.avatar ? (
+              <img src={headerProfile.avatar} alt={headerProfile.name} className="h-full w-full object-cover" />
+            ) : (
+              <span className="text-sm font-bold text-primary-foreground">{headerProfile.name.trim().charAt(0).toUpperCase()}</span>
+            )}
+          </button>
         </div>
       </motion.header>
 
