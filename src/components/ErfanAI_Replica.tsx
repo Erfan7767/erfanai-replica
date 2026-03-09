@@ -2263,6 +2263,12 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [liveTranscript, setLiveTranscript] = useState("");
   const [committedTranscript, setCommittedTranscript] = useState("");
 
+  // ── Execution Panel State ──
+  const [executionSteps, setExecutionSteps] = useState<TaskStep[]>([]);
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [isExecutionExpanded, setIsExecutionExpanded] = useState(true);
+  const [executionFinalMessage, setExecutionFinalMessage] = useState("");
+
   // ── Speech-to-Text helpers ──
   const startSpeechRecognition = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
