@@ -1095,15 +1095,15 @@ const ExecutionPanel = ({
   isVisible, 
   isExpanded, 
   onToggleExpand,
-  previewImage,
-  finalMessage
+  finalMessage,
+  onContinue
 }: { 
   steps: TaskStep[]; 
   isVisible: boolean; 
   isExpanded: boolean; 
   onToggleExpand: () => void;
-  previewImage?: string;
   finalMessage?: string;
+  onContinue?: () => void;
 }) => {
   const { lang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
@@ -1111,6 +1111,20 @@ const ExecutionPanel = ({
   const totalSteps = steps.length;
   const isAllDone = completedSteps === totalSteps && totalSteps > 0;
   const currentStep = steps.find(s => s.status === "running");
+
+  // Generate fake code preview lines based on current step
+  const getPreviewLines = () => {
+    const codeLines = [
+      "$ npm run build",
+      "✓ Building components...",
+      "✓ Optimizing assets...",
+      "const App = () => {",
+      "  return <Main />;",
+      "};",
+      "export default App;",
+    ];
+    return codeLines.slice(0, Math.min(completedSteps + 2, codeLines.length));
+  };
 
   if (!isVisible) return null;
 
@@ -1189,17 +1203,63 @@ const ExecutionPanel = ({
         )}
       </AnimatePresence>
 
-      {/* Collapsed Bar / Preview */}
+      {/* Continue Button - Shows when all done */}
+      <AnimatePresence>
+        {isAllDone && onContinue && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="border-t border-border bg-accent/5 px-4 py-3"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent/15">
+                  <Sparkles className="h-4 w-4 text-accent" />
+                </div>
+                <p className="text-sm text-foreground">
+                  {t(lang, "execution.can_continue")}
+                </p>
+              </div>
+              <button
+                onClick={onContinue}
+                className="rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground hover:bg-secondary transition-colors"
+              >
+                {t(lang, "execution.continue")}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Collapsed Bar / Preview with Live Thumbnail */}
       <button
         onClick={onToggleExpand}
         className="w-full flex items-center gap-3 px-4 py-3 bg-secondary/50 hover:bg-secondary/80 transition-colors"
       >
-        {/* Preview Image Thumbnail */}
-        {previewImage && (
-          <div className="h-10 w-14 rounded-lg overflow-hidden bg-muted shrink-0 border border-border">
-            <img src={previewImage} alt="" className="h-full w-full object-cover" />
+        {/* Live Code Thumbnail Preview */}
+        <div className="h-12 w-16 rounded-lg overflow-hidden bg-[#1a1a1a] shrink-0 border border-border p-1.5">
+          <div className="h-full w-full flex flex-col gap-0.5 overflow-hidden">
+            {getPreviewLines().map((line, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: i * 0.1 }}
+                className="flex items-center gap-1"
+              >
+                <div 
+                  className={`h-[3px] rounded-full ${
+                    line.startsWith("$") ? "bg-green-400" : 
+                    line.startsWith("✓") ? "bg-accent" : 
+                    "bg-muted-foreground/40"
+                  }`}
+                  style={{ width: `${Math.min(line.length * 1.5, 100)}%` }}
+                />
+              </motion.div>
+            ))}
           </div>
-        )}
+        </div>
 
         {/* Progress Info */}
         <div className="flex-1 flex items-center gap-2">
@@ -2632,6 +2692,12 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
               isExpanded={isExecutionExpanded}
               onToggleExpand={() => setIsExecutionExpanded(!isExecutionExpanded)}
               finalMessage={executionFinalMessage}
+              onContinue={() => {
+                toast.success(t(lang, "execution.can_continue"));
+                setIsExecuting(false);
+                setExecutionSteps([]);
+                setExecutionFinalMessage("");
+              }}
             />
           )}
         </AnimatePresence>
