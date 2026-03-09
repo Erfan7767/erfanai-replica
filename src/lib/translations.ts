@@ -1842,4 +1842,20 @@ const translations: Record<string, Record<Lang, string>> = {
     "Deutsch": "Endgültige Überprüfung der Dienstreaktionen.",
     "Türkçe": "Hizmet yanıtlarının son doğrulaması.",
   },
+  "execution.continue": {
+    "العربية": "متابعة",
+    "English": "Continue",
+    "Français": "Continuer",
+    "Español": "Continuar",
+    "Deutsch": "Fortfahren",
+    "Türkçe": "Devam",
+  },
+  "execution.can_continue": {
+    "العربية": "يمكن لـ ErfanAI مواصلة العمل",
+    "English": "ErfanAI can continue working",
+    "Français": "ErfanAI peut continuer à travailler",
+    "Español": "ErfanAI puede continuar trabajando",
+    "Deutsch": "ErfanAI kann weiterarbeiten",
+    "Türkçe": "ErfanAI çalışmaya devam edebilir",
+  },
 };
