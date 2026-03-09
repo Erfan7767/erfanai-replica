@@ -1598,7 +1598,6 @@ const translations: Record<string, Record<Lang, string>> = {
   "credits.get_more": {
     "العربية": "احصل على أرصدة أكثر", "English": "Get more credits", "Français": "Obtenir plus de crédits", "Español": "Obtener más créditos", "Deutsch": "Mehr Credits erhalten", "Türkçe": "Daha fazla kredi al",
   },
-  },
   // ── Meeting Minutes ──
   "meeting.title": {
     "العربية": "محضر الاجتماع", "English": "Meeting minutes", "Français": "Compte rendu", "Español": "Acta de reunión", "Deutsch": "Besprechungsprotokoll", "Türkçe": "Toplantı tutanağı",
