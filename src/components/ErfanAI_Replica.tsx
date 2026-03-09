@@ -2064,6 +2064,37 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [exportMenuId, setExportMenuId] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
   const lastTranscriptRef = useRef<string>("");
+  const [sttEnabled, setSttEnabled] = useState(false);
+  const [liveTranscript, setLiveTranscript] = useState("");
+  const [committedTranscript, setCommittedTranscript] = useState("");
+
+  // ── Speech-to-Text helpers ──
+  const startSpeechRecognition = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) { toast.error(t(lang, "meeting.stt_not_supported")); return; }
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = lang === "العربية" ? "ar" : lang === "English" ? "en-US" : lang === "Français" ? "fr-FR" : lang === "Español" ? "es-ES" : lang === "Deutsch" ? "de-DE" : lang === "Türkçe" ? "tr-TR" : "en-US";
+    recognition.onresult = (event: any) => {
+      let interim = "";
+      let final = "";
+      for (let i = 0; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) { final += transcript + " "; } else { interim += transcript; }
+      }
+      if (final) { setCommittedTranscript(prev => prev + final); }
+      setLiveTranscript(interim);
+    };
+    recognition.onerror = () => {};
+    recognition.onend = () => { if (recognitionRef.current && sttEnabled) { try { recognition.start(); } catch {} } };
+    recognition.start();
+    recognitionRef.current = recognition;
+  };
+
+  const stopSpeechRecognition = () => {
+    if (recognitionRef.current) { try { recognitionRef.current.stop(); } catch {} recognitionRef.current = null; }
+  };
 
   // ── Export helpers ──
   const exportMeetingAsTxt = (meeting: typeof savedMeetings[0]) => {
@@ -2682,14 +2713,51 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                   ))}
                 </div>
 
+                {/* Live Transcript Display */}
+                {sttEnabled && (meetingState === "recording" || meetingState === "paused" || meetingState === "stopped") && (committedTranscript || liveTranscript) && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="rounded-xl bg-secondary/50 border border-border p-3 space-y-1 max-h-32 overflow-y-auto"
+                  >
+                    <p className="text-xs font-semibold text-accent flex items-center gap-1.5">
+                      <MessageSquare className="h-3 w-3" />
+                      {t(lang, "meeting.stt_transcript")}
+                    </p>
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                      {committedTranscript}
+                      {liveTranscript && <span className="text-muted-foreground italic">{liveTranscript}</span>}
+                    </p>
+                  </motion.div>
+                )}
+
                 <p className="text-sm text-muted-foreground">
                   {meetingState === "stopped" && meetingSummary ? meetingSummary : t(lang, "meeting.summary_auto")}
                 </p>
 
                 <div className="flex items-center justify-between pt-2">
-                  <span className="text-sm text-muted-foreground font-mono">
-                    {Math.floor(meetingSeconds / 60).toString().padStart(1, "0")}:{(meetingSeconds % 60).toString().padStart(2, "0")} / 2:00:00
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground font-mono">
+                      {Math.floor(meetingSeconds / 60).toString().padStart(1, "0")}:{(meetingSeconds % 60).toString().padStart(2, "0")} / 2:00:00
+                    </span>
+                    {/* STT Toggle */}
+                    <button
+                      onClick={() => {
+                        if (!sttEnabled) {
+                          setSttEnabled(true);
+                          if (meetingState === "recording") startSpeechRecognition();
+                        } else {
+                          setSttEnabled(false);
+                          stopSpeechRecognition();
+                        }
+                      }}
+                      className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${sttEnabled ? "bg-accent/15 text-accent border border-accent/30" : "bg-secondary text-muted-foreground border border-border hover:text-foreground"}`}
+                      title={t(lang, "meeting.stt_toggle")}
+                    >
+                      <MessageSquare className="h-3 w-3" />
+                      {t(lang, "meeting.stt_label")}
+                    </button>
+                  </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => {
@@ -2701,6 +2769,9 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                         if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
                         if (waveformIntervalRef.current) clearInterval(waveformIntervalRef.current);
                         if (meetingAudioRef.current) { meetingAudioRef.current.getTracks().forEach(t => t.stop()); meetingAudioRef.current = null; }
+                        stopSpeechRecognition();
+                        setLiveTranscript("");
+                        setCommittedTranscript("");
                         toast(t(lang, "meeting.discarded"));
                       }}
                       className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
@@ -2730,13 +2801,14 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                             if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
                             if (waveformIntervalRef.current) clearInterval(waveformIntervalRef.current);
                             if (meetingAudioRef.current) { meetingAudioRef.current.getTracks().forEach(t => t.stop()); meetingAudioRef.current = null; }
+                            stopSpeechRecognition();
+                            const fullTranscript = committedTranscript + liveTranscript;
                             // Stop MediaRecorder & save audio
                             let audioUrl: string | undefined;
                             if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
                               mediaRecorderRef.current.onstop = () => {
                                 const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
                                 audioUrl = URL.createObjectURL(blob);
-                                // Update the latest meeting with audio
                                 setSavedMeetings(prev => { const u = prev.map((m, i) => i === 0 ? { ...m, audioUrl } : m); localStorage.setItem("erfanai_meetings", JSON.stringify(u)); return u; });
                               };
                               mediaRecorderRef.current.stop();
@@ -2744,7 +2816,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                             const mins = Math.floor(meetingSeconds / 60);
                             const summaryText = t(lang, "meeting.auto_summary").replace("{mins}", String(mins || 1));
                             setMeetingSummary(summaryText);
-                            const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, notes: "", summary: summaryText, audioUrl };
+                            if (fullTranscript.trim()) setMeetingNotes(fullTranscript.trim());
+                            const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, notes: fullTranscript.trim(), summary: summaryText, audioUrl };
                             const updated = [newMeeting, ...savedMeetings];
                             setSavedMeetings(updated);
                             localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
@@ -2794,6 +2867,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                             if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
                             if (waveformIntervalRef.current) clearInterval(waveformIntervalRef.current);
                             if (meetingAudioRef.current) { meetingAudioRef.current.getTracks().forEach(t => t.stop()); meetingAudioRef.current = null; }
+                            stopSpeechRecognition();
+                            const fullTranscript2 = committedTranscript + liveTranscript;
                             let audioUrl2: string | undefined;
                             if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
                               mediaRecorderRef.current.onstop = () => {
@@ -2806,7 +2881,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                             const mins = Math.floor(meetingSeconds / 60);
                             const summaryText = t(lang, "meeting.auto_summary").replace("{mins}", String(mins || 1));
                             setMeetingSummary(summaryText);
-                            const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, notes: "", summary: summaryText, audioUrl: audioUrl2 };
+                            if (fullTranscript2.trim()) setMeetingNotes(fullTranscript2.trim());
+                            const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, notes: fullTranscript2.trim(), summary: summaryText, audioUrl: audioUrl2 };
                             const updated = [newMeeting, ...savedMeetings];
                             setSavedMeetings(updated);
                             localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
@@ -2856,6 +2932,9 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                           setMeetingSeconds(0);
                           setMeetingNotes("");
                           setMeetingSummary("");
+                          setLiveTranscript("");
+                          setCommittedTranscript("");
+                          if (sttEnabled) startSpeechRecognition();
                           meetingTimerRef.current = setInterval(() => {
                             setMeetingSeconds(prev => {
                               if (prev >= 7200) { clearInterval(meetingTimerRef.current); setMeetingState("stopped"); return prev; }

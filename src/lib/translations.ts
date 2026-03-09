@@ -1730,4 +1730,16 @@ const translations: Record<string, Record<Lang, string>> = {
   "meeting.copied": {
     "العربية": "تم نسخ المحضر!", "English": "Minutes copied!", "Français": "Compte rendu copié !", "Español": "¡Acta copiada!", "Deutsch": "Protokoll kopiert!", "Türkçe": "Tutanak kopyalandı!",
   },
+  "meeting.stt_label": {
+    "العربية": "نص مباشر", "English": "Live Text", "Français": "Texte en direct", "Español": "Texto en vivo", "Deutsch": "Live-Text", "Türkçe": "Canlı metin",
+  },
+  "meeting.stt_toggle": {
+    "العربية": "تفعيل/إيقاف تحويل الكلام لنص", "English": "Toggle speech-to-text", "Français": "Activer/désactiver la transcription", "Español": "Activar/desactivar transcripción", "Deutsch": "Sprache-zu-Text umschalten", "Türkçe": "Konuşmadan metne geçiş",
+  },
+  "meeting.stt_transcript": {
+    "العربية": "النص المباشر", "English": "Live Transcript", "Français": "Transcription en direct", "Español": "Transcripción en vivo", "Deutsch": "Live-Transkript", "Türkçe": "Canlı transkript",
+  },
+  "meeting.stt_not_supported": {
+    "العربية": "متصفحك لا يدعم تحويل الكلام إلى نص", "English": "Your browser doesn't support speech-to-text", "Français": "Votre navigateur ne prend pas en charge la reconnaissance vocale", "Español": "Tu navegador no admite voz a texto", "Deutsch": "Ihr Browser unterstützt keine Spracherkennung", "Türkçe": "Tarayıcınız konuşmadan metne desteklemiyor",
+  },
 };
