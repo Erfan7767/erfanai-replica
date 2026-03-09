@@ -10,7 +10,7 @@ import {
   Palette, MoreHorizontal, LayoutGrid, Send, ArrowRightLeft,
   HelpCircle, Home, ExternalLink, User, BookOpen, ChevronLeft,
   ArrowRight, Upload as UploadIcon, Camera, Image, FileText, Copy,
-  Share2, Trash2, Volume2, VolumeX, Download,
+  Share2, Trash2, Volume2, VolumeX, Download, Check, Loader2, Terminal, Pencil,
   CalendarCheck, Target, Table, BarChart3, Play, AudioLines, MessageCircle, BookCopy, Clock, Pause, RotateCcw, Save,
 } from "lucide-react";
 
@@ -1066,10 +1066,67 @@ const ProfileDropdown = ({ isOpen, onClose, onLogout, onOpenSettings, onOpenProf
   );
 };
 
+/* ═══════════════════════ TASK EXECUTION STEP ═══════════════════════ */
+type TaskStep = {
+  id: string;
+  label: string;
+  status: "pending" | "running" | "done" | "error";
+  icon: "edit" | "terminal" | "check" | "search" | "sparkles";
+};
+
+const stepIconMap = {
+  edit: Pencil,
+  terminal: Terminal,
+  check: Check,
+  search: Search,
+  sparkles: Sparkles,
+};
+
+const stepStatusColors = {
+  pending: "bg-muted-foreground/20 text-muted-foreground",
+  running: "bg-accent/15 text-accent border border-accent/30",
+  done: "bg-green-500/15 text-green-500 border border-green-500/30",
+  error: "bg-destructive/15 text-destructive border border-destructive/30",
+};
+
+const TaskExecutionSteps = ({ steps }: { steps: TaskStep[] }) => {
+  const { lang } = useLang();
+  return (
+    <div className="space-y-2 py-1">
+      {steps.map((step, i) => {
+        const Icon = stepIconMap[step.icon] || Terminal;
+        return (
+          <motion.div
+            key={step.id}
+            initial={{ opacity: 0, x: isRTL(lang) ? 20 : -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.08, duration: 0.3 }}
+            className="flex items-center gap-2.5"
+          >
+            <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs ${stepStatusColors[step.status]}`}>
+              {step.status === "running" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : step.status === "done" ? (
+                <Check className="h-3.5 w-3.5" />
+              ) : (
+                <Icon className="h-3.5 w-3.5" />
+              )}
+            </div>
+            <span className={`text-xs leading-relaxed ${step.status === "done" ? "text-muted-foreground" : step.status === "running" ? "text-foreground font-medium" : "text-muted-foreground/60"}`}>
+              {step.label}
+            </span>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+};
+
 /* ═══════════════════════ CHAT MESSAGE ═══════════════════════ */
-const ChatMessage = ({ message, isUser, files }: { message: string; isUser: boolean; files?: File[] }) => (
+const ChatMessage = ({ message, isUser, files, steps }: { message: string; isUser: boolean; files?: File[]; steps?: TaskStep[] }) => (
   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex ${isUser ? "justify-start" : "justify-end"} mb-3`}>
-    <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${isUser ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground"}`}>
+    <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${isUser ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground"}`}>
+      {steps && steps.length > 0 && <TaskExecutionSteps steps={steps} />}
       {message && <p className="leading-relaxed">{message}</p>}
       {files && files.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5">
@@ -2024,7 +2081,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [morePanel, setMorePanel] = useState<string | null>(null);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-  const [messages, setMessages] = useState<{ text: string; isUser: boolean; files?: File[] }[]>(() => {
+  const [messages, setMessages] = useState<{ text: string; isUser: boolean; files?: File[]; steps?: TaskStep[] }[]>(() => {
     try {
       const saved = localStorage.getItem("erfanai_messages");
       if (saved) return JSON.parse(saved);
@@ -2195,9 +2252,88 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     const userMsg = inputValue;
     setInputValue("");
     setAttachedFiles([]);
+
+    // Generate context-aware task steps based on user message
+    const generateSteps = (msg: string): { label: string; icon: TaskStep["icon"] }[] => {
+      const lower = msg.toLowerCase();
+      if (lower.includes("موقع") || lower.includes("website") || lower.includes("صفحة") || lower.includes("page")) {
+        return [
+          { label: t(lang, "task.analyzing_request"), icon: "search" },
+          { label: t(lang, "task.planning_structure"), icon: "edit" },
+          { label: t(lang, "task.generating_code"), icon: "terminal" },
+          { label: t(lang, "task.applying_styles"), icon: "sparkles" },
+          { label: t(lang, "task.final_review"), icon: "check" },
+        ];
+      } else if (lower.includes("تصميم") || lower.includes("design") || lower.includes("صورة") || lower.includes("image")) {
+        return [
+          { label: t(lang, "task.understanding_vision"), icon: "search" },
+          { label: t(lang, "task.preparing_design"), icon: "edit" },
+          { label: t(lang, "task.generating_assets"), icon: "sparkles" },
+          { label: t(lang, "task.final_check"), icon: "check" },
+        ];
+      } else if (lower.includes("كود") || lower.includes("code") || lower.includes("برمج") || lower.includes("program")) {
+        return [
+          { label: t(lang, "task.analyzing_requirements"), icon: "search" },
+          { label: t(lang, "task.writing_code"), icon: "terminal" },
+          { label: t(lang, "task.testing_code"), icon: "terminal" },
+          { label: t(lang, "task.optimizing"), icon: "sparkles" },
+          { label: t(lang, "task.final_verification"), icon: "check" },
+        ];
+      } else {
+        return [
+          { label: t(lang, "task.analyzing_request"), icon: "search" },
+          { label: t(lang, "task.processing"), icon: "terminal" },
+          { label: t(lang, "task.generating_response"), icon: "edit" },
+          { label: t(lang, "task.final_check"), icon: "check" },
+        ];
+      }
+    };
+
+    const rawSteps = generateSteps(userMsg);
+    const taskSteps: TaskStep[] = rawSteps.map((s, i) => ({
+      id: `step-${Date.now()}-${i}`,
+      label: s.label,
+      icon: s.icon,
+      status: "pending" as const,
+    }));
+
+    // Add initial AI message with all steps pending
+    const aiMsgIndex = { current: -1 };
+    setMessages(prev => {
+      aiMsgIndex.current = prev.length;
+      return [...prev, { text: "", isUser: false, steps: taskSteps.map((s, i) => ({ ...s, status: i === 0 ? "running" : "pending" })) as TaskStep[] }];
+    });
+
+    // Progressively update each step
+    taskSteps.forEach((_, stepIdx) => {
+      setTimeout(() => {
+        setMessages(prev => {
+          const updated = [...prev];
+          const lastAi = updated.length - 1;
+          if (updated[lastAi] && !updated[lastAi].isUser && updated[lastAi].steps) {
+            const newSteps = updated[lastAi].steps!.map((s, i) => ({
+              ...s,
+              status: i < stepIdx + 1 ? "done" as const : i === stepIdx + 1 ? "running" as const : "pending" as const,
+            }));
+            updated[lastAi] = { ...updated[lastAi], steps: newSteps };
+          }
+          return updated;
+        });
+      }, (stepIdx + 1) * 800);
+    });
+
+    // Final: mark all done and add response text
     setTimeout(() => {
-      setMessages(prev => [...prev, { text: t(lang, "app.ai_response"), isUser: false }]);
-    }, 1200);
+      setMessages(prev => {
+        const updated = [...prev];
+        const lastAi = updated.length - 1;
+        if (updated[lastAi] && !updated[lastAi].isUser && updated[lastAi].steps) {
+          const doneSteps = updated[lastAi].steps!.map(s => ({ ...s, status: "done" as const }));
+          updated[lastAi] = { ...updated[lastAi], text: t(lang, "app.ai_response"), steps: doneSteps };
+        }
+        return updated;
+      });
+    }, (taskSteps.length + 1) * 800);
   };
 
   const handleMic = async () => {
@@ -2334,7 +2470,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         {messages.length > 0 ? (
           <div className="mt-6 space-y-1">
             {messages.map((msg, i) => (
-              <ChatMessage key={i} message={msg.text} isUser={msg.isUser} files={msg.files} />
+              <ChatMessage key={i} message={msg.text} isUser={msg.isUser} files={msg.files} steps={msg.steps} />
             ))}
           </div>
         ) : (
