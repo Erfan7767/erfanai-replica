@@ -2791,6 +2791,14 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                           try {
                             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                             meetingAudioRef.current = stream;
+                            // Start MediaRecorder for audio export
+                            audioChunksRef.current = [];
+                            try {
+                              const recorder = new MediaRecorder(stream);
+                              recorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+                              recorder.start();
+                              mediaRecorderRef.current = recorder;
+                            } catch {}
                             const audioCtx = new AudioContext();
                             const source = audioCtx.createMediaStreamSource(stream);
                             const analyser = audioCtx.createAnalyser();
@@ -2807,7 +2815,6 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                               setMeetingWaveform(newWave);
                             }, 100);
                           } catch {
-                            // Fallback: simulate waveform if mic not available
                             waveformIntervalRef.current = setInterval(() => {
                               setMeetingWaveform(Array.from({ length: 30 }, () => Math.random() * 0.7 + 0.1));
                             }, 200);
