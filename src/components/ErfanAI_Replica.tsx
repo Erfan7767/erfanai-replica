@@ -2392,6 +2392,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
 
   const handleSend = () => {
     if (!inputValue.trim() && attachedFiles.length === 0) return;
+    
+    // Add user message to chat
     setMessages(prev => [...prev, { text: inputValue, isUser: true, files: attachedFiles.length > 0 ? [...attachedFiles] : undefined }]);
     const userMsg = inputValue;
     setInputValue("");
@@ -2438,45 +2440,45 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       id: `step-${Date.now()}-${i}`,
       label: s.label,
       icon: s.icon,
-      status: "pending" as const,
+      status: i === 0 ? "running" : "pending",
     }));
 
-    // Add initial AI message with all steps pending
-    const aiMsgIndex = { current: -1 };
-    setMessages(prev => {
-      aiMsgIndex.current = prev.length;
-      return [...prev, { text: "", isUser: false, steps: taskSteps.map((s, i) => ({ ...s, status: i === 0 ? "running" : "pending" })) as TaskStep[] }];
-    });
+    // Show execution panel with steps
+    setIsExecuting(true);
+    setIsExecutionExpanded(true);
+    setExecutionSteps(taskSteps);
+    setExecutionFinalMessage("");
 
     // Progressively update each step
     taskSteps.forEach((_, stepIdx) => {
       setTimeout(() => {
-        setMessages(prev => {
-          const updated = [...prev];
-          const lastAi = updated.length - 1;
-          if (updated[lastAi] && !updated[lastAi].isUser && updated[lastAi].steps) {
-            const newSteps = updated[lastAi].steps!.map((s, i) => ({
-              ...s,
-              status: i < stepIdx + 1 ? "done" as const : i === stepIdx + 1 ? "running" as const : "pending" as const,
-            }));
-            updated[lastAi] = { ...updated[lastAi], steps: newSteps };
-          }
-          return updated;
-        });
+        setExecutionSteps(prev => prev.map((s, i) => ({
+          ...s,
+          status: i < stepIdx + 1 ? "done" : i === stepIdx + 1 ? "running" : "pending",
+        })));
       }, (stepIdx + 1) * 800);
     });
 
-    // Final: mark all done and add response text
+    // Final: mark all done, show response, add to chat
     setTimeout(() => {
-      setMessages(prev => {
-        const updated = [...prev];
-        const lastAi = updated.length - 1;
-        if (updated[lastAi] && !updated[lastAi].isUser && updated[lastAi].steps) {
-          const doneSteps = updated[lastAi].steps!.map(s => ({ ...s, status: "done" as const }));
-          updated[lastAi] = { ...updated[lastAi], text: t(lang, "app.ai_response"), steps: doneSteps };
-        }
-        return updated;
-      });
+      const finalResponse = t(lang, "app.ai_response");
+      setExecutionSteps(prev => prev.map(s => ({ ...s, status: "done" as const })));
+      setExecutionFinalMessage(finalResponse);
+      
+      // Add AI response to messages
+      setMessages(prev => [...prev, { text: finalResponse, isUser: false }]);
+      
+      // Collapse panel after a short delay
+      setTimeout(() => {
+        setIsExecutionExpanded(false);
+      }, 1500);
+      
+      // Hide execution panel after collapse animation
+      setTimeout(() => {
+        setIsExecuting(false);
+        setExecutionSteps([]);
+        setExecutionFinalMessage("");
+      }, 4000);
     }, (taskSteps.length + 1) * 800);
   };
 
