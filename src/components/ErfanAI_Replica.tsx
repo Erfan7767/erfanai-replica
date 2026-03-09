@@ -2502,10 +2502,12 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                 >
                   Cancel
                 </button>
-                <button
+                 <button
                   onClick={() => {
                     setIsRecordingDialogOpen(false);
-                    toast.success("Joining meeting...");
+                    setIsMeetingViewOpen(true);
+                    setMeetingState("idle");
+                    setMeetingSeconds(0);
                   }}
                   className="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary transition-colors"
                 >
@@ -2514,6 +2516,166 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
               </div>
             </motion.div>
           </>
+        )}
+      </AnimatePresence>
+
+      {/* Meeting View Full Screen */}
+      <AnimatePresence>
+        {isMeetingViewOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[300] bg-background flex flex-col"
+            dir={dir}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <button onClick={() => {
+                setIsMeetingViewOpen(false);
+                setMeetingState("idle");
+                setMeetingSeconds(0);
+                if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
+              }} className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <div className="flex items-center gap-2 text-foreground">
+                <Mic className="h-4 w-4 text-accent" />
+                <span className="text-sm font-semibold">Meeting minutes</span>
+              </div>
+              <div className="w-9" />
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* Recording Card */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="rounded-2xl border border-border bg-card p-5 space-y-5"
+              >
+                {/* Dotted line decoration */}
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: 40 }).map((_, i) => (
+                    <div key={i} className="h-1.5 w-1.5 rounded-full bg-muted-foreground/30" />
+                  ))}
+                </div>
+
+                <p className="text-sm text-muted-foreground">
+                  A summary is generated automatically after recording.
+                </p>
+
+                <div className="flex items-center justify-between pt-4">
+                  <span className="text-sm text-muted-foreground font-mono">
+                    {Math.floor(meetingSeconds / 60).toString().padStart(1, "0")}:{(meetingSeconds % 60).toString().padStart(2, "0")} / 2:00:00
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setMeetingState("idle");
+                        setMeetingSeconds(0);
+                        if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
+                      }}
+                      className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Discard
+                    </button>
+                    {meetingState === "recording" ? (
+                      <button
+                        onClick={() => {
+                          setMeetingState("stopped");
+                          if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
+                        }}
+                        className="flex items-center gap-2 rounded-xl bg-destructive text-destructive-foreground px-4 py-2.5 text-sm font-semibold hover:bg-destructive/90 transition-colors"
+                      >
+                        <X className="h-4 w-4" />
+                        Stop
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setMeetingState("recording");
+                          meetingTimerRef.current = setInterval(() => {
+                            setMeetingSeconds(prev => {
+                              if (prev >= 7200) {
+                                clearInterval(meetingTimerRef.current);
+                                setMeetingState("stopped");
+                                return prev;
+                              }
+                              return prev + 1;
+                            });
+                          }, 1000);
+                        }}
+                        className="flex items-center gap-2 rounded-xl bg-foreground text-background px-4 py-2.5 text-sm font-semibold hover:bg-foreground/90 transition-colors"
+                      >
+                        <Play className="h-4 w-4" />
+                        Start
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+
+              <p className="text-xs text-muted-foreground text-center">
+                By starting, you confirm you have consent from all parties.
+              </p>
+
+              {/* Download App Card */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="rounded-2xl border border-border bg-card p-4 flex items-center gap-3"
+              >
+                <Smartphone className="h-8 w-8 text-accent shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Download the mobile app to record meeting notes anytime, anywhere.
+                  </p>
+                </div>
+                <button
+                  onClick={() => toast("Download link sent!")}
+                  className="shrink-0 rounded-xl border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-secondary transition-colors"
+                >
+                  Download app
+                </button>
+              </motion.div>
+            </div>
+
+            {/* Bottom disabled input */}
+            <div className="border-t border-border p-4">
+              <div className="rounded-2xl border border-border bg-secondary/50 p-4 opacity-60">
+                <p className="text-sm text-muted-foreground mb-3">
+                  {meetingState === "recording" ? "Recording in progress. Edit after recording ends." : "Start recording to capture meeting minutes."}
+                </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="rounded-full border border-border p-2"><Plus className="h-4 w-4 text-muted-foreground" /></div>
+                    <div className="rounded-full border border-border p-2"><SlidersHorizontal className="h-4 w-4 text-muted-foreground" /></div>
+                    <div className="rounded-full border border-border p-2"><Sparkles className="h-4 w-4 text-muted-foreground" /></div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="rounded-full border border-border p-2"><Mic className="h-4 w-4 text-muted-foreground" /></div>
+                    <div className="rounded-full border border-border bg-secondary p-2"><Send className="h-4 w-4 text-muted-foreground" /></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recording pulse indicator */}
+            {meetingState === "recording" && (
+              <motion.div
+                className="absolute top-14 left-1/2 -translate-x-1/2 flex items-center gap-2 rounded-full bg-destructive/10 border border-destructive/30 px-4 py-1.5"
+                animate={{ opacity: [1, 0.6, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                <div className="h-2 w-2 rounded-full bg-destructive" />
+                <span className="text-xs font-medium text-destructive">Recording</span>
+              </motion.div>
+            )}
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
