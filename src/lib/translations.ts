@@ -1659,4 +1659,52 @@ const translations: Record<string, Record<Lang, string>> = {
   "meeting.joining": {
     "العربية": "جارٍ الانضمام...", "English": "Joining meeting...", "Français": "Rejoindre la réunion...", "Español": "Uniéndose a la reunión...", "Deutsch": "Meeting beitreten...", "Türkçe": "Toplantıya katılınıyor...",
   },
+  },
+  "meeting.pause": {
+    "العربية": "إيقاف مؤقت", "English": "Pause", "Français": "Pause", "Español": "Pausar", "Deutsch": "Pause", "Türkçe": "Duraklat",
+  },
+  "meeting.resume": {
+    "العربية": "استئناف", "English": "Resume", "Français": "Reprendre", "Español": "Reanudar", "Deutsch": "Fortsetzen", "Türkçe": "Devam et",
+  },
+  "meeting.paused_label": {
+    "العربية": "متوقف مؤقتاً", "English": "Paused", "Français": "En pause", "Español": "En pausa", "Deutsch": "Pausiert", "Türkçe": "Duraklatıldı",
+  },
+  "meeting.discarded": {
+    "العربية": "تم تجاهل التسجيل", "English": "Recording discarded", "Français": "Enregistrement supprimé", "Español": "Grabación descartada", "Deutsch": "Aufnahme verworfen", "Türkçe": "Kayıt silindi",
+  },
+  "meeting.summary_label": {
+    "العربية": "ملخص الاجتماع", "English": "Meeting Summary", "Français": "Résumé de la réunion", "Español": "Resumen de la reunión", "Deutsch": "Besprechungszusammenfassung", "Türkçe": "Toplantı özeti",
+  },
+  "meeting.notes_label": {
+    "العربية": "ملاحظات", "English": "Notes", "Français": "Notes", "Español": "Notas", "Deutsch": "Notizen", "Türkçe": "Notlar",
+  },
+  "meeting.no_content": {
+    "العربية": "لا توجد ملاحظات أو ملخص لهذا الاجتماع", "English": "No notes or summary for this meeting", "Français": "Pas de notes ni de résumé", "Español": "Sin notas ni resumen", "Deutsch": "Keine Notizen oder Zusammenfassung", "Türkçe": "Bu toplantı için not veya özet yok",
+  },
+  "meeting.notes_placeholder": {
+    "العربية": "أضف ملاحظاتك عن الاجتماع هنا...", "English": "Add your meeting notes here...", "Français": "Ajoutez vos notes ici...", "Español": "Agrega tus notas aquí...", "Deutsch": "Fügen Sie Ihre Notizen hinzu...", "Türkçe": "Toplantı notlarınızı buraya ekleyin...",
+  },
+  "meeting.notes_hint": {
+    "العربية": "يمكنك تعديل الملاحظات لاحقاً", "English": "You can edit notes later", "Français": "Vous pouvez modifier plus tard", "Español": "Puedes editar después", "Deutsch": "Sie können später bearbeiten", "Türkçe": "Daha sonra düzenleyebilirsiniz",
+  },
+  "meeting.notes_saved": {
+    "العربية": "تم حفظ الملاحظات!", "English": "Notes saved!", "Français": "Notes sauvegardées !", "Español": "¡Notas guardadas!", "Deutsch": "Notizen gespeichert!", "Türkçe": "Notlar kaydedildi!",
+  },
+  "meeting.save_notes": {
+    "العربية": "حفظ", "English": "Save", "Français": "Sauvegarder", "Español": "Guardar", "Deutsch": "Speichern", "Türkçe": "Kaydet",
+  },
+  "meeting.auto_summary": {
+    "العربية": "تم تسجيل اجتماع بمدة {mins} دقيقة. تم إنشاء ملخص تلقائي بناءً على محتوى التسجيل الصوتي.",
+    "English": "A {mins}-minute meeting was recorded. An automatic summary has been generated based on the audio content.",
+    "Français": "Une réunion de {mins} minute(s) a été enregistrée. Un résumé automatique a été généré.",
+    "Español": "Se grabó una reunión de {mins} minuto(s). Se generó un resumen automático.",
+    "Deutsch": "Ein {mins}-minütiges Meeting wurde aufgezeichnet. Eine automatische Zusammenfassung wurde erstellt.",
+    "Türkçe": "{mins} dakikalık bir toplantı kaydedildi. Otomatik bir özet oluşturuldu.",
+  },
+  "meeting.meeting_num": {
+    "العربية": "اجتماع", "English": "Meeting", "Français": "Réunion", "Español": "Reunión", "Deutsch": "Meeting", "Türkçe": "Toplantı",
+  },
+  "meeting.rename": {
+    "العربية": "إعادة تسمية", "English": "Rename", "Français": "Renommer", "Español": "Renombrar", "Deutsch": "Umbenennen", "Türkçe": "Yeniden adlandır",
+  },
 };
