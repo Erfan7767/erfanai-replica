@@ -2736,9 +2736,28 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                 </p>
 
                 <div className="flex items-center justify-between pt-2">
-                  <span className="text-sm text-muted-foreground font-mono">
-                    {Math.floor(meetingSeconds / 60).toString().padStart(1, "0")}:{(meetingSeconds % 60).toString().padStart(2, "0")} / 2:00:00
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground font-mono">
+                      {Math.floor(meetingSeconds / 60).toString().padStart(1, "0")}:{(meetingSeconds % 60).toString().padStart(2, "0")} / 2:00:00
+                    </span>
+                    {/* STT Toggle */}
+                    <button
+                      onClick={() => {
+                        if (!sttEnabled) {
+                          setSttEnabled(true);
+                          if (meetingState === "recording") startSpeechRecognition();
+                        } else {
+                          setSttEnabled(false);
+                          stopSpeechRecognition();
+                        }
+                      }}
+                      className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${sttEnabled ? "bg-accent/15 text-accent border border-accent/30" : "bg-secondary text-muted-foreground border border-border hover:text-foreground"}`}
+                      title={t(lang, "meeting.stt_toggle")}
+                    >
+                      <MessageSquare className="h-3 w-3" />
+                      {t(lang, "meeting.stt_label")}
+                    </button>
+                  </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => {
