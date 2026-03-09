@@ -2796,7 +2796,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                             setSavedMeetings(updated);
                             localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
                             toast.success(t(lang, "meeting.saved"));
-                          }
+                          }}
                           className="flex items-center gap-2 rounded-xl bg-destructive text-destructive-foreground px-4 py-2.5 text-sm font-semibold hover:bg-destructive/90 transition-colors"
                         >
                           <X className="h-4 w-4" />
