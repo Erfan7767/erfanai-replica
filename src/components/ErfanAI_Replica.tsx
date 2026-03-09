@@ -933,6 +933,200 @@ const ChatMessage = ({ message, isUser, files }: { message: string; isUser: bool
   </motion.div>
 );
 
+/* ═══════════════════════ PROFILE PANEL ═══════════════════════ */
+const PROFILE_KEY = "erfanai_profile";
+const defaultProfile = { name: "Erfan Moharam", email: "nmoharam7796@gmail.com", avatar: null as string | null };
+
+const ProfilePanel = ({ isOpen, onClose, onLogout }: { isOpen: boolean; onClose: () => void; onLogout: () => void }) => {
+  const { lang } = useLang();
+  const dir = isRTL(lang) ? "rtl" : "ltr";
+  const [profile, setProfile] = useState(() => {
+    try {
+      const s = localStorage.getItem(PROFILE_KEY);
+      if (s) return { ...defaultProfile, ...JSON.parse(s) };
+    } catch {}
+    return { ...defaultProfile };
+  });
+  const [editName, setEditName] = useState(profile.name);
+  const [isEditing, setIsEditing] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const updated = { ...profile, avatar: reader.result as string };
+      setProfile(updated);
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(updated));
+      toast.success(t(lang, "profile.saved"));
+    };
+    reader.readAsDataURL(file);
+    if (avatarInputRef.current) avatarInputRef.current.value = "";
+  };
+
+  const handleSave = () => {
+    if (!editName.trim()) return;
+    const updated = { ...profile, name: editName.trim() };
+    setProfile(updated);
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(updated));
+    setIsEditing(false);
+    toast.success(t(lang, "profile.saved"));
+  };
+
+  const handleCancelEdit = () => {
+    setEditName(profile.name);
+    setIsEditing(false);
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40" style={{ background: "hsl(0 0% 0% / 0.7)" }} />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="fixed inset-x-3 top-10 bottom-10 z-50 flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden"
+            dir={dir}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+              <button onClick={onClose} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+                <X className="h-5 w-5" />
+              </button>
+              <h3 className="text-lg font-bold text-foreground">{t(lang, "profile.page_title")}</h3>
+              <div className="w-8" />
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-5">
+
+              {/* Avatar */}
+              <div className="flex flex-col items-center gap-3 py-2">
+                <div className="relative">
+                  {profile.avatar ? (
+                    <img src={profile.avatar} alt="avatar" className="h-24 w-24 rounded-full object-cover border-4 border-border shadow-lg" />
+                  ) : (
+                    <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary border-4 border-border text-3xl font-bold text-primary-foreground shadow-lg">
+                      {profile.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => avatarInputRef.current?.click()}
+                    className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-card bg-accent text-accent-foreground hover:opacity-90 transition-opacity shadow-md"
+                  >
+                    <Camera className="h-4 w-4" />
+                  </button>
+                </div>
+                <button onClick={() => avatarInputRef.current?.click()} className="text-sm text-accent font-medium hover:underline transition-colors">
+                  {t(lang, "profile.change_photo")}
+                </button>
+                <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+              </div>
+
+              {/* Name */}
+              <div className="rounded-xl border border-border bg-secondary/50 overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                  <h4 className="text-sm font-semibold text-foreground">{t(lang, "profile.name")}</h4>
+                  {!isEditing && (
+                    <button onClick={() => { setEditName(profile.name); setIsEditing(true); }} className="text-xs font-medium text-accent hover:underline transition-colors">
+                      {t(lang, "profile.edit")}
+                    </button>
+                  )}
+                </div>
+                <div className="px-4 py-3">
+                  {isEditing ? (
+                    <div className="space-y-3">
+                      <input
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-accent/50 transition-shadow"
+                        dir={dir}
+                        autoFocus
+                        onKeyDown={(e) => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") handleCancelEdit(); }}
+                      />
+                      <div className="flex gap-2">
+                        <button onClick={handleSave} className="flex-1 rounded-lg bg-accent px-3 py-2 text-xs font-semibold text-accent-foreground hover:opacity-90 transition-opacity">
+                          {t(lang, "profile.save")}
+                        </button>
+                        <button onClick={handleCancelEdit} className="flex-1 rounded-lg border border-border bg-secondary px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary/80 transition-colors">
+                          {t(lang, "profile.cancel")}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-foreground">{profile.name}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Email */}
+              <div className="rounded-xl border border-border bg-secondary/50 overflow-hidden">
+                <div className="px-4 py-3 border-b border-border">
+                  <h4 className="text-sm font-semibold text-foreground">{t(lang, "profile.email_label")}</h4>
+                </div>
+                <div className="px-4 py-3">
+                  <p className="text-sm text-muted-foreground">{profile.email}</p>
+                </div>
+              </div>
+
+              {/* Plan & Credits */}
+              <div className="rounded-xl border border-border overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-dashed border-border">
+                  <button onClick={() => toast(t(lang, "upgrade_page"))} className="rounded-full border border-border bg-foreground px-4 py-1 text-xs font-semibold text-background hover:opacity-90 transition-opacity">
+                    {t(lang, "profile.upgrade")}
+                  </button>
+                  <span className="text-sm font-bold text-foreground">{t(lang, "profile.free")}</span>
+                </div>
+                <div className="flex items-center justify-between px-4 py-3">
+                  <div className="flex items-center gap-1">
+                    <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold text-foreground">300</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">{t(lang, "profile.credits")}</span>
+                    <Sparkles className="h-4 w-4 text-foreground" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Knowledge */}
+              <div className="rounded-xl border border-border bg-secondary/50 overflow-hidden">
+                <button
+                  onClick={() => toast(t(lang, "coming_soon"))}
+                  className={`flex w-full items-center ${isRTL(lang) ? "justify-end" : "justify-start"} gap-3 px-4 py-4 text-sm text-foreground hover:bg-secondary transition-colors`}
+                >
+                  {!isRTL(lang) && <BookOpen className="h-5 w-5 text-accent shrink-0" />}
+                  <div className={`${isRTL(lang) ? "text-right" : "text-left"} flex-1`}>
+                    <p className="font-semibold">{t(lang, "profile.knowledge")}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t(lang, "profile.knowledge_desc")}</p>
+                  </div>
+                  {isRTL(lang) && <BookOpen className="h-5 w-5 text-accent shrink-0" />}
+                </button>
+              </div>
+
+              {/* Logout */}
+              <button
+                onClick={() => { onLogout(); onClose(); }}
+                className={`flex w-full items-center ${isRTL(lang) ? "justify-end" : "justify-start"} gap-3 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-4 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors`}
+              >
+                {!isRTL(lang) && <LogOut className="h-5 w-5 shrink-0" />}
+                <span>{t(lang, "profile.logout")}</span>
+                {isRTL(lang) && <LogOut className="h-5 w-5 shrink-0" />}
+              </button>
+
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
 /* ═══════════════════════ APP SCREEN ═══════════════════════ */
 const AlignJustify = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
