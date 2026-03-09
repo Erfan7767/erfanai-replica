@@ -406,23 +406,174 @@ const DiscoverPanel = ({ isOpen, onClose, onUseTemplate }: { isOpen: boolean; on
   );
 };
 
-/* ═══════════════════════ NOTIFICATIONS PANEL ═══════════════════════ */
-const NotificationsPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+/* ═══════════════════════ NOTIFICATIONS SYSTEM ═══════════════════════ */
+const NOTIF_KEY = "erfanai_notifications";
+
+interface Notification {
+  id: string;
+  type: "welcome" | "update" | "tip" | "promo" | "security";
+  titleKey: string;
+  bodyKey: string;
+  icon: "sparkles" | "zap" | "mic" | "star" | "shield";
+  read: boolean;
+  timestamp: number;
+}
+
+const defaultNotifications: Notification[] = [
+  { id: "welcome-1", type: "welcome", titleKey: "notif.welcome_title", bodyKey: "notif.welcome_body", icon: "sparkles", read: false, timestamp: Date.now() - 1000 },
+  { id: "security-1", type: "security", titleKey: "notif.security_title", bodyKey: "notif.security_body", icon: "shield", read: false, timestamp: Date.now() - 60000 },
+  { id: "update-1", type: "update", titleKey: "notif.update_title", bodyKey: "notif.update_body", icon: "zap", read: false, timestamp: Date.now() - 3600000 },
+  { id: "tip-1", type: "tip", titleKey: "notif.tip_title", bodyKey: "notif.tip_body", icon: "mic", read: false, timestamp: Date.now() - 7200000 },
+  { id: "promo-1", type: "promo", titleKey: "notif.promo_title", bodyKey: "notif.promo_body", icon: "star", read: false, timestamp: Date.now() - 86400000 },
+];
+
+const loadNotifications = (): Notification[] => {
+  try {
+    const stored = localStorage.getItem(NOTIF_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  const defaults = [...defaultNotifications];
+  localStorage.setItem(NOTIF_KEY, JSON.stringify(defaults));
+  return defaults;
+};
+
+const saveNotifications = (notifs: Notification[]) => {
+  localStorage.setItem(NOTIF_KEY, JSON.stringify(notifs));
+};
+
+const notifIconMap: Record<string, typeof Sparkles> = {
+  sparkles: Sparkles,
+  zap: Zap,
+  mic: Mic,
+  star: Sparkles,
+  shield: User,
+};
+
+const notifColorMap: Record<string, string> = {
+  welcome: "bg-accent/15 text-accent",
+  update: "bg-primary/15 text-primary",
+  tip: "bg-yellow-500/15 text-yellow-500",
+  promo: "bg-purple-500/15 text-purple-500",
+  security: "bg-green-500/15 text-green-500",
+};
+
+const formatTimeAgo = (timestamp: number, lang: Lang): string => {
+  const diff = Date.now() - timestamp;
+  const mins = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (mins < 1) return t(lang, "notif.just_now");
+  if (mins < 60) return `${mins} ${t(lang, "notif.minutes_ago")}`;
+  if (hours < 24) return `${hours} ${t(lang, "notif.hours_ago")}`;
+  return `${days} ${t(lang, "notif.days_ago")}`;
+};
+
+const NotificationsPanel = ({ isOpen, onClose, onUpgrade }: { isOpen: boolean; onClose: () => void; onUpgrade: () => void }) => {
   const { lang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
+  const [notifications, setNotifications] = useState<Notification[]>(() => loadNotifications());
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const markAllRead = () => {
+    const updated = notifications.map(n => ({ ...n, read: true }));
+    setNotifications(updated);
+    saveNotifications(updated);
+    toast.success(t(lang, "notif.marked_read"));
+  };
+
+  const markRead = (id: string) => {
+    const updated = notifications.map(n => n.id === id ? { ...n, read: true } : n);
+    setNotifications(updated);
+    saveNotifications(updated);
+  };
+
+  const clearAll = () => {
+    setNotifications([]);
+    saveNotifications([]);
+    toast.success(t(lang, "notif.cleared"));
+  };
+
+  const deleteOne = (id: string) => {
+    const updated = notifications.filter(n => n.id !== id);
+    setNotifications(updated);
+    saveNotifications(updated);
+  };
+
+  const handleNotifClick = (notif: Notification) => {
+    markRead(notif.id);
+    if (notif.type === "promo") { onUpgrade(); onClose(); }
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
         <>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40" />
-          <motion.div initial={{ opacity: 0, y: -10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.95 }} transition={{ duration: 0.2 }} className="absolute left-14 top-[60px] z-50 w-72 rounded-2xl border border-border bg-card shadow-2xl overflow-hidden" dir={dir}>
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
-              <h3 className="text-sm font-bold text-foreground">{t(lang, "notif.title")}</h3>
+          <motion.div initial={{ opacity: 0, y: -10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.95 }} transition={{ duration: 0.2 }} className="absolute left-3 right-3 top-[60px] z-50 max-h-[75vh] rounded-2xl border border-border bg-card shadow-2xl overflow-hidden flex flex-col" dir={dir}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+              <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors"><X className="h-4 w-4" /></button>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-foreground">{t(lang, "notif.title")}</h3>
+                {unreadCount > 0 && (
+                  <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-accent px-1.5 text-[10px] font-bold text-accent-foreground">{unreadCount}</span>
+                )}
+              </div>
             </div>
-            <div className="p-6 text-center">
-              <Bell className="mx-auto h-8 w-8 text-muted-foreground/40 mb-2" />
-              <p className="text-sm text-muted-foreground">{t(lang, "notif.empty")}</p>
+
+            {/* Actions */}
+            {notifications.length > 0 && (
+              <div className="flex items-center justify-between px-4 py-2 border-b border-border/50 shrink-0">
+                <button onClick={clearAll} className="text-xs text-destructive hover:underline transition-colors">{t(lang, "notif.clear_all")}</button>
+                {unreadCount > 0 && (
+                  <button onClick={markAllRead} className="text-xs text-accent hover:underline transition-colors">{t(lang, "notif.mark_all_read")}</button>
+                )}
+              </div>
+            )}
+
+            {/* List */}
+            <div className="flex-1 overflow-y-auto">
+              {notifications.length === 0 ? (
+                <div className="p-8 text-center">
+                  <Bell className="mx-auto h-10 w-10 text-muted-foreground/20 mb-3" />
+                  <p className="text-sm text-muted-foreground">{t(lang, "notif.empty")}</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border/50">
+                  {notifications.map((notif, i) => {
+                    const IconComp = notifIconMap[notif.icon] || Bell;
+                    const colorClass = notifColorMap[notif.type] || "bg-secondary text-muted-foreground";
+                    return (
+                      <motion.div
+                        key={notif.id}
+                        initial={{ opacity: 0, x: isRTL(lang) ? 20 : -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        onClick={() => handleNotifClick(notif)}
+                        className={`flex gap-3 px-4 py-3.5 cursor-pointer transition-colors hover:bg-secondary/50 ${!notif.read ? "bg-accent/5" : ""}`}
+                      >
+                        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${colorClass}`}>
+                          <IconComp className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className={`text-xs font-semibold leading-snug ${!notif.read ? "text-foreground" : "text-muted-foreground"}`}>{t(lang, notif.titleKey)}</p>
+                            <button onClick={(e) => { e.stopPropagation(); deleteOne(notif.id); }} className="shrink-0 text-muted-foreground/40 hover:text-destructive transition-colors mt-0.5">
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">{t(lang, notif.bodyKey)}</p>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className="text-[10px] text-muted-foreground/60">{formatTimeAgo(notif.timestamp, lang)}</span>
+                            {!notif.read && <div className="h-1.5 w-1.5 rounded-full bg-accent" />}
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </motion.div>
         </>
