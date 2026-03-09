@@ -147,7 +147,85 @@ const translations: Record<string, Record<Lang, string>> = {
     "العربية": "دليل التشغيل", "English": "Playbook", "Français": "Guide", "Español": "Manual", "Deutsch": "Playbook", "Türkçe": "Oyun kitabı",
   },
 
-  // ── Login Screen ──
+  // ── Schedule Task ──
+  "schedule.task_name": { "العربية": "اسم المهمة", "English": "Task name", "Français": "Nom de la tâche", "Español": "Nombre de la tarea", "Deutsch": "Aufgabenname", "Türkçe": "Görev adı" },
+  "schedule.add_btn": { "العربية": "إضافة مهمة", "English": "Add task", "Français": "Ajouter", "Español": "Agregar", "Deutsch": "Hinzufügen", "Türkçe": "Ekle" },
+  "schedule.added": { "العربية": "تمت إضافة المهمة", "English": "Task added", "Français": "Tâche ajoutée", "Español": "Tarea agregada", "Deutsch": "Aufgabe hinzugefügt", "Türkçe": "Görev eklendi" },
+  "schedule.deleted": { "العربية": "تم حذف المهمة", "English": "Task deleted", "Français": "Tâche supprimée", "Español": "Tarea eliminada", "Deutsch": "Aufgabe gelöscht", "Türkçe": "Görev silindi" },
+  "schedule.empty": { "العربية": "لا توجد مهام مجدولة", "English": "No scheduled tasks", "Français": "Aucune tâche planifiée", "Español": "Sin tareas programadas", "Deutsch": "Keine geplanten Aufgaben", "Türkçe": "Planlanmış görev yok" },
+
+  // ── Research ──
+  "research.placeholder": { "العربية": "اكتب موضوع البحث...", "English": "Enter research topic...", "Français": "Entrez le sujet de recherche...", "Español": "Ingrese el tema de investigación...", "Deutsch": "Forschungsthema eingeben...", "Türkçe": "Araştırma konusunu girin..." },
+  "research.depth": { "العربية": "عمق البحث", "English": "Research depth", "Français": "Profondeur", "Español": "Profundidad", "Deutsch": "Tiefe", "Türkçe": "Derinlik" },
+  "research.quick": { "العربية": "سريع", "English": "Quick", "Français": "Rapide", "Español": "Rápido", "Deutsch": "Schnell", "Türkçe": "Hızlı" },
+  "research.deep": { "العربية": "عميق", "English": "Deep", "Français": "Profond", "Español": "Profundo", "Deutsch": "Tief", "Türkçe": "Derin" },
+  "research.comprehensive": { "العربية": "شامل", "English": "Comprehensive", "Français": "Complet", "Español": "Completo", "Deutsch": "Umfassend", "Türkçe": "Kapsamlı" },
+  "research.sources_title": { "العربية": "مصادر البحث", "English": "Research sources", "Français": "Sources", "Español": "Fuentes", "Deutsch": "Quellen", "Türkçe": "Kaynaklar" },
+  "research.source_web": { "العربية": "الويب", "English": "Web", "Français": "Web", "Español": "Web", "Deutsch": "Web", "Türkçe": "Web" },
+  "research.source_academic": { "العربية": "أكاديمي", "English": "Academic", "Français": "Académique", "Español": "Académico", "Deutsch": "Akademisch", "Türkçe": "Akademik" },
+  "research.source_news": { "العربية": "أخبار", "English": "News", "Français": "Actualités", "Español": "Noticias", "Deutsch": "Nachrichten", "Türkçe": "Haberler" },
+  "research.started": { "العربية": "بدأ البحث الموسّع", "English": "Research started", "Français": "Recherche lancée", "Español": "Investigación iniciada", "Deutsch": "Recherche gestartet", "Türkçe": "Araştırma başladı" },
+  "research.start_btn": { "العربية": "بدء البحث", "English": "Start research", "Français": "Lancer", "Español": "Iniciar", "Deutsch": "Starten", "Türkçe": "Başlat" },
+
+  // ── Spreadsheet ──
+  "spreadsheet.add_row": { "العربية": "صف جديد", "English": "Add row", "Français": "Ajouter ligne", "Español": "Agregar fila", "Deutsch": "Zeile", "Türkçe": "Satır ekle" },
+  "spreadsheet.add_col": { "العربية": "عمود جديد", "English": "Add column", "Français": "Ajouter colonne", "Español": "Agregar columna", "Deutsch": "Spalte", "Türkçe": "Sütun ekle" },
+
+  // ── Visualization ──
+  "viz.chart_type": { "العربية": "نوع الرسم", "English": "Chart type", "Français": "Type de graphique", "Español": "Tipo de gráfico", "Deutsch": "Diagrammtyp", "Türkçe": "Grafik türü" },
+  "viz.bar": { "العربية": "أعمدة", "English": "Bar", "Français": "Barres", "Español": "Barras", "Deutsch": "Balken", "Türkçe": "Çubuk" },
+  "viz.line": { "العربية": "خطي", "English": "Line", "Français": "Ligne", "Español": "Línea", "Deutsch": "Linie", "Türkçe": "Çizgi" },
+  "viz.pie": { "العربية": "دائري", "English": "Pie", "Français": "Camembert", "Español": "Circular", "Deutsch": "Kreis", "Türkçe": "Pasta" },
+  "viz.data_input": { "العربية": "أدخل البيانات (مفصولة بفواصل)", "English": "Enter data (comma-separated)", "Français": "Données (séparées par des virgules)", "Español": "Datos (separados por comas)", "Deutsch": "Daten (kommagetrennt)", "Türkçe": "Veriler (virgülle ayrılmış)" },
+
+  // ── Video ──
+  "video.prompt_placeholder": { "العربية": "صف الفيديو الذي تريده...", "English": "Describe the video you want...", "Français": "Décrivez la vidéo...", "Español": "Describe el video...", "Deutsch": "Beschreiben Sie das Video...", "Türkçe": "İstediğiniz videoyu açıklayın..." },
+  "video.duration": { "العربية": "المدة", "English": "Duration", "Français": "Durée", "Español": "Duración", "Deutsch": "Dauer", "Türkçe": "Süre" },
+  "video.short": { "العربية": "قصير", "English": "Short", "Français": "Court", "Español": "Corto", "Deutsch": "Kurz", "Türkçe": "Kısa" },
+  "video.medium": { "العربية": "متوسط", "English": "Medium", "Français": "Moyen", "Español": "Medio", "Deutsch": "Mittel", "Türkçe": "Orta" },
+  "video.long": { "العربية": "طويل", "English": "Long", "Français": "Long", "Español": "Largo", "Deutsch": "Lang", "Türkçe": "Uzun" },
+  "video.style": { "العربية": "الأسلوب", "English": "Style", "Français": "Style", "Español": "Estilo", "Deutsch": "Stil", "Türkçe": "Stil" },
+  "video.realistic": { "العربية": "واقعي", "English": "Realistic", "Français": "Réaliste", "Español": "Realista", "Deutsch": "Realistisch", "Türkçe": "Gerçekçi" },
+  "video.animated": { "العربية": "متحرك", "English": "Animated", "Français": "Animé", "Español": "Animado", "Deutsch": "Animiert", "Türkçe": "Animasyonlu" },
+  "video.cinematic": { "العربية": "سينمائي", "English": "Cinematic", "Français": "Cinématique", "Español": "Cinemático", "Deutsch": "Filmisch", "Türkçe": "Sinematik" },
+  "video.generating": { "العربية": "جاري إنشاء الفيديو...", "English": "Generating video...", "Français": "Génération de la vidéo...", "Español": "Generando video...", "Deutsch": "Video wird generiert...", "Türkçe": "Video oluşturuluyor..." },
+  "video.generate_btn": { "العربية": "إنشاء فيديو", "English": "Generate video", "Français": "Générer", "Español": "Generar", "Deutsch": "Generieren", "Türkçe": "Oluştur" },
+
+  // ── Audio ──
+  "audio.type": { "العربية": "النوع", "English": "Type", "Français": "Type", "Español": "Tipo", "Deutsch": "Typ", "Türkçe": "Tür" },
+  "audio.tts": { "العربية": "تحويل نص لصوت", "English": "Text to Speech", "Français": "Synthèse vocale", "Español": "Texto a voz", "Deutsch": "Text zu Sprache", "Türkçe": "Metinden sese" },
+  "audio.music": { "العربية": "موسيقى", "English": "Music", "Français": "Musique", "Español": "Música", "Deutsch": "Musik", "Türkçe": "Müzik" },
+  "audio.effects": { "العربية": "مؤثرات صوتية", "English": "Sound Effects", "Français": "Effets sonores", "Español": "Efectos", "Deutsch": "Soundeffekte", "Türkçe": "Ses efektleri" },
+  "audio.tts_placeholder": { "العربية": "اكتب النص لتحويله إلى صوت...", "English": "Enter text to convert to speech...", "Français": "Texte à convertir...", "Español": "Texto para convertir...", "Deutsch": "Text eingeben...", "Türkçe": "Sese dönüştürülecek metni girin..." },
+  "audio.music_placeholder": { "العربية": "صف الموسيقى أو المؤثر الصوتي...", "English": "Describe the audio...", "Français": "Décrivez l'audio...", "Español": "Describe el audio...", "Deutsch": "Audio beschreiben...", "Türkçe": "Sesi açıklayın..." },
+  "audio.generating": { "العربية": "جاري إنشاء الصوت...", "English": "Generating audio...", "Français": "Génération audio...", "Español": "Generando audio...", "Deutsch": "Audio wird generiert...", "Türkçe": "Ses oluşturuluyor..." },
+  "audio.generate_btn": { "العربية": "إنشاء صوت", "English": "Generate audio", "Français": "Générer", "Español": "Generar", "Deutsch": "Generieren", "Türkçe": "Oluştur" },
+
+  // ── Chat Mode ──
+  "chatmode.standard": { "العربية": "قياسي", "English": "Standard", "Français": "Standard", "Español": "Estándar", "Deutsch": "Standard", "Türkçe": "Standart" },
+  "chatmode.standard_desc": { "العربية": "وضع المحادثة المتوازن للاستخدام العام", "English": "Balanced mode for general use", "Français": "Mode équilibré", "Español": "Modo equilibrado", "Deutsch": "Ausgeglichener Modus", "Türkçe": "Genel kullanım modu" },
+  "chatmode.creative": { "العربية": "إبداعي", "English": "Creative", "Français": "Créatif", "Español": "Creativo", "Deutsch": "Kreativ", "Türkçe": "Yaratıcı" },
+  "chatmode.creative_desc": { "العربية": "إجابات أكثر إبداعاً وخيالاً", "English": "More creative and imaginative responses", "Français": "Réponses plus créatives", "Español": "Respuestas más creativas", "Deutsch": "Kreativere Antworten", "Türkçe": "Daha yaratıcı yanıtlar" },
+  "chatmode.precise": { "العربية": "دقيق", "English": "Precise", "Français": "Précis", "Español": "Preciso", "Deutsch": "Präzise", "Türkçe": "Kesin" },
+  "chatmode.precise_desc": { "العربية": "إجابات أكثر دقة وتركيزاً على الحقائق", "English": "More accurate and fact-focused responses", "Français": "Réponses plus précises", "Español": "Respuestas más precisas", "Deutsch": "Genauere Antworten", "Türkçe": "Daha kesin yanıtlar" },
+  "chatmode.code": { "العربية": "برمجة", "English": "Code", "Français": "Code", "Español": "Código", "Deutsch": "Code", "Türkçe": "Kod" },
+  "chatmode.code_desc": { "العربية": "محسّن لكتابة وتحليل الأكواد البرمجية", "English": "Optimized for writing and analyzing code", "Français": "Optimisé pour le code", "Español": "Optimizado para código", "Deutsch": "Für Code optimiert", "Türkçe": "Kod yazma için optimize" },
+
+  // ── Playbook ──
+  "playbook.seo": { "العربية": "تحليل SEO", "English": "SEO Analysis", "Français": "Analyse SEO", "Español": "Análisis SEO", "Deutsch": "SEO-Analyse", "Türkçe": "SEO Analizi" },
+  "playbook.seo_desc": { "العربية": "تحليل شامل لموقعك وتحسين محركات البحث", "English": "Comprehensive website SEO analysis", "Français": "Analyse SEO complète", "Español": "Análisis SEO completo", "Deutsch": "Umfassende SEO-Analyse", "Türkçe": "Kapsamlı SEO analizi" },
+  "playbook.content": { "العربية": "استراتيجية المحتوى", "English": "Content Strategy", "Français": "Stratégie de contenu", "Español": "Estrategia de contenido", "Deutsch": "Content-Strategie", "Türkçe": "İçerik stratejisi" },
+  "playbook.content_desc": { "العربية": "بناء خطة محتوى متكاملة لعلامتك التجارية", "English": "Build a complete content plan for your brand", "Français": "Plan de contenu complet", "Español": "Plan de contenido completo", "Deutsch": "Vollständiger Content-Plan", "Türkçe": "Kapsamlı içerik planı" },
+  "playbook.social": { "العربية": "حملة وسائل التواصل", "English": "Social Media Campaign", "Français": "Campagne réseaux sociaux", "Español": "Campaña de redes sociales", "Deutsch": "Social-Media-Kampagne", "Türkçe": "Sosyal medya kampanyası" },
+  "playbook.social_desc": { "العربية": "تصميم حملة تسويقية على وسائل التواصل الاجتماعي", "English": "Design a social media marketing campaign", "Français": "Concevoir une campagne marketing", "Español": "Diseñar una campaña de marketing", "Deutsch": "Marketing-Kampagne entwerfen", "Türkçe": "Pazarlama kampanyası tasarla" },
+  "playbook.competitor": { "العربية": "تحليل المنافسين", "English": "Competitor Analysis", "Français": "Analyse concurrentielle", "Español": "Análisis de competidores", "Deutsch": "Wettbewerbsanalyse", "Türkçe": "Rakip analizi" },
+  "playbook.competitor_desc": { "العربية": "تحليل المنافسين وتحديد الفرص", "English": "Analyze competitors and identify opportunities", "Français": "Analyser les concurrents", "Español": "Analizar competidores", "Deutsch": "Wettbewerber analysieren", "Türkçe": "Rakipleri analiz et" },
+  "playbook.email": { "العربية": "تسويق البريد الإلكتروني", "English": "Email Marketing", "Français": "Email marketing", "Español": "Email marketing", "Deutsch": "E-Mail-Marketing", "Türkçe": "E-posta pazarlama" },
+  "playbook.email_desc": { "العربية": "تصميم قمع تسويقي عبر البريد الإلكتروني", "English": "Design an email marketing funnel", "Français": "Concevoir un tunnel email", "Español": "Diseñar un embudo de email", "Deutsch": "E-Mail-Funnel entwerfen", "Türkçe": "E-posta hunisi tasarla" },
+  "playbook.launch": { "العربية": "خطة إطلاق منتج", "English": "Product Launch", "Français": "Lancement de produit", "Español": "Lanzamiento de producto", "Deutsch": "Produktstart", "Türkçe": "Ürün lansmanı" },
+  "playbook.launch_desc": { "العربية": "إنشاء خطة إطلاق منتج متكاملة", "English": "Create a product launch plan", "Français": "Créer un plan de lancement", "Español": "Crear un plan de lanzamiento", "Deutsch": "Startplan erstellen", "Türkçe": "Lansman planı oluştur" },
+  "playbook.applied": { "العربية": "تم تطبيق الدليل", "English": "Playbook applied", "Français": "Guide appliqué", "Español": "Manual aplicado", "Deutsch": "Playbook angewendet", "Türkçe": "Oyun kitabı uygulandı" },
+
   "login.title": {
     "العربية": "تسجيل الدخول أو التسجيل",
     "English": "Sign in or Sign up",
