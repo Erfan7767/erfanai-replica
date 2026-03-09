@@ -1706,4 +1706,22 @@ const translations: Record<string, Record<Lang, string>> = {
   "meeting.rename": {
     "العربية": "إعادة تسمية", "English": "Rename", "Français": "Renommer", "Español": "Renombrar", "Deutsch": "Umbenennen", "Türkçe": "Yeniden adlandır",
   },
+  "meeting.export_txt": {
+    "العربية": "تصدير كملف نصي", "English": "Export as TXT", "Français": "Exporter en TXT", "Español": "Exportar como TXT", "Deutsch": "Als TXT exportieren", "Türkçe": "TXT olarak dışa aktar",
+  },
+  "meeting.export_date": {
+    "العربية": "التاريخ", "English": "Date", "Français": "Date", "Español": "Fecha", "Deutsch": "Datum", "Türkçe": "Tarih",
+  },
+  "meeting.export_duration": {
+    "العربية": "المدة", "English": "Duration", "Français": "Durée", "Español": "Duración", "Deutsch": "Dauer", "Türkçe": "Süre",
+  },
+  "meeting.exported": {
+    "العربية": "تم تصدير المحضر!", "English": "Meeting exported!", "Français": "Réunion exportée !", "Español": "¡Reunión exportada!", "Deutsch": "Meeting exportiert!", "Türkçe": "Toplantı dışa aktarıldı!",
+  },
+  "meeting.share": {
+    "العربية": "مشاركة", "English": "Share", "Français": "Partager", "Español": "Compartir", "Deutsch": "Teilen", "Türkçe": "Paylaş",
+  },
+  "meeting.copied": {
+    "العربية": "تم نسخ المحضر!", "English": "Meeting copied to clipboard!", "Français": "Copié dans le presse-papiers !", "Español": "¡Copiado al portapapeles!", "Deutsch": "In die Zwischenablage kopiert!", "Türkçe": "Panoya kopyalandı!",
+  },
 };
