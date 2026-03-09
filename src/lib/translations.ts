@@ -1706,4 +1706,28 @@ const translations: Record<string, Record<Lang, string>> = {
   "meeting.rename": {
     "العربية": "إعادة تسمية", "English": "Rename", "Français": "Renommer", "Español": "Renombrar", "Deutsch": "Umbenennen", "Türkçe": "Yeniden adlandır",
   },
+  "meeting.export": {
+    "العربية": "تصدير", "English": "Export", "Français": "Exporter", "Español": "Exportar", "Deutsch": "Exportieren", "Türkçe": "Dışa aktar",
+  },
+  "meeting.export_txt": {
+    "العربية": "تصدير كنص", "English": "Export as TXT", "Français": "Exporter en TXT", "Español": "Exportar como TXT", "Deutsch": "Als TXT exportieren", "Türkçe": "TXT olarak dışa aktar",
+  },
+  "meeting.export_pdf": {
+    "العربية": "تصدير كـ PDF", "English": "Export as PDF", "Français": "Exporter en PDF", "Español": "Exportar como PDF", "Deutsch": "Als PDF exportieren", "Türkçe": "PDF olarak dışa aktar",
+  },
+  "meeting.export_audio": {
+    "العربية": "تحميل الصوت", "English": "Download Audio", "Français": "Télécharger l'audio", "Español": "Descargar audio", "Deutsch": "Audio herunterladen", "Türkçe": "Sesi indir",
+  },
+  "meeting.exported": {
+    "العربية": "تم التصدير بنجاح!", "English": "Exported successfully!", "Français": "Exporté avec succès !", "Español": "¡Exportado exitosamente!", "Deutsch": "Erfolgreich exportiert!", "Türkçe": "Başarıyla dışa aktarıldı!",
+  },
+  "meeting.no_audio": {
+    "العربية": "لا يوجد تسجيل صوتي لهذا الاجتماع", "English": "No audio recording for this meeting", "Français": "Pas d'enregistrement audio", "Español": "No hay grabación de audio", "Deutsch": "Keine Audioaufnahme", "Türkçe": "Bu toplantı için ses kaydı yok",
+  },
+  "meeting.share": {
+    "العربية": "مشاركة", "English": "Share", "Français": "Partager", "Español": "Compartir", "Deutsch": "Teilen", "Türkçe": "Paylaş",
+  },
+  "meeting.copied": {
+    "العربية": "تم نسخ المحضر!", "English": "Minutes copied!", "Français": "Compte rendu copié !", "Español": "¡Acta copiada!", "Deutsch": "Protokoll kopiert!", "Türkçe": "Tutanak kopyalandı!",
+  },
 };
