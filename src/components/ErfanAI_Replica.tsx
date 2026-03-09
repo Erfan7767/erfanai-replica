@@ -2692,6 +2692,12 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
               isExpanded={isExecutionExpanded}
               onToggleExpand={() => setIsExecutionExpanded(!isExecutionExpanded)}
               finalMessage={executionFinalMessage}
+              onContinue={() => {
+                toast.success(t(lang, "execution.can_continue"));
+                setIsExecuting(false);
+                setExecutionSteps([]);
+                setExecutionFinalMessage("");
+              }}
             />
           )}
         </AnimatePresence>
