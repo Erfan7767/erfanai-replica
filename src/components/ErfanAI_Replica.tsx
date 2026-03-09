@@ -2039,6 +2039,10 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isDiscoverOpen, setIsDiscoverOpen] = useState(false);
   const [isRecordingDialogOpen, setIsRecordingDialogOpen] = useState(false);
+  const [isMeetingViewOpen, setIsMeetingViewOpen] = useState(false);
+  const [meetingState, setMeetingState] = useState<"idle" | "recording" | "stopped">("idle");
+  const [meetingSeconds, setMeetingSeconds] = useState(0);
+  const meetingTimerRef = useRef<any>(null);
   const recognitionRef = useRef<any>(null);
   const lastTranscriptRef = useRef<string>("");
 
