@@ -1298,7 +1298,327 @@ const ProfilePanel = ({ isOpen, onClose, onLogout }: { isOpen: boolean; onClose:
   );
 };
 
-/* ═══════════════════════ APP SCREEN ═══════════════════════ */
+/* ═══════════════════════ GENERIC MORE PANEL WRAPPER ═══════════════════════ */
+const MorePanelWrapper = ({ isOpen, onClose, title, icon: Icon, children }: { isOpen: boolean; onClose: () => void; title: string; icon: any; children: React.ReactNode }) => {
+  const { lang } = useLang();
+  const dir = isRTL(lang) ? "rtl" : "ltr";
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-50 bg-black/50" />
+          <motion.div initial={{ opacity: 0, y: 40, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 40, scale: 0.95 }} transition={{ duration: 0.3 }} className="fixed inset-x-3 top-8 bottom-8 z-50 mx-auto max-w-lg overflow-hidden rounded-2xl border border-border bg-card shadow-2xl flex flex-col" dir={dir}>
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-secondary transition-colors">
+                {isRTL(lang) ? <ArrowRight className="h-5 w-5 text-foreground" /> : <ArrowLeft className="h-5 w-5 text-foreground" />}
+              </button>
+              <h2 className="text-base font-bold text-foreground flex items-center gap-2"><Icon className="h-5 w-5 text-accent" />{title}</h2>
+              <div className="w-8" />
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">{children}</div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
+/* ═══════════════════════ SCHEDULE TASK PANEL ═══════════════════════ */
+const ScheduleTaskPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const { lang } = useLang();
+  const [tasks, setTasks] = useState<{ id: string; title: string; date: string; time: string; done: boolean }[]>(() => {
+    try { const s = localStorage.getItem("erfanai_scheduled_tasks"); if (s) return JSON.parse(s); } catch {} return [];
+  });
+  const [title, setTitle] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+
+  const save = (t: typeof tasks) => { setTasks(t); localStorage.setItem("erfanai_scheduled_tasks", JSON.stringify(t)); };
+
+  const addTask = () => {
+    if (!title.trim() || !date) return;
+    save([{ id: Date.now().toString(), title: title.trim(), date, time, done: false }, ...tasks]);
+    setTitle(""); setDate(""); setTime("");
+    toast.success(t(lang, "schedule.added"));
+  };
+
+  return (
+    <MorePanelWrapper isOpen={isOpen} onClose={onClose} title={t(lang, "more.schedule_task")} icon={CalendarCheck}>
+      <div className="space-y-3 mb-5">
+        <input value={title} onChange={e => setTitle(e.target.value)} placeholder={t(lang, "schedule.task_name")} className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-accent" />
+        <div className="flex gap-2">
+          <input type="date" value={date} onChange={e => setDate(e.target.value)} className="flex-1 rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:border-accent" />
+          <input type="time" value={time} onChange={e => setTime(e.target.value)} className="flex-1 rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:border-accent" />
+        </div>
+        <button onClick={addTask} disabled={!title.trim() || !date} className="w-full rounded-xl bg-accent text-accent-foreground py-3 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-40">{t(lang, "schedule.add_btn")}</button>
+      </div>
+      {tasks.length === 0 ? (
+        <div className="text-center py-10"><CalendarCheck className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" /><p className="text-sm text-muted-foreground">{t(lang, "schedule.empty")}</p></div>
+      ) : (
+        <div className="space-y-2">
+          {tasks.map(task => (
+            <div key={task.id} className={`flex items-center gap-3 rounded-xl border border-border p-3 ${task.done ? "opacity-50" : ""}`}>
+              <button onClick={() => save(tasks.map(tt => tt.id === task.id ? { ...tt, done: !tt.done } : tt))} className={`h-5 w-5 rounded-md border-2 flex items-center justify-center transition-colors ${task.done ? "bg-accent border-accent" : "border-muted-foreground"}`}>
+                {task.done && <span className="text-accent-foreground text-xs">✓</span>}
+              </button>
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-medium text-foreground ${task.done ? "line-through" : ""}`}>{task.title}</p>
+                <p className="text-xs text-muted-foreground">{task.date} {task.time && `• ${task.time}`}</p>
+              </div>
+              <button onClick={() => { save(tasks.filter(tt => tt.id !== task.id)); toast(t(lang, "schedule.deleted")); }} className="text-muted-foreground hover:text-red-500 transition-colors"><Trash2 className="h-4 w-4" /></button>
+            </div>
+          ))}
+        </div>
+      )}
+    </MorePanelWrapper>
+  );
+};
+
+/* ═══════════════════════ WIDE RESEARCH PANEL ═══════════════════════ */
+const WideResearchPanel = ({ isOpen, onClose, onSubmit }: { isOpen: boolean; onClose: () => void; onSubmit: (q: string) => void }) => {
+  const { lang } = useLang();
+  const [query, setQuery] = useState("");
+  const [depth, setDepth] = useState<"quick" | "deep" | "comprehensive">("deep");
+
+  return (
+    <MorePanelWrapper isOpen={isOpen} onClose={onClose} title={t(lang, "more.wide_research")} icon={Target}>
+      <div className="space-y-4">
+        <textarea value={query} onChange={e => setQuery(e.target.value)} placeholder={t(lang, "research.placeholder")} rows={4} className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-accent resize-none" />
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground mb-2">{t(lang, "research.depth")}</p>
+          <div className="flex gap-2">
+            {(["quick", "deep", "comprehensive"] as const).map(d => (
+              <button key={d} onClick={() => setDepth(d)} className={`flex-1 rounded-xl py-2.5 text-xs font-semibold transition-colors ${depth === d ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground hover:bg-muted"}`}>
+                {t(lang, `research.${d}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-xl bg-secondary p-3 space-y-2">
+          <p className="text-xs font-semibold text-foreground">{t(lang, "research.sources_title")}</p>
+          {["web", "academic", "news"].map(s => (
+            <label key={s} className="flex items-center gap-2 text-xs text-muted-foreground"><input type="checkbox" defaultChecked className="rounded accent-accent" />{t(lang, `research.source_${s}`)}</label>
+          ))}
+        </div>
+        <button onClick={() => { if (query.trim()) { onSubmit(query.trim()); onClose(); toast.success(t(lang, "research.started")); } }} disabled={!query.trim()} className="w-full rounded-xl bg-accent text-accent-foreground py-3 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-40">{t(lang, "research.start_btn")}</button>
+      </div>
+    </MorePanelWrapper>
+  );
+};
+
+/* ═══════════════════════ SPREADSHEET PANEL ═══════════════════════ */
+const SpreadsheetPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const { lang } = useLang();
+  const [rows, setRows] = useState<string[][]>(() => {
+    try { const s = localStorage.getItem("erfanai_spreadsheet"); if (s) return JSON.parse(s); } catch {} return [["", "", ""], ["", "", ""], ["", "", ""], ["", "", ""], ["", "", ""]];
+  });
+
+  const updateCell = (r: number, c: number, v: string) => {
+    const newRows = rows.map((row, ri) => ri === r ? row.map((cell, ci) => ci === c ? v : cell) : row);
+    setRows(newRows);
+    localStorage.setItem("erfanai_spreadsheet", JSON.stringify(newRows));
+  };
+
+  const addRow = () => { const newRows = [...rows, Array(rows[0]?.length || 3).fill("")]; setRows(newRows); localStorage.setItem("erfanai_spreadsheet", JSON.stringify(newRows)); };
+  const addCol = () => { const newRows = rows.map(r => [...r, ""]); setRows(newRows); localStorage.setItem("erfanai_spreadsheet", JSON.stringify(newRows)); };
+
+  return (
+    <MorePanelWrapper isOpen={isOpen} onClose={onClose} title={t(lang, "more.spreadsheet")} icon={Table}>
+      <div className="flex gap-2 mb-3">
+        <button onClick={addRow} className="flex items-center gap-1 rounded-lg bg-secondary px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"><Plus className="h-3 w-3" />{t(lang, "spreadsheet.add_row")}</button>
+        <button onClick={addCol} className="flex items-center gap-1 rounded-lg bg-secondary px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"><Plus className="h-3 w-3" />{t(lang, "spreadsheet.add_col")}</button>
+      </div>
+      <div className="overflow-auto rounded-xl border border-border">
+        <table className="w-full text-sm">
+          <thead>
+            <tr>{rows[0]?.map((_, ci) => <th key={ci} className="border-b border-r border-border bg-secondary px-2 py-1.5 text-xs font-semibold text-muted-foreground text-center min-w-[80px]">{String.fromCharCode(65 + ci)}</th>)}</tr>
+          </thead>
+          <tbody>
+            {rows.map((row, ri) => (
+              <tr key={ri}>
+                {row.map((cell, ci) => (
+                  <td key={ci} className="border-b border-r border-border p-0">
+                    <input value={cell} onChange={e => updateCell(ri, ci, e.target.value)} className="w-full bg-transparent px-2 py-1.5 text-xs text-foreground outline-none focus:bg-accent/10 min-w-[80px]" />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </MorePanelWrapper>
+  );
+};
+
+/* ═══════════════════════ VISUALIZATION PANEL ═══════════════════════ */
+const VisualizationPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const { lang } = useLang();
+  const [chartType, setChartType] = useState<"bar" | "line" | "pie">("bar");
+  const [dataInput, setDataInput] = useState("10, 25, 40, 30, 55, 20");
+
+  const values = dataInput.split(",").map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
+  const maxVal = Math.max(...values, 1);
+
+  return (
+    <MorePanelWrapper isOpen={isOpen} onClose={onClose} title={t(lang, "more.visualization")} icon={BarChart3}>
+      <div className="space-y-4">
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground mb-2">{t(lang, "viz.chart_type")}</p>
+          <div className="flex gap-2">
+            {(["bar", "line", "pie"] as const).map(ct => (
+              <button key={ct} onClick={() => setChartType(ct)} className={`flex-1 rounded-xl py-2.5 text-xs font-semibold transition-colors ${chartType === ct ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground hover:bg-muted"}`}>{t(lang, `viz.${ct}`)}</button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground mb-2">{t(lang, "viz.data_input")}</p>
+          <input value={dataInput} onChange={e => setDataInput(e.target.value)} className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:border-accent" placeholder="10, 25, 40..." />
+        </div>
+        <div className="rounded-xl border border-border bg-secondary p-4 min-h-[200px] flex items-end justify-center gap-2">
+          {chartType === "bar" && values.map((v, i) => (
+            <div key={i} className="flex flex-col items-center gap-1">
+              <motion.div initial={{ height: 0 }} animate={{ height: (v / maxVal) * 150 }} transition={{ duration: 0.5, delay: i * 0.05 }} className="w-8 rounded-t-md bg-accent" />
+              <span className="text-[10px] text-muted-foreground">{v}</span>
+            </div>
+          ))}
+          {chartType === "line" && (
+            <svg viewBox={`0 0 ${values.length * 50} 160`} className="w-full h-[160px]">
+              <polyline fill="none" stroke="hsl(var(--accent))" strokeWidth="2" points={values.map((v, i) => `${i * 50 + 25},${150 - (v / maxVal) * 140}`).join(" ")} />
+              {values.map((v, i) => <circle key={i} cx={i * 50 + 25} cy={150 - (v / maxVal) * 140} r="4" fill="hsl(var(--accent))" />)}
+            </svg>
+          )}
+          {chartType === "pie" && (
+            <div className="flex flex-wrap gap-2 items-center justify-center">
+              {values.map((v, i) => {
+                const total = values.reduce((a, b) => a + b, 0);
+                const pct = total > 0 ? Math.round((v / total) * 100) : 0;
+                return <div key={i} className="flex items-center gap-1.5"><div className="h-3 w-3 rounded-full" style={{ background: `hsl(${(i * 60) % 360}, 70%, 50%)` }} /><span className="text-xs text-foreground">{pct}%</span></div>;
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </MorePanelWrapper>
+  );
+};
+
+/* ═══════════════════════ VIDEO PANEL ═══════════════════════ */
+const VideoPanel = ({ isOpen, onClose, onSubmit }: { isOpen: boolean; onClose: () => void; onSubmit: (p: string) => void }) => {
+  const { lang } = useLang();
+  const [prompt, setPrompt] = useState("");
+  const [duration, setDuration] = useState<"short" | "medium" | "long">("short");
+  const [style, setStyle] = useState<"realistic" | "animated" | "cinematic">("realistic");
+
+  return (
+    <MorePanelWrapper isOpen={isOpen} onClose={onClose} title={t(lang, "more.video")} icon={Play}>
+      <div className="space-y-4">
+        <textarea value={prompt} onChange={e => setPrompt(e.target.value)} placeholder={t(lang, "video.prompt_placeholder")} rows={3} className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-accent resize-none" />
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground mb-2">{t(lang, "video.duration")}</p>
+          <div className="flex gap-2">
+            {(["short", "medium", "long"] as const).map(d => (
+              <button key={d} onClick={() => setDuration(d)} className={`flex-1 rounded-xl py-2.5 text-xs font-semibold transition-colors ${duration === d ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground hover:bg-muted"}`}>{t(lang, `video.${d}`)}</button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground mb-2">{t(lang, "video.style")}</p>
+          <div className="flex gap-2">
+            {(["realistic", "animated", "cinematic"] as const).map(s => (
+              <button key={s} onClick={() => setStyle(s)} className={`flex-1 rounded-xl py-2.5 text-xs font-semibold transition-colors ${style === s ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground hover:bg-muted"}`}>{t(lang, `video.${s}`)}</button>
+            ))}
+          </div>
+        </div>
+        <button onClick={() => { if (prompt.trim()) { onSubmit(prompt.trim()); onClose(); toast.success(t(lang, "video.generating")); } }} disabled={!prompt.trim()} className="w-full rounded-xl bg-accent text-accent-foreground py-3 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-40">{t(lang, "video.generate_btn")}</button>
+      </div>
+    </MorePanelWrapper>
+  );
+};
+
+/* ═══════════════════════ AUDIO PANEL ═══════════════════════ */
+const AudioPanel = ({ isOpen, onClose, onSubmit }: { isOpen: boolean; onClose: () => void; onSubmit: (p: string) => void }) => {
+  const { lang } = useLang();
+  const [prompt, setPrompt] = useState("");
+  const [type, setType] = useState<"tts" | "music" | "effects">("tts");
+
+  return (
+    <MorePanelWrapper isOpen={isOpen} onClose={onClose} title={t(lang, "more.audio")} icon={AudioLines}>
+      <div className="space-y-4">
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground mb-2">{t(lang, "audio.type")}</p>
+          <div className="flex gap-2">
+            {(["tts", "music", "effects"] as const).map(at => (
+              <button key={at} onClick={() => setType(at)} className={`flex-1 rounded-xl py-2.5 text-xs font-semibold transition-colors ${type === at ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground hover:bg-muted"}`}>{t(lang, `audio.${at}`)}</button>
+            ))}
+          </div>
+        </div>
+        <textarea value={prompt} onChange={e => setPrompt(e.target.value)} placeholder={type === "tts" ? t(lang, "audio.tts_placeholder") : t(lang, "audio.music_placeholder")} rows={3} className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-accent resize-none" />
+        <button onClick={() => { if (prompt.trim()) { onSubmit(prompt.trim()); onClose(); toast.success(t(lang, "audio.generating")); } }} disabled={!prompt.trim()} className="w-full rounded-xl bg-accent text-accent-foreground py-3 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-40">{t(lang, "audio.generate_btn")}</button>
+      </div>
+    </MorePanelWrapper>
+  );
+};
+
+/* ═══════════════════════ CHAT MODE PANEL ═══════════════════════ */
+const ChatModePanel = ({ isOpen, onClose, onSelect }: { isOpen: boolean; onClose: () => void; onSelect: (mode: string) => void }) => {
+  const { lang } = useLang();
+  const [selected, setSelected] = useState("standard");
+  const modes = [
+    { id: "standard", icon: MessageCircle, key: "chatmode.standard", descKey: "chatmode.standard_desc" },
+    { id: "creative", icon: Sparkles, key: "chatmode.creative", descKey: "chatmode.creative_desc" },
+    { id: "precise", icon: Target, key: "chatmode.precise", descKey: "chatmode.precise_desc" },
+    { id: "code", icon: Code, key: "chatmode.code", descKey: "chatmode.code_desc" },
+  ];
+
+  return (
+    <MorePanelWrapper isOpen={isOpen} onClose={onClose} title={t(lang, "more.chat_mode")} icon={MessageCircle}>
+      <div className="space-y-2">
+        {modes.map(mode => (
+          <button key={mode.id} onClick={() => { setSelected(mode.id); onSelect(mode.id); onClose(); toast.success(`${t(lang, mode.key)}`); }} className={`w-full flex items-start gap-3 rounded-xl border p-4 text-start transition-colors ${selected === mode.id ? "border-accent bg-accent/10" : "border-border hover:bg-secondary"}`}>
+            <mode.icon className={`h-5 w-5 mt-0.5 ${selected === mode.id ? "text-accent" : "text-muted-foreground"}`} />
+            <div>
+              <p className="text-sm font-semibold text-foreground">{t(lang, mode.key)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t(lang, mode.descKey)}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </MorePanelWrapper>
+  );
+};
+
+/* ═══════════════════════ PLAYBOOK PANEL ═══════════════════════ */
+const PlaybookPanel = ({ isOpen, onClose, onUse }: { isOpen: boolean; onClose: () => void; onUse: (prompt: string) => void }) => {
+  const { lang } = useLang();
+  const playbooks = [
+    { id: "seo", icon: Search, key: "playbook.seo", descKey: "playbook.seo_desc", prompt: "Analyze the SEO of my website and provide recommendations" },
+    { id: "content", icon: FileText, key: "playbook.content", descKey: "playbook.content_desc", prompt: "Create a content strategy for my brand" },
+    { id: "social", icon: Share2, key: "playbook.social", descKey: "playbook.social_desc", prompt: "Build a social media campaign plan" },
+    { id: "competitor", icon: Target, key: "playbook.competitor", descKey: "playbook.competitor_desc", prompt: "Analyze my competitors and identify opportunities" },
+    { id: "email", icon: Mail, key: "playbook.email", descKey: "playbook.email_desc", prompt: "Design an email marketing funnel" },
+    { id: "launch", icon: Zap, key: "playbook.launch", descKey: "playbook.launch_desc", prompt: "Create a product launch plan" },
+  ];
+
+  return (
+    <MorePanelWrapper isOpen={isOpen} onClose={onClose} title={t(lang, "more.playbook")} icon={BookCopy}>
+      <div className="space-y-2">
+        {playbooks.map(pb => (
+          <button key={pb.id} onClick={() => { onUse(pb.prompt); onClose(); toast.success(t(lang, "playbook.applied")); }} className="w-full flex items-start gap-3 rounded-xl border border-border p-4 text-start hover:bg-secondary transition-colors">
+            <pb.icon className="h-5 w-5 mt-0.5 text-accent" />
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold text-foreground">{t(lang, pb.key)}</p>
+                <ExternalLink className="h-3 w-3 text-muted-foreground" />
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">{t(lang, pb.descKey)}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </MorePanelWrapper>
+  );
+};
+
 const AlignJustify = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
 );
@@ -1318,6 +1638,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [activeChips, setActiveChips] = useState<string[]>([]);
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const [morePanel, setMorePanel] = useState<string | null>(null);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [messages, setMessages] = useState<{ text: string; isUser: boolean; files?: File[] }[]>(() => {
     try {
@@ -1622,7 +1943,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                         { icon: MessageCircle, key: "more.chat_mode" },
                         { icon: BookCopy, key: "more.playbook", hasExternal: true },
                       ].map((item) => (
-                        <button key={item.key} onClick={() => { toast(t(lang, item.key)); setIsMoreMenuOpen(false); }} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
+                        <button key={item.key} onClick={() => { setMorePanel(item.key.replace("more.", "")); setIsMoreMenuOpen(false); }} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
                           <item.icon className="h-4 w-4 text-muted-foreground" />
                           <span className="flex-1 text-start">{t(lang, item.key)}</span>
                           {item.hasExternal && <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />}
@@ -1678,6 +1999,14 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       <KnowledgePanel isOpen={isKnowledgeOpen} onClose={() => setIsKnowledgeOpen(false)} />
       <SearchConversationsPanel isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} messages={messages} onSelectMessage={(msg) => { setInputValue(msg); }} />
       <DiscoverPanel isOpen={isDiscoverOpen} onClose={() => setIsDiscoverOpen(false)} onUseTemplate={(prompt) => { setInputValue(prompt); }} />
+      <ScheduleTaskPanel isOpen={morePanel === "schedule_task"} onClose={() => setMorePanel(null)} />
+      <WideResearchPanel isOpen={morePanel === "wide_research"} onClose={() => setMorePanel(null)} onSubmit={(q) => setInputValue(q)} />
+      <SpreadsheetPanel isOpen={morePanel === "spreadsheet"} onClose={() => setMorePanel(null)} />
+      <VisualizationPanel isOpen={morePanel === "visualization"} onClose={() => setMorePanel(null)} />
+      <VideoPanel isOpen={morePanel === "video"} onClose={() => setMorePanel(null)} onSubmit={(p) => setInputValue(p)} />
+      <AudioPanel isOpen={morePanel === "audio"} onClose={() => setMorePanel(null)} onSubmit={(p) => setInputValue(p)} />
+      <ChatModePanel isOpen={morePanel === "chat_mode"} onClose={() => setMorePanel(null)} onSelect={(m) => toast(`Mode: ${m}`)} />
+      <PlaybookPanel isOpen={morePanel === "playbook"} onClose={() => setMorePanel(null)} onUse={(p) => setInputValue(p)} />
     </div>
   );
 };
