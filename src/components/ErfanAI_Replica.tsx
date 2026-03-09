@@ -828,7 +828,7 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
 };
 
 /* ═══════════════════════ PROFILE DROPDOWN ═══════════════════════ */
-const ProfileDropdown = ({ isOpen, onClose, onLogout, onOpenSettings, onOpenProfile }: { isOpen: boolean; onClose: () => void; onLogout: () => void; onOpenSettings: () => void; onOpenProfile: () => void }) => {
+const ProfileDropdown = ({ isOpen, onClose, onLogout, onOpenSettings, onOpenProfile, onOpenKnowledge }: { isOpen: boolean; onClose: () => void; onLogout: () => void; onOpenSettings: () => void; onOpenProfile: () => void; onOpenKnowledge: () => void }) => {
   const { lang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
   return (
@@ -868,7 +868,7 @@ const ProfileDropdown = ({ isOpen, onClose, onLogout, onOpenSettings, onOpenProf
             </div>
 
             <div className="px-2">
-              <button onClick={() => { toast(t(lang, "coming_soon")); onClose(); }} className={`flex w-full items-center ${isRTL(lang) ? "justify-end" : "justify-start"} gap-3 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-secondary transition-colors`}>
+              <button onClick={() => { onOpenKnowledge(); onClose(); }} className={`flex w-full items-center ${isRTL(lang) ? "justify-end" : "justify-start"} gap-3 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-secondary transition-colors`}>
                 {!isRTL(lang) && <BookOpen className="h-5 w-5 text-muted-foreground" />}
                 <span>{t(lang, "profile.knowledge")}</span>
                 {isRTL(lang) && <BookOpen className="h-5 w-5 text-muted-foreground" />}
