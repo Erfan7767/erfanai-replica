@@ -1706,7 +1706,6 @@ const translations: Record<string, Record<Lang, string>> = {
   "meeting.rename": {
     "العربية": "إعادة تسمية", "English": "Rename", "Français": "Renommer", "Español": "Renombrar", "Deutsch": "Umbenennen", "Türkçe": "Yeniden adlandır",
   },
-  },
   "meeting.export_txt": {
     "العربية": "تصدير كملف نصي", "English": "Export as TXT", "Français": "Exporter en TXT", "Español": "Exportar como TXT", "Deutsch": "Als TXT exportieren", "Türkçe": "TXT olarak dışa aktar",
   },
