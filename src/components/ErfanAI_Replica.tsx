@@ -1291,6 +1291,8 @@ const ProfilePanel = ({ isOpen, onClose, onLogout }: { isOpen: boolean; onClose:
         </>
       )}
     </AnimatePresence>
+    <KnowledgePanel isOpen={isKnowledgePanelOpen} onClose={() => setIsKnowledgePanelOpen(false)} />
+    </>
   );
 };
 
