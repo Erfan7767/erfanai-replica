@@ -2623,6 +2623,19 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
           <motion.h1 initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-8 text-center text-2xl font-bold text-accent leading-relaxed">{t(lang, "landing.how_can_i_help")}</motion.h1>
         )}
 
+        {/* Execution Panel (Manus-style) - Appears above input when executing */}
+        <AnimatePresence>
+          {isExecuting && (
+            <ExecutionPanel
+              steps={executionSteps}
+              isVisible={isExecuting}
+              isExpanded={isExecutionExpanded}
+              onToggleExpand={() => setIsExecutionExpanded(!isExecutionExpanded)}
+              finalMessage={executionFinalMessage}
+            />
+          )}
+        </AnimatePresence>
+
         {/* Input Card */}
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-6 card-gold-border rounded-2xl bg-card p-4">
           {activeChips.length > 0 && (
