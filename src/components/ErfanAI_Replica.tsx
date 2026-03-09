@@ -2644,6 +2644,21 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                     {!viewingMeeting.summary && !viewingMeeting.notes && (
                       <p className="text-sm text-muted-foreground italic">{t(lang, "meeting.no_content")}</p>
                     )}
+                    {/* Export & Share buttons */}
+                    <div className="flex items-center gap-2 pt-2 border-t border-border">
+                      <button onClick={() => exportMeetingAsTxt(viewingMeeting)} className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary transition-colors">
+                        <FileText className="h-3 w-3" />{t(lang, "meeting.export_txt")}
+                      </button>
+                      <button onClick={() => exportMeetingAsPdf(viewingMeeting)} className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary transition-colors">
+                        <BookOpen className="h-3 w-3" />{t(lang, "meeting.export_pdf")}
+                      </button>
+                      <button onClick={() => exportMeetingAudio(viewingMeeting)} className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary transition-colors">
+                        <Volume2 className="h-3 w-3" />{t(lang, "meeting.export_audio")}
+                      </button>
+                      <button onClick={() => shareMeeting(viewingMeeting)} className="flex items-center gap-1.5 rounded-lg border border-accent/30 bg-accent/5 px-3 py-1.5 text-xs font-medium text-accent hover:bg-accent/10 transition-colors">
+                        <Share2 className="h-3 w-3" />{t(lang, "meeting.share")}
+                      </button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
