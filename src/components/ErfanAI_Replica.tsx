@@ -751,7 +751,7 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
 
                   <div className="rounded-xl border border-border overflow-hidden">
                     <div className="flex items-center justify-between p-4">
-                      <button onClick={() => toast(t(lang, "upgrade_page"))} className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-foreground hover:brightness-110 transition-all">{t(lang, "profile.upgrade")}</button>
+                      <button onClick={() => { onClose(); window.dispatchEvent(new CustomEvent("open-upgrade")); }} className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-foreground hover:brightness-110 transition-all">{t(lang, "profile.upgrade")}</button>
                       <div className={isRTL(lang) ? "text-right" : "text-left"}>
                         <p className="text-sm font-medium text-foreground">{t(lang, "settings.current_plan")}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">{t(lang, "sidebar.free_plan")}</p>
@@ -1245,7 +1245,7 @@ const ProfilePanel = ({ isOpen, onClose, onLogout }: { isOpen: boolean; onClose:
               {/* Plan & Credits */}
               <div className="rounded-xl border border-border overflow-hidden">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-dashed border-border">
-                  <button onClick={() => toast(t(lang, "upgrade_page"))} className="rounded-full border border-border bg-foreground px-4 py-1 text-xs font-semibold text-background hover:opacity-90 transition-opacity">
+                  <button onClick={() => { onClose(); window.dispatchEvent(new CustomEvent("open-upgrade")); }} className="rounded-full border border-border bg-foreground px-4 py-1 text-xs font-semibold text-background hover:opacity-90 transition-opacity">
                     {t(lang, "profile.upgrade")}
                   </button>
                   <span className="text-sm font-bold text-foreground">{t(lang, "profile.free")}</span>
