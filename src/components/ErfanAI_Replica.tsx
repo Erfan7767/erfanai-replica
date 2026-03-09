@@ -2867,6 +2867,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                             if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
                             if (waveformIntervalRef.current) clearInterval(waveformIntervalRef.current);
                             if (meetingAudioRef.current) { meetingAudioRef.current.getTracks().forEach(t => t.stop()); meetingAudioRef.current = null; }
+                            stopSpeechRecognition();
+                            const fullTranscript2 = committedTranscript + liveTranscript;
                             let audioUrl2: string | undefined;
                             if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
                               mediaRecorderRef.current.onstop = () => {
@@ -2879,7 +2881,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                             const mins = Math.floor(meetingSeconds / 60);
                             const summaryText = t(lang, "meeting.auto_summary").replace("{mins}", String(mins || 1));
                             setMeetingSummary(summaryText);
-                            const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, notes: "", summary: summaryText, audioUrl: audioUrl2 };
+                            if (fullTranscript2.trim()) setMeetingNotes(fullTranscript2.trim());
+                            const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, notes: fullTranscript2.trim(), summary: summaryText, audioUrl: audioUrl2 };
                             const updated = [newMeeting, ...savedMeetings];
                             setSavedMeetings(updated);
                             localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
