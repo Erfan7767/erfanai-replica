@@ -851,7 +851,7 @@ const ProfileDropdown = ({ isOpen, onClose, onLogout, onOpenSettings, onOpenProf
 
             <div className="mx-4 mb-3 rounded-xl border border-border overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3">
-                <button onClick={() => { toast(t(lang, "upgrade_page")); onClose(); }} className="rounded-full border border-border bg-foreground px-4 py-1 text-xs font-semibold text-background hover:opacity-90 transition-opacity">{t(lang, "profile.upgrade")}</button>
+                <button onClick={() => { onUpgrade(); onClose(); }} className="rounded-full border border-border bg-foreground px-4 py-1 text-xs font-semibold text-background hover:opacity-90 transition-opacity">{t(lang, "profile.upgrade")}</button>
                 <span className="text-sm font-bold text-foreground">{t(lang, "profile.free")}</span>
               </div>
               <div className="border-t border-dashed border-border" />
@@ -886,14 +886,14 @@ const ProfileDropdown = ({ isOpen, onClose, onLogout, onOpenSettings, onOpenProf
                 {isRTL(lang) && <Settings className="h-5 w-5 text-muted-foreground" />}
               </button>
               <div className="mx-3 border-t border-border" />
-              <button onClick={() => { toast(t(lang, "coming_soon")); onClose(); }} className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-sm text-foreground hover:bg-secondary transition-colors">
+              <button onClick={() => { onHome(); onClose(); }} className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-sm text-foreground hover:bg-secondary transition-colors">
                 <ExternalLink className="h-4 w-4 text-muted-foreground" />
                 <div className="flex items-center gap-3">
                   <span>{t(lang, "profile.home")}</span>
                   <Home className="h-5 w-5 text-muted-foreground" />
                 </div>
               </button>
-              <button onClick={() => { toast(t(lang, "coming_soon")); onClose(); }} className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-sm text-foreground hover:bg-secondary transition-colors">
+              <button onClick={() => { onHelp(); onClose(); }} className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-sm text-foreground hover:bg-secondary transition-colors">
                 <ExternalLink className="h-4 w-4 text-muted-foreground" />
                 <div className="flex items-center gap-3">
                   <span>{t(lang, "profile.get_help")}</span>
