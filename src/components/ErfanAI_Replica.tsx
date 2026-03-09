@@ -854,8 +854,8 @@ const ProfileDropdown = ({ isOpen, onClose, onLogout, onOpenSettings, onOpenProf
                 <button onClick={() => { onUpgrade(); onClose(); }} className="rounded-full border border-border bg-foreground px-4 py-1 text-xs font-semibold text-background hover:opacity-90 transition-opacity">{t(lang, "profile.upgrade")}</button>
                 <span className="text-sm font-bold text-foreground">{t(lang, "profile.free")}</span>
               </div>
-              <div className="border-t border-dashed border-border" />
-              <div className="flex items-center justify-between px-4 py-3">
+              <button onClick={() => { onClose(); /* credits panel opened via parent */ const evt = new CustomEvent("open-credits"); window.dispatchEvent(evt); }} className="border-t border-dashed border-border" />
+              <button onClick={() => { onClose(); window.dispatchEvent(new CustomEvent("open-credits")); }} className="flex w-full items-center justify-between px-4 py-3 hover:bg-secondary/50 transition-colors">
                 <div className="flex items-center gap-1">
                   <ChevronLeft className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-semibold text-foreground">300</span>
@@ -865,7 +865,7 @@ const ProfileDropdown = ({ isOpen, onClose, onLogout, onOpenSettings, onOpenProf
                   <span className="text-sm text-muted-foreground">{t(lang, "profile.credits")}</span>
                   <Sparkles className="h-4 w-4 text-foreground" />
                 </div>
-              </div>
+              </button>
             </div>
 
             <div className="px-2">
