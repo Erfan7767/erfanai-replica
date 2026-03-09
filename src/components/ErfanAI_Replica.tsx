@@ -1669,6 +1669,187 @@ const UpgradeProPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
   );
 };
 
+/* ═══════════════════════ HELP PANEL ═══════════════════════ */
+const HelpPanel = ({ isOpen, onClose, onUpgrade }: { isOpen: boolean; onClose: () => void; onUpgrade: () => void }) => {
+  const { lang } = useLang();
+  const dir = isRTL(lang) ? "rtl" : "ltr";
+  const [contactMsg, setContactMsg] = useState("");
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+
+  const faqs = [
+    { q: "help.faq1_q", a: "help.faq1_a" },
+    { q: "help.faq2_q", a: "help.faq2_a" },
+    { q: "help.faq3_q", a: "help.faq3_a" },
+    { q: "help.faq4_q", a: "help.faq4_a" },
+  ];
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40" style={{ background: "hsl(0 0% 0% / 0.7)" }} />
+          <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className="fixed inset-x-3 top-10 bottom-10 z-50 flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden" dir={dir}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+              <button onClick={onClose} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"><X className="h-5 w-5" /></button>
+              <h3 className="text-lg font-bold text-foreground">{t(lang, "help.title")}</h3>
+              <div className="w-8" />
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-5 space-y-6">
+              {/* Subtitle */}
+              <div className="text-center">
+                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/15">
+                  <HelpCircle className="h-7 w-7 text-accent" />
+                </div>
+                <p className="text-sm text-muted-foreground">{t(lang, "help.subtitle")}</p>
+              </div>
+
+              {/* FAQ */}
+              <div>
+                <h4 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-accent" />
+                  {t(lang, "help.faq")}
+                </h4>
+                <div className="space-y-2">
+                  {faqs.map((faq, i) => (
+                    <div key={i} className="rounded-xl border border-border overflow-hidden">
+                      <button onClick={() => setExpandedFaq(expandedFaq === i ? null : i)} className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-foreground hover:bg-secondary/50 transition-colors">
+                        <span>{t(lang, faq.q)}</span>
+                        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${expandedFaq === i ? "rotate-180" : ""}`} />
+                      </button>
+                      <AnimatePresence>
+                        {expandedFaq === i && (
+                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                            <p className="px-4 pb-3 text-xs text-muted-foreground leading-relaxed">{t(lang, faq.a)}</p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Shortcuts */}
+              <div>
+                <h4 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-accent" />
+                  {t(lang, "help.shortcuts")}
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between rounded-xl bg-secondary px-4 py-3">
+                    <kbd className="rounded bg-background px-2 py-1 text-xs font-mono text-foreground border border-border">Enter</kbd>
+                    <span className="text-xs text-muted-foreground">{t(lang, "help.shortcut_send")}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-xl bg-secondary px-4 py-3">
+                    <kbd className="rounded bg-background px-2 py-1 text-xs font-mono text-foreground border border-border">Shift + Enter</kbd>
+                    <span className="text-xs text-muted-foreground">{t(lang, "help.shortcut_newline")}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact */}
+              <div>
+                <h4 className="text-sm font-bold text-foreground mb-2 flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-accent" />
+                  {t(lang, "help.contact")}
+                </h4>
+                <p className="text-xs text-muted-foreground mb-3">{t(lang, "help.contact_desc")}</p>
+                <textarea value={contactMsg} onChange={e => setContactMsg(e.target.value)} placeholder={t(lang, "help.message_placeholder")} rows={3} className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-accent resize-none" />
+                <button onClick={() => { if (contactMsg.trim()) { toast.success(t(lang, "help.sent")); setContactMsg(""); } }} disabled={!contactMsg.trim()} className="mt-2 w-full rounded-xl bg-accent text-accent-foreground py-3 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-40">
+                  {t(lang, "help.send")}
+                </button>
+              </div>
+
+              {/* Version */}
+              <div className="text-center pt-2 pb-4">
+                <p className="text-xs text-muted-foreground">{t(lang, "help.version")} 1.6.0</p>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
+/* ═══════════════════════ CREDITS PANEL ═══════════════════════ */
+const CreditsPanel = ({ isOpen, onClose, onUpgrade, messagesCount }: { isOpen: boolean; onClose: () => void; onUpgrade: () => void; messagesCount: number }) => {
+  const { lang } = useLang();
+  const dir = isRTL(lang) ? "rtl" : "ltr";
+  const totalCredits = 300;
+  const usedCredits = Math.min(messagesCount * 2, totalCredits);
+  const remainingCredits = Math.max(totalCredits - usedCredits, 0);
+  const percentage = (remainingCredits / totalCredits) * 100;
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40" style={{ background: "hsl(0 0% 0% / 0.7)" }} />
+          <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className="fixed inset-x-3 top-16 z-50 flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden max-h-[80vh]" dir={dir}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+              <button onClick={onClose} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"><X className="h-5 w-5" /></button>
+              <h3 className="text-lg font-bold text-foreground">{t(lang, "credits.title")}</h3>
+              <div className="w-8" />
+            </div>
+
+            <div className="overflow-y-auto p-5 space-y-5">
+              {/* Credits Circle */}
+              <div className="flex flex-col items-center gap-3">
+                <div className="relative flex h-32 w-32 items-center justify-center">
+                  <svg className="h-32 w-32 -rotate-90" viewBox="0 0 120 120">
+                    <circle cx="60" cy="60" r="52" fill="none" stroke="hsl(var(--secondary))" strokeWidth="8" />
+                    <motion.circle cx="60" cy="60" r="52" fill="none" stroke="hsl(var(--accent))" strokeWidth="8" strokeLinecap="round" strokeDasharray={`${2 * Math.PI * 52}`} initial={{ strokeDashoffset: 2 * Math.PI * 52 }} animate={{ strokeDashoffset: 2 * Math.PI * 52 * (1 - percentage / 100) }} transition={{ duration: 1, ease: "easeOut" }} />
+                  </svg>
+                  <div className="absolute flex flex-col items-center">
+                    <span className="text-2xl font-bold text-foreground">{remainingCredits}</span>
+                    <span className="text-[10px] text-muted-foreground">{t(lang, "credits.of")} {totalCredits}</span>
+                  </div>
+                </div>
+                <p className="text-sm font-semibold text-foreground">{t(lang, "credits.remaining")}</p>
+              </div>
+
+              {/* Plan info */}
+              <div className="rounded-xl border border-border bg-secondary/50 p-4">
+                <div className="flex items-center justify-between">
+                  <span className="rounded-full bg-accent/15 px-3 py-1 text-xs font-bold text-accent">{t(lang, "credits.free_plan")}</span>
+                  <span className="text-xs text-muted-foreground">{t(lang, "credits.plan")}</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">{t(lang, "credits.renews")}</p>
+              </div>
+
+              {/* Usage stats */}
+              <div>
+                <h4 className="text-sm font-bold text-foreground mb-3">{t(lang, "credits.usage")}</h4>
+                <div className="space-y-2">
+                  {[
+                    { icon: MessageSquare, label: "credits.messages_sent", value: messagesCount },
+                    { icon: Image, label: "credits.images_generated", value: 0 },
+                    { icon: FileText, label: "credits.files_analyzed", value: 0 },
+                  ].map((stat, i) => (
+                    <div key={i} className="flex items-center justify-between rounded-xl bg-secondary px-4 py-3">
+                      <span className="text-sm font-semibold text-foreground">{stat.value}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">{t(lang, stat.label)}</span>
+                        <stat.icon className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Get more */}
+              <button onClick={() => { onUpgrade(); onClose(); }} className="w-full rounded-xl bg-accent text-accent-foreground py-3.5 text-sm font-bold hover:opacity-90 transition-opacity active:scale-[0.98]">
+                {t(lang, "credits.get_more")}
+              </button>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
 const AlignJustify = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
 );
