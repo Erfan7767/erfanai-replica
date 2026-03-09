@@ -1598,4 +1598,66 @@ const translations: Record<string, Record<Lang, string>> = {
   "credits.get_more": {
     "العربية": "احصل على أرصدة أكثر", "English": "Get more credits", "Français": "Obtenir plus de crédits", "Español": "Obtener más créditos", "Deutsch": "Mehr Credits erhalten", "Türkçe": "Daha fazla kredi al",
   },
+  },
+  // ── Meeting Minutes ──
+  "meeting.title": {
+    "العربية": "محضر الاجتماع", "English": "Meeting minutes", "Français": "Compte rendu", "Español": "Acta de reunión", "Deutsch": "Besprechungsprotokoll", "Türkçe": "Toplantı tutanağı",
+  },
+  "meeting.recording_in_progress": {
+    "العربية": "التسجيل قيد التقدم", "English": "Recording in Progress", "Français": "Enregistrement en cours", "Español": "Grabación en curso", "Deutsch": "Aufnahme läuft", "Türkçe": "Kayıt devam ediyor",
+  },
+  "meeting.recording_desc": {
+    "العربية": "يوجد اجتماع قيد التقدم ويتم تسجيله حالياً.", "English": "A meeting is currently in progress and being recorded.", "Français": "Une réunion est en cours et est enregistrée.", "Español": "Hay una reunión en curso que está siendo grabada.", "Deutsch": "Ein Meeting ist gerade im Gange und wird aufgezeichnet.", "Türkçe": "Bir toplantı devam ediyor ve kaydediliyor.",
+  },
+  "meeting.cancel": {
+    "العربية": "إلغاء", "English": "Cancel", "Français": "Annuler", "Español": "Cancelar", "Deutsch": "Abbrechen", "Türkçe": "İptal",
+  },
+  "meeting.view_meeting": {
+    "العربية": "عرض الاجتماع", "English": "View meeting", "Français": "Voir la réunion", "Español": "Ver reunión", "Deutsch": "Meeting anzeigen", "Türkçe": "Toplantıyı görüntüle",
+  },
+  "meeting.summary_auto": {
+    "العربية": "يتم إنشاء ملخص تلقائياً بعد التسجيل.", "English": "A summary is generated automatically after recording.", "Français": "Un résumé est généré automatiquement après l'enregistrement.", "Español": "Se genera un resumen automáticamente después de la grabación.", "Deutsch": "Eine Zusammenfassung wird nach der Aufnahme automatisch erstellt.", "Türkçe": "Kayıttan sonra otomatik olarak bir özet oluşturulur.",
+  },
+  "meeting.discard": {
+    "العربية": "تجاهل", "English": "Discard", "Français": "Supprimer", "Español": "Descartar", "Deutsch": "Verwerfen", "Türkçe": "Sil",
+  },
+  "meeting.stop": {
+    "العربية": "إيقاف", "English": "Stop", "Français": "Arrêter", "Español": "Detener", "Deutsch": "Stoppen", "Türkçe": "Durdur",
+  },
+  "meeting.start": {
+    "العربية": "بدء", "English": "Start", "Français": "Démarrer", "Español": "Iniciar", "Deutsch": "Starten", "Türkçe": "Başlat",
+  },
+  "meeting.consent": {
+    "العربية": "بالبدء، أنت تؤكد أنك حصلت على موافقة جميع الأطراف.", "English": "By starting, you confirm you have consent from all parties.", "Français": "En démarrant, vous confirmez avoir le consentement de toutes les parties.", "Español": "Al iniciar, confirmas que tienes el consentimiento de todas las partes.", "Deutsch": "Mit dem Start bestätigen Sie die Zustimmung aller Parteien.", "Türkçe": "Başlatarak, tüm tarafların onayını aldığınızı onaylarsınız.",
+  },
+  "meeting.download_desc": {
+    "العربية": "حمّل تطبيق الهاتف لتسجيل ملاحظات الاجتماع في أي وقت وأي مكان.", "English": "Download the mobile app to record meeting notes anytime, anywhere.", "Français": "Téléchargez l'application mobile pour enregistrer les notes de réunion.", "Español": "Descarga la app móvil para grabar notas de reuniones.", "Deutsch": "Laden Sie die mobile App herunter, um Besprechungsnotizen aufzuzeichnen.", "Türkçe": "Toplantı notlarını kaydetmek için mobil uygulamayı indirin.",
+  },
+  "meeting.download_app": {
+    "العربية": "تحميل التطبيق", "English": "Download app", "Français": "Télécharger", "Español": "Descargar app", "Deutsch": "App herunterladen", "Türkçe": "Uygulamayı indir",
+  },
+  "meeting.download_sent": {
+    "العربية": "تم إرسال رابط التحميل!", "English": "Download link sent!", "Français": "Lien de téléchargement envoyé !", "Español": "¡Enlace de descarga enviado!", "Deutsch": "Download-Link gesendet!", "Türkçe": "İndirme bağlantısı gönderildi!",
+  },
+  "meeting.previous": {
+    "العربية": "التسجيلات السابقة", "English": "Previous Recordings", "Français": "Enregistrements précédents", "Español": "Grabaciones anteriores", "Deutsch": "Frühere Aufnahmen", "Türkçe": "Önceki kayıtlar",
+  },
+  "meeting.recording_progress_edit": {
+    "العربية": "التسجيل جارٍ. يمكنك التعديل بعد انتهاء التسجيل.", "English": "Recording in progress. Edit after recording ends.", "Français": "Enregistrement en cours. Modifiez après la fin.", "Español": "Grabación en curso. Edita cuando termine.", "Deutsch": "Aufnahme läuft. Bearbeiten Sie nach dem Ende.", "Türkçe": "Kayıt devam ediyor. Kayıt bittikten sonra düzenleyin.",
+  },
+  "meeting.start_to_capture": {
+    "العربية": "ابدأ التسجيل لالتقاط محضر الاجتماع.", "English": "Start recording to capture meeting minutes.", "Français": "Démarrez l'enregistrement pour capturer le compte rendu.", "Español": "Inicia la grabación para capturar el acta.", "Deutsch": "Starten Sie die Aufnahme, um das Protokoll zu erfassen.", "Türkçe": "Tutanağı kaydetmek için kaydı başlatın.",
+  },
+  "meeting.recording_label": {
+    "العربية": "جارٍ التسجيل", "English": "Recording", "Français": "Enregistrement", "Español": "Grabando", "Deutsch": "Aufnahme", "Türkçe": "Kaydediliyor",
+  },
+  "meeting.saved": {
+    "العربية": "تم حفظ الاجتماع!", "English": "Meeting saved!", "Français": "Réunion sauvegardée !", "Español": "¡Reunión guardada!", "Deutsch": "Meeting gespeichert!", "Türkçe": "Toplantı kaydedildi!",
+  },
+  "meeting.deleted": {
+    "العربية": "تم حذف التسجيل", "English": "Recording deleted", "Français": "Enregistrement supprimé", "Español": "Grabación eliminada", "Deutsch": "Aufnahme gelöscht", "Türkçe": "Kayıt silindi",
+  },
+  "meeting.joining": {
+    "العربية": "جارٍ الانضمام...", "English": "Joining meeting...", "Français": "Rejoindre la réunion...", "Español": "Uniéndose a la reunión...", "Deutsch": "Meeting beitreten...", "Türkçe": "Toplantıya katılınıyor...",
+  },
 };
