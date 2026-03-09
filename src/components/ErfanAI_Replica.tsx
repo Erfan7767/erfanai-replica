@@ -2058,6 +2058,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       <AudioPanel isOpen={morePanel === "audio"} onClose={() => setMorePanel(null)} onSubmit={(p) => setInputValue(p)} />
       <ChatModePanel isOpen={morePanel === "chat_mode"} onClose={() => setMorePanel(null)} onSelect={(m) => toast(`Mode: ${m}`)} />
       <PlaybookPanel isOpen={morePanel === "playbook"} onClose={() => setMorePanel(null)} onUse={(p) => setInputValue(p)} />
+      <UpgradeProPanel isOpen={morePanel === "upgrade_pro"} onClose={() => setMorePanel(null)} />
     </div>
   );
 };
