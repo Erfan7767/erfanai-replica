@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ErfanAILogo from "@/components/ErfanAILogo";
 import { toast } from "sonner";
 import { type Lang, t, isRTL } from "@/lib/translations";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Hand, Mail, Menu, X, Plus, Search, Bot, Upload, Mic, Globe,
   ArrowLeft, Settings, LogOut, Sparkles, Zap, MessageSquare, Bell,
@@ -148,14 +149,55 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
   const { lang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, signUp, signInWithGoogle, signInWithApple } = useAuth();
 
-  const handleEmailLogin = () => {
-    if (email.trim()) {
-      toast.success(t(lang, "login.logging_in"));
-      setTimeout(onLogin, 800);
-    } else {
+  const handleEmailAuth = async () => {
+    if (!email.trim()) {
       toast.error(t(lang, "login.enter_email"));
+      return;
     }
+    if (!password.trim() || password.length < 6) {
+      toast.error(t(lang, "login.enter_password"));
+      return;
+    }
+    setIsLoading(true);
+    try {
+      if (isSignUp) {
+        const { error } = await signUp(email, password);
+        if (error) {
+          toast.error(error.message);
+        } else {
+          toast.success(t(lang, "login.check_email"));
+        }
+      } else {
+        const { error } = await signIn(email, password);
+        if (error) {
+          toast.error(error.message);
+        }
+        // onLogin will be triggered by auth state change
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    const { error } = await signInWithGoogle();
+    if (error) toast.error(error.message);
+    setIsLoading(false);
+  };
+
+  const handleAppleLogin = async () => {
+    setIsLoading(true);
+    const { error } = await signInWithApple();
+    if (error) toast.error(error.message);
+    setIsLoading(false);
   };
 
   return (
@@ -180,15 +222,11 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
           </p>
 
           <div className="flex w-full flex-col gap-3">
-            <button onClick={() => { toast.success(t(lang, "login.logging_in")); setTimeout(onLogin, 800); }} className="flex w-full items-center justify-center gap-3 rounded-xl py-4 text-sm font-medium transition-colors hover:bg-[#333]" style={{ background: "#262626", color: "#e5e5e5" }}>
+            <button onClick={handleGoogleLogin} disabled={isLoading} className="flex w-full items-center justify-center gap-3 rounded-xl py-4 text-sm font-medium transition-colors hover:bg-[#333] disabled:opacity-50" style={{ background: "#262626", color: "#e5e5e5" }}>
               <span>{t(lang, "login.continue_google")}</span>
               <svg className="h-5 w-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" /><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>
             </button>
-            <button onClick={() => { toast.success(t(lang, "login.logging_in")); setTimeout(onLogin, 800); }} className="flex w-full items-center justify-center gap-3 rounded-xl py-4 text-sm font-medium transition-colors hover:bg-[#333]" style={{ background: "#262626", color: "#e5e5e5" }}>
-              <span>{t(lang, "login.continue_microsoft")}</span>
-              <svg className="h-5 w-5" viewBox="0 0 24 24"><rect x="1" y="1" width="10" height="10" fill="#F25022" /><rect x="13" y="1" width="10" height="10" fill="#7FBA00" /><rect x="1" y="13" width="10" height="10" fill="#00A4EF" /><rect x="13" y="13" width="10" height="10" fill="#FFB900" /></svg>
-            </button>
-            <button onClick={() => { toast.success(t(lang, "login.logging_in")); setTimeout(onLogin, 800); }} className="flex w-full items-center justify-center gap-3 rounded-xl py-4 text-sm font-medium transition-colors hover:bg-[#333]" style={{ background: "#262626", color: "#e5e5e5" }}>
+            <button onClick={handleAppleLogin} disabled={isLoading} className="flex w-full items-center justify-center gap-3 rounded-xl py-4 text-sm font-medium transition-colors hover:bg-[#333] disabled:opacity-50" style={{ background: "#262626", color: "#e5e5e5" }}>
               <span>{t(lang, "login.continue_apple")}</span>
               <svg className="h-5 w-5" fill="#e5e5e5" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" /></svg>
             </button>
@@ -200,8 +238,14 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
             <div className="h-px flex-1" style={{ background: "#333" }} />
           </div>
 
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t(lang, "login.email_placeholder")} className="w-full rounded-xl px-4 py-4 text-sm outline-none" style={{ background: "#1a1a1a", border: "1px solid #333", color: "#e5e5e5" }} dir={dir} onKeyDown={(e) => { if (e.key === "Enter") handleEmailLogin(); }} />
-          <button onClick={handleEmailLogin} className="mt-4 w-full rounded-xl py-4 text-sm font-semibold transition-all hover:bg-[#4a4a4a]" style={{ background: "#404040", color: "#d4d4d4" }}>{t(lang, "login.continue")}</button>
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t(lang, "login.email_placeholder")} className="w-full rounded-xl px-4 py-4 text-sm outline-none" style={{ background: "#1a1a1a", border: "1px solid #333", color: "#e5e5e5" }} dir={dir} />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t(lang, "login.password_placeholder")} className="mt-3 w-full rounded-xl px-4 py-4 text-sm outline-none" style={{ background: "#1a1a1a", border: "1px solid #333", color: "#e5e5e5" }} dir={dir} onKeyDown={(e) => { if (e.key === "Enter") handleEmailAuth(); }} />
+          <button onClick={handleEmailAuth} disabled={isLoading} className="mt-4 w-full rounded-xl py-4 text-sm font-semibold transition-all hover:bg-[#4a4a4a] disabled:opacity-50" style={{ background: "#404040", color: "#d4d4d4" }}>
+            {isLoading ? "..." : isSignUp ? t(lang, "login.sign_up") : t(lang, "login.continue")}
+          </button>
+          <button onClick={() => setIsSignUp(!isSignUp)} className="mt-3 text-sm transition-colors hover:opacity-80" style={{ color: "#737373" }}>
+            {isSignUp ? t(lang, "login.have_account") : t(lang, "login.no_account")}
+          </button>
         </motion.div>
       </div>
     </div>
@@ -3769,6 +3813,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
 
 /* ═══════════════════════ MAIN EXPORT ═══════════════════════ */
 const ErfanReplica = () => {
+  const { user, loading, signOut } = useAuth();
   const [screen, setScreen] = useState<"landing" | "login" | "app">("landing");
   const [lang, setLangState] = useState<Lang>(() => {
     try {
@@ -3783,22 +3828,51 @@ const ErfanReplica = () => {
     document.documentElement.dir = isRTL(l) ? "rtl" : "ltr";
   };
 
+  // Sync screen state with auth state
+  useEffect(() => {
+    if (!loading) {
+      if (user) {
+        setScreen("app");
+      } else if (screen === "app") {
+        setScreen("landing");
+      }
+    }
+  }, [user, loading]);
+
+  const handleLogout = async () => {
+    await signOut();
+    setScreen("landing");
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        >
+          <ErfanAILogo className="h-16 w-16" />
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <LangContext.Provider value={{ lang, setLang }}>
       <AnimatePresence mode="wait">
-        {screen === "landing" && (
+        {screen === "landing" && !user && (
           <motion.div key="landing" exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
             <LandingPage onLogin={() => setScreen("login")} onRegister={() => setScreen("login")} />
           </motion.div>
         )}
-        {screen === "login" && (
+        {screen === "login" && !user && (
           <motion.div key="login" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
             <LoginScreen onLogin={() => setScreen("app")} />
           </motion.div>
         )}
-        {screen === "app" && (
+        {screen === "app" && user && (
           <motion.div key="app" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}>
-            <AppScreen onLogout={() => setScreen("landing")} />
+            <AppScreen onLogout={handleLogout} />
           </motion.div>
         )}
       </AnimatePresence>
