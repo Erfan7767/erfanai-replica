@@ -1792,4 +1792,54 @@ const translations: Record<string, Record<Lang, string>> = {
   "task.generating_response": {
     "العربية": "إنشاء الرد المناسب وتنسيقه...", "English": "Generating and formatting response...", "Français": "Génération de la réponse...", "Español": "Generando respuesta...", "Deutsch": "Antwort generieren...", "Türkçe": "Yanıt oluşturuluyor...",
   },
+
+  // ── Execution Panel ──
+  "execution.completed": {
+    "العربية": "تم إكمال جميع المهام بنجاح",
+    "English": "All tasks completed successfully",
+    "Français": "Toutes les tâches terminées avec succès",
+    "Español": "Todas las tareas completadas con éxito",
+    "Deutsch": "Alle Aufgaben erfolgreich abgeschlossen",
+    "Türkçe": "Tüm görevler başarıyla tamamlandı",
+  },
+  "execution.processing": {
+    "العربية": "جارٍ المعالجة...",
+    "English": "Processing...",
+    "Français": "Traitement en cours...",
+    "Español": "Procesando...",
+    "Deutsch": "Verarbeitung...",
+    "Türkçe": "İşleniyor...",
+  },
+  "execution.running": {
+    "العربية": "قيد التنفيذ",
+    "English": "Running",
+    "Français": "En cours",
+    "Español": "Ejecutando",
+    "Deutsch": "Läuft",
+    "Türkçe": "Çalışıyor",
+  },
+  "execution.done": {
+    "العربية": "تم",
+    "English": "Done",
+    "Français": "Terminé",
+    "Español": "Hecho",
+    "Deutsch": "Fertig",
+    "Türkçe": "Tamamlandı",
+  },
+  "execution.pending": {
+    "العربية": "في الانتظار",
+    "English": "Pending",
+    "Français": "En attente",
+    "Español": "Pendiente",
+    "Deutsch": "Ausstehend",
+    "Türkçe": "Bekliyor",
+  },
+  "execution.final_check": {
+    "العربية": "التحقق النهائي من استجابة الخدمات.",
+    "English": "Final verification of service responses.",
+    "Français": "Vérification finale des réponses des services.",
+    "Español": "Verificación final de las respuestas del servicio.",
+    "Deutsch": "Endgültige Überprüfung der Dienstreaktionen.",
+    "Türkçe": "Hizmet yanıtlarının son doğrulaması.",
+  },
 };

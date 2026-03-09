@@ -1084,9 +1084,147 @@ const stepIconMap = {
 
 const stepStatusColors = {
   pending: "bg-muted-foreground/20 text-muted-foreground",
-  running: "bg-accent/15 text-accent border border-accent/30",
+  running: "bg-blue-500/15 text-blue-500 border border-blue-500/30",
   done: "bg-green-500/15 text-green-500 border border-green-500/30",
   error: "bg-destructive/15 text-destructive border border-destructive/30",
+};
+
+/* ═══════════════════════ EXECUTION PANEL (Manus-style) ═══════════════════════ */
+const ExecutionPanel = ({ 
+  steps, 
+  isVisible, 
+  isExpanded, 
+  onToggleExpand,
+  previewImage,
+  finalMessage
+}: { 
+  steps: TaskStep[]; 
+  isVisible: boolean; 
+  isExpanded: boolean; 
+  onToggleExpand: () => void;
+  previewImage?: string;
+  finalMessage?: string;
+}) => {
+  const { lang } = useLang();
+  const dir = isRTL(lang) ? "rtl" : "ltr";
+  const completedSteps = steps.filter(s => s.status === "done").length;
+  const totalSteps = steps.length;
+  const isAllDone = completedSteps === totalSteps && totalSteps > 0;
+  const currentStep = steps.find(s => s.status === "running");
+
+  if (!isVisible) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      className="mb-4 rounded-2xl border border-border bg-card overflow-hidden shadow-xl"
+      dir={dir}
+    >
+      {/* Expanded Content - Task Steps */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
+          >
+            <div className="p-4 space-y-3 max-h-[50vh] overflow-y-auto">
+              {steps.map((step, i) => {
+                const Icon = stepIconMap[step.icon] || Terminal;
+                return (
+                  <motion.div
+                    key={step.id}
+                    initial={{ opacity: 0, x: isRTL(lang) ? 15 : -15 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05, duration: 0.25 }}
+                    className="flex items-start gap-3"
+                  >
+                    <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs transition-all ${stepStatusColors[step.status]}`}>
+                      {step.status === "running" ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : step.status === "done" ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Icon className="h-4 w-4" />
+                      )}
+                    </div>
+                    <div className="flex-1 pt-0.5">
+                      <span className={`text-sm leading-relaxed ${
+                        step.status === "done" 
+                          ? "text-muted-foreground" 
+                          : step.status === "running" 
+                            ? "text-foreground font-medium" 
+                            : "text-muted-foreground/50"
+                      }`}>
+                        {step.label}
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              })}
+
+              {/* Final AI Response */}
+              {isAllDone && finalMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 pt-4 border-t border-border"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent/15">
+                      <Sparkles className="h-4 w-4 text-accent" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-foreground leading-relaxed">{finalMessage}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Collapsed Bar / Preview */}
+      <button
+        onClick={onToggleExpand}
+        className="w-full flex items-center gap-3 px-4 py-3 bg-secondary/50 hover:bg-secondary/80 transition-colors"
+      >
+        {/* Preview Image Thumbnail */}
+        {previewImage && (
+          <div className="h-10 w-14 rounded-lg overflow-hidden bg-muted shrink-0 border border-border">
+            <img src={previewImage} alt="" className="h-full w-full object-cover" />
+          </div>
+        )}
+
+        {/* Progress Info */}
+        <div className="flex-1 flex items-center gap-2">
+          <div className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-[10px] ${
+            isAllDone ? "bg-green-500/15 text-green-500" : "bg-blue-500/15 text-blue-500"
+          }`}>
+            {isAllDone ? (
+              <Check className="h-3 w-3" />
+            ) : (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            )}
+          </div>
+          <span className="text-xs text-muted-foreground truncate">
+            {isAllDone 
+              ? t(lang, "execution.completed")
+              : currentStep?.label || t(lang, "execution.processing")
+            }
+          </span>
+        </div>
+
+        {/* Expand/Collapse Icon */}
+        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+      </button>
+    </motion.div>
+  );
 };
 
 const TaskExecutionSteps = ({ steps }: { steps: TaskStep[] }) => {
@@ -2125,6 +2263,12 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [liveTranscript, setLiveTranscript] = useState("");
   const [committedTranscript, setCommittedTranscript] = useState("");
 
+  // ── Execution Panel State ──
+  const [executionSteps, setExecutionSteps] = useState<TaskStep[]>([]);
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [isExecutionExpanded, setIsExecutionExpanded] = useState(true);
+  const [executionFinalMessage, setExecutionFinalMessage] = useState("");
+
   // ── Speech-to-Text helpers ──
   const startSpeechRecognition = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -2248,6 +2392,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
 
   const handleSend = () => {
     if (!inputValue.trim() && attachedFiles.length === 0) return;
+    
+    // Add user message to chat
     setMessages(prev => [...prev, { text: inputValue, isUser: true, files: attachedFiles.length > 0 ? [...attachedFiles] : undefined }]);
     const userMsg = inputValue;
     setInputValue("");
@@ -2294,45 +2440,45 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       id: `step-${Date.now()}-${i}`,
       label: s.label,
       icon: s.icon,
-      status: "pending" as const,
+      status: i === 0 ? "running" : "pending",
     }));
 
-    // Add initial AI message with all steps pending
-    const aiMsgIndex = { current: -1 };
-    setMessages(prev => {
-      aiMsgIndex.current = prev.length;
-      return [...prev, { text: "", isUser: false, steps: taskSteps.map((s, i) => ({ ...s, status: i === 0 ? "running" : "pending" })) as TaskStep[] }];
-    });
+    // Show execution panel with steps
+    setIsExecuting(true);
+    setIsExecutionExpanded(true);
+    setExecutionSteps(taskSteps);
+    setExecutionFinalMessage("");
 
     // Progressively update each step
     taskSteps.forEach((_, stepIdx) => {
       setTimeout(() => {
-        setMessages(prev => {
-          const updated = [...prev];
-          const lastAi = updated.length - 1;
-          if (updated[lastAi] && !updated[lastAi].isUser && updated[lastAi].steps) {
-            const newSteps = updated[lastAi].steps!.map((s, i) => ({
-              ...s,
-              status: i < stepIdx + 1 ? "done" as const : i === stepIdx + 1 ? "running" as const : "pending" as const,
-            }));
-            updated[lastAi] = { ...updated[lastAi], steps: newSteps };
-          }
-          return updated;
-        });
+        setExecutionSteps(prev => prev.map((s, i) => ({
+          ...s,
+          status: i < stepIdx + 1 ? "done" : i === stepIdx + 1 ? "running" : "pending",
+        })));
       }, (stepIdx + 1) * 800);
     });
 
-    // Final: mark all done and add response text
+    // Final: mark all done, show response, add to chat
     setTimeout(() => {
-      setMessages(prev => {
-        const updated = [...prev];
-        const lastAi = updated.length - 1;
-        if (updated[lastAi] && !updated[lastAi].isUser && updated[lastAi].steps) {
-          const doneSteps = updated[lastAi].steps!.map(s => ({ ...s, status: "done" as const }));
-          updated[lastAi] = { ...updated[lastAi], text: t(lang, "app.ai_response"), steps: doneSteps };
-        }
-        return updated;
-      });
+      const finalResponse = t(lang, "app.ai_response");
+      setExecutionSteps(prev => prev.map(s => ({ ...s, status: "done" as const })));
+      setExecutionFinalMessage(finalResponse);
+      
+      // Add AI response to messages
+      setMessages(prev => [...prev, { text: finalResponse, isUser: false }]);
+      
+      // Collapse panel after a short delay
+      setTimeout(() => {
+        setIsExecutionExpanded(false);
+      }, 1500);
+      
+      // Hide execution panel after collapse animation
+      setTimeout(() => {
+        setIsExecuting(false);
+        setExecutionSteps([]);
+        setExecutionFinalMessage("");
+      }, 4000);
     }, (taskSteps.length + 1) * 800);
   };
 
@@ -2476,6 +2622,19 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         ) : (
           <motion.h1 initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-8 text-center text-2xl font-bold text-accent leading-relaxed">{t(lang, "landing.how_can_i_help")}</motion.h1>
         )}
+
+        {/* Execution Panel (Manus-style) - Appears above input when executing */}
+        <AnimatePresence>
+          {isExecuting && (
+            <ExecutionPanel
+              steps={executionSteps}
+              isVisible={isExecuting}
+              isExpanded={isExecutionExpanded}
+              onToggleExpand={() => setIsExecutionExpanded(!isExecutionExpanded)}
+              finalMessage={executionFinalMessage}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Input Card */}
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-6 card-gold-border rounded-2xl bg-card p-4">
