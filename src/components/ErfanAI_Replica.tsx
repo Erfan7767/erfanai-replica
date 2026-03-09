@@ -1160,6 +1160,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isDiscoverOpen, setIsDiscoverOpen] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const lastTranscriptRef = useRef<string>("");
 
   useState(() => {
     const s = loadSettings();
@@ -1214,15 +1216,89 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     }, 1200);
   };
 
-  const handleMic = () => {
+  const handleMic = async () => {
     if (isRecording) {
+      // Stop recording
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
       setIsRecording(false);
       toast(t(lang, "app.recording_stopped"));
-    } else {
-      setIsRecording(true);
-      toast(t(lang, "app.recording"), { duration: 2000 });
-      setTimeout(() => setIsRecording(false), 3000);
+      return;
     }
+
+    // Check browser support
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.error("المتصفح لا يدعم التعرف الصوتي. جرب Chrome أو Edge.");
+      return;
+    }
+
+    // Request microphone permission
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (error) {
+      toast.error("يرجى السماح بالوصول إلى الميكرفون");
+      return;
+    }
+
+    // Initialize recognition
+    const recognition = new SpeechRecognition();
+    recognition.lang = lang === "العربية" ? "ar-SA" : "en-US";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+
+    const baseText = inputValue;
+    lastTranscriptRef.current = "";
+
+    recognition.onstart = () => {
+      setIsRecording(true);
+      toast.success("🎤 بدأ التسجيل الصوتي...");
+    };
+
+    recognition.onresult = (event: any) => {
+      let interimTranscript = "";
+      let finalTranscript = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      // Update last transcript
+      if (finalTranscript) {
+        lastTranscriptRef.current += finalTranscript;
+      }
+
+      // Update input with base text + accumulated transcript + interim
+      const fullText = baseText + lastTranscriptRef.current + interimTranscript;
+      setInputValue(fullText);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error("Speech recognition error:", event.error);
+      setIsRecording(false);
+      
+      if (event.error === "no-speech") {
+        toast.error("لم يتم اكتشاف صوت. حاول مرة أخرى.");
+      } else if (event.error === "not-allowed") {
+        toast.error("تم رفض الوصول إلى الميكرفون");
+      } else {
+        toast.error("حدث خطأ في التعرف الصوتي");
+      }
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
   };
 
   const chipItems = [
