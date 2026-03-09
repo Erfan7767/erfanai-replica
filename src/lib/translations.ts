@@ -1457,7 +1457,6 @@ const translations: Record<string, Record<Lang, string>> = {
     "Deutsch": "Deaktiviert",
     "Türkçe": "Devre dışı",
   },
-  },
 
   // ── Help Panel ──
   "help.title": {
