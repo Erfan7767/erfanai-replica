@@ -2040,16 +2040,25 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [isDiscoverOpen, setIsDiscoverOpen] = useState(false);
   const [isRecordingDialogOpen, setIsRecordingDialogOpen] = useState(false);
   const [isMeetingViewOpen, setIsMeetingViewOpen] = useState(false);
-  const [meetingState, setMeetingState] = useState<"idle" | "recording" | "stopped">("idle");
+  const [meetingState, setMeetingState] = useState<"idle" | "recording" | "paused" | "stopped">("idle");
   const [meetingSeconds, setMeetingSeconds] = useState(0);
   const meetingTimerRef = useRef<any>(null);
-  const [savedMeetings, setSavedMeetings] = useState<{ id: string; duration: number; date: string; title: string }[]>(() => {
+  const [meetingNotes, setMeetingNotes] = useState("");
+  const [meetingSummary, setMeetingSummary] = useState("");
+  const [meetingWaveform, setMeetingWaveform] = useState<number[]>(Array(30).fill(0));
+  const waveformIntervalRef = useRef<any>(null);
+  const meetingAudioRef = useRef<MediaStream | null>(null);
+  const meetingAnalyserRef = useRef<AnalyserNode | null>(null);
+  const [editingMeetingId, setEditingMeetingId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  const [savedMeetings, setSavedMeetings] = useState<{ id: string; duration: number; date: string; title: string; notes?: string; summary?: string }[]>(() => {
     try { const s = localStorage.getItem("erfanai_meetings"); if (s) return JSON.parse(s); } catch {} return [];
   });
-  const [playbackMeeting, setPlaybackMeeting] = useState<{ id: string; duration: number; date: string; title: string } | null>(null);
+  const [playbackMeeting, setPlaybackMeeting] = useState<{ id: string; duration: number; date: string; title: string; notes?: string; summary?: string } | null>(null);
   const [playbackSeconds, setPlaybackSeconds] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const playbackTimerRef = useRef<any>(null);
+  const [viewingMeeting, setViewingMeeting] = useState<{ id: string; duration: number; date: string; title: string; notes?: string; summary?: string } | null>(null);
   const recognitionRef = useRef<any>(null);
   const lastTranscriptRef = useRef<string>("");
 
@@ -2542,7 +2551,13 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                 setIsMeetingViewOpen(false);
                 setMeetingState("idle");
                 setMeetingSeconds(0);
+                setMeetingNotes("");
+                setMeetingSummary("");
+                setMeetingWaveform(Array(30).fill(0));
+                setViewingMeeting(null);
                 if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
+                if (waveformIntervalRef.current) clearInterval(waveformIntervalRef.current);
+                if (meetingAudioRef.current) { meetingAudioRef.current.getTracks().forEach(t => t.stop()); meetingAudioRef.current = null; }
               }} className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
                 <ArrowLeft className="h-5 w-5" />
               </button>
@@ -2555,6 +2570,38 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
+
+              {/* Viewing a saved meeting detail */}
+              <AnimatePresence>
+                {viewingMeeting && (
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="rounded-2xl border border-accent/20 bg-card p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-foreground">{viewingMeeting.title}</h3>
+                      <button onClick={() => setViewingMeeting(null)} className="rounded-lg p-1 text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{Math.floor(viewingMeeting.duration / 60)}:{(viewingMeeting.duration % 60).toString().padStart(2, "0")}</span>
+                      <span>{viewingMeeting.date}</span>
+                    </div>
+                    {viewingMeeting.summary && (
+                      <div className="rounded-xl bg-accent/5 border border-accent/10 p-3 space-y-1">
+                        <p className="text-xs font-semibold text-accent">{t(lang, "meeting.summary_label")}</p>
+                        <p className="text-sm text-foreground leading-relaxed">{viewingMeeting.summary}</p>
+                      </div>
+                    )}
+                    {viewingMeeting.notes && (
+                      <div className="rounded-xl bg-secondary p-3 space-y-1">
+                        <p className="text-xs font-semibold text-muted-foreground">{t(lang, "meeting.notes_label")}</p>
+                        <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{viewingMeeting.notes}</p>
+                      </div>
+                    )}
+                    {!viewingMeeting.summary && !viewingMeeting.notes && (
+                      <p className="text-sm text-muted-foreground italic">{t(lang, "meeting.no_content")}</p>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Recording Card */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -2562,18 +2609,23 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                 transition={{ delay: 0.1 }}
                 className="rounded-2xl border border-border bg-card p-5 space-y-5"
               >
-                {/* Dotted line decoration */}
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: 40 }).map((_, i) => (
-                    <div key={i} className="h-1.5 w-1.5 rounded-full bg-muted-foreground/30" />
+                {/* Audio Waveform Visualization */}
+                <div className="flex items-end justify-center gap-[3px] h-16">
+                  {meetingWaveform.map((val, i) => (
+                    <motion.div
+                      key={i}
+                      className={`w-1.5 rounded-full ${meetingState === "recording" ? "bg-accent" : meetingState === "paused" ? "bg-accent/40" : "bg-muted-foreground/20"}`}
+                      animate={{ height: Math.max(4, val * 60) }}
+                      transition={{ duration: 0.1 }}
+                    />
                   ))}
                 </div>
 
                 <p className="text-sm text-muted-foreground">
-                  {t(lang, "meeting.summary_auto")}
+                  {meetingState === "stopped" && meetingSummary ? meetingSummary : t(lang, "meeting.summary_auto")}
                 </p>
 
-                <div className="flex items-center justify-between pt-4">
+                <div className="flex items-center justify-between pt-2">
                   <span className="text-sm text-muted-foreground font-mono">
                     {Math.floor(meetingSeconds / 60).toString().padStart(1, "0")}:{(meetingSeconds % 60).toString().padStart(2, "0")} / 2:00:00
                   </span>
@@ -2582,41 +2634,145 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                       onClick={() => {
                         setMeetingState("idle");
                         setMeetingSeconds(0);
+                        setMeetingNotes("");
+                        setMeetingSummary("");
+                        setMeetingWaveform(Array(30).fill(0));
                         if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
+                        if (waveformIntervalRef.current) clearInterval(waveformIntervalRef.current);
+                        if (meetingAudioRef.current) { meetingAudioRef.current.getTracks().forEach(t => t.stop()); meetingAudioRef.current = null; }
+                        toast(t(lang, "meeting.discarded"));
                       }}
                       className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                     >
                       <Trash2 className="h-4 w-4" />
                       {t(lang, "meeting.discard")}
                     </button>
+
                     {meetingState === "recording" ? (
-                      <button
-                        onClick={() => {
-                          setMeetingState("stopped");
-                          if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
-                          // Save meeting
-                          const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `Meeting #${savedMeetings.length + 1}` };
-                          const updated = [newMeeting, ...savedMeetings];
-                          setSavedMeetings(updated);
-                          localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
-                          toast.success(t(lang, "meeting.saved"));
-                        }}
-                        className="flex items-center gap-2 rounded-xl bg-destructive text-destructive-foreground px-4 py-2.5 text-sm font-semibold hover:bg-destructive/90 transition-colors"
-                      >
-                        <X className="h-4 w-4" />
-                        {t(lang, "meeting.stop")}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {/* Pause button */}
+                        <button
+                          onClick={() => {
+                            setMeetingState("paused");
+                            if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
+                            if (waveformIntervalRef.current) clearInterval(waveformIntervalRef.current);
+                          }}
+                          className="flex items-center gap-2 rounded-xl border border-accent bg-accent/10 px-4 py-2.5 text-sm font-medium text-accent hover:bg-accent/20 transition-colors"
+                        >
+                          <Pause className="h-4 w-4" />
+                          {t(lang, "meeting.pause")}
+                        </button>
+                        {/* Stop button */}
+                        <button
+                          onClick={() => {
+                            setMeetingState("stopped");
+                            if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
+                            if (waveformIntervalRef.current) clearInterval(waveformIntervalRef.current);
+                            if (meetingAudioRef.current) { meetingAudioRef.current.getTracks().forEach(t => t.stop()); meetingAudioRef.current = null; }
+                            // Generate summary
+                            const mins = Math.floor(meetingSeconds / 60);
+                            const summaryText = t(lang, "meeting.auto_summary").replace("{mins}", String(mins || 1));
+                            setMeetingSummary(summaryText);
+                            // Save meeting
+                            const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, notes: "", summary: summaryText };
+                            const updated = [newMeeting, ...savedMeetings];
+                            setSavedMeetings(updated);
+                            localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
+                            toast.success(t(lang, "meeting.saved"));
+                          }}
+                          className="flex items-center gap-2 rounded-xl bg-destructive text-destructive-foreground px-4 py-2.5 text-sm font-semibold hover:bg-destructive/90 transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                          {t(lang, "meeting.stop")}
+                        </button>
+                      </div>
+                    ) : meetingState === "paused" ? (
+                      <div className="flex items-center gap-2">
+                        {/* Resume button */}
+                        <button
+                          onClick={() => {
+                            setMeetingState("recording");
+                            meetingTimerRef.current = setInterval(() => {
+                              setMeetingSeconds(prev => {
+                                if (prev >= 7200) { clearInterval(meetingTimerRef.current); setMeetingState("stopped"); return prev; }
+                                return prev + 1;
+                              });
+                            }, 1000);
+                            // Resume waveform
+                            if (meetingAnalyserRef.current) {
+                              const analyser = meetingAnalyserRef.current;
+                              const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                              waveformIntervalRef.current = setInterval(() => {
+                                analyser.getByteFrequencyData(dataArray);
+                                const newWave = Array.from({ length: 30 }, (_, i) => {
+                                  const idx = Math.floor((i / 30) * dataArray.length);
+                                  return dataArray[idx] / 255;
+                                });
+                                setMeetingWaveform(newWave);
+                              }, 100);
+                            }
+                          }}
+                          className="flex items-center gap-2 rounded-xl bg-accent text-accent-foreground px-4 py-2.5 text-sm font-semibold hover:bg-accent/90 transition-colors"
+                        >
+                          <Play className="h-4 w-4" />
+                          {t(lang, "meeting.resume")}
+                        </button>
+                        {/* Stop button */}
+                        <button
+                          onClick={() => {
+                            setMeetingState("stopped");
+                            if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
+                            if (waveformIntervalRef.current) clearInterval(waveformIntervalRef.current);
+                            if (meetingAudioRef.current) { meetingAudioRef.current.getTracks().forEach(t => t.stop()); meetingAudioRef.current = null; }
+                            const mins = Math.floor(meetingSeconds / 60);
+                            const summaryText = t(lang, "meeting.auto_summary").replace("{mins}", String(mins || 1));
+                            setMeetingSummary(summaryText);
+                            const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, notes: "", summary: summaryText };
+                            const updated = [newMeeting, ...savedMeetings];
+                            setSavedMeetings(updated);
+                            localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
+                            toast.success(t(lang, "meeting.saved"));
+                          }}
+                          className="flex items-center gap-2 rounded-xl bg-destructive text-destructive-foreground px-4 py-2.5 text-sm font-semibold hover:bg-destructive/90 transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                          {t(lang, "meeting.stop")}
+                        </button>
+                      </div>
                     ) : (
                       <button
-                        onClick={() => {
+                        onClick={async () => {
+                          try {
+                            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                            meetingAudioRef.current = stream;
+                            const audioCtx = new AudioContext();
+                            const source = audioCtx.createMediaStreamSource(stream);
+                            const analyser = audioCtx.createAnalyser();
+                            analyser.fftSize = 256;
+                            source.connect(analyser);
+                            meetingAnalyserRef.current = analyser;
+                            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                            waveformIntervalRef.current = setInterval(() => {
+                              analyser.getByteFrequencyData(dataArray);
+                              const newWave = Array.from({ length: 30 }, (_, i) => {
+                                const idx = Math.floor((i / 30) * dataArray.length);
+                                return dataArray[idx] / 255;
+                              });
+                              setMeetingWaveform(newWave);
+                            }, 100);
+                          } catch {
+                            // Fallback: simulate waveform if mic not available
+                            waveformIntervalRef.current = setInterval(() => {
+                              setMeetingWaveform(Array.from({ length: 30 }, () => Math.random() * 0.7 + 0.1));
+                            }, 200);
+                          }
                           setMeetingState("recording");
+                          setMeetingSeconds(0);
+                          setMeetingNotes("");
+                          setMeetingSummary("");
                           meetingTimerRef.current = setInterval(() => {
                             setMeetingSeconds(prev => {
-                              if (prev >= 7200) {
-                                clearInterval(meetingTimerRef.current);
-                                setMeetingState("stopped");
-                                return prev;
-                              }
+                              if (prev >= 7200) { clearInterval(meetingTimerRef.current); setMeetingState("stopped"); return prev; }
                               return prev + 1;
                             });
                           }, 1000);
@@ -2634,6 +2790,21 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
               <p className="text-xs text-muted-foreground text-center">
                 {t(lang, "meeting.consent")}
               </p>
+
+              {/* Summary Card - shown after recording */}
+              <AnimatePresence>
+                {meetingState === "stopped" && meetingSummary && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="rounded-2xl border border-accent/20 bg-accent/5 p-4 space-y-2"
+                  >
+                    <p className="text-xs font-semibold text-accent flex items-center gap-1.5"><Sparkles className="h-3.5 w-3.5" />{t(lang, "meeting.summary_label")}</p>
+                    <p className="text-sm text-foreground leading-relaxed">{meetingSummary}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Download App Card */}
               <motion.div
@@ -2715,6 +2886,20 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                         {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                       </button>
                     </div>
+
+                    {/* Show summary/notes of playback meeting */}
+                    {playbackMeeting.summary && (
+                      <div className="rounded-xl bg-accent/5 border border-accent/10 p-3">
+                        <p className="text-xs font-semibold text-accent mb-1">{t(lang, "meeting.summary_label")}</p>
+                        <p className="text-xs text-foreground leading-relaxed">{playbackMeeting.summary}</p>
+                      </div>
+                    )}
+                    {playbackMeeting.notes && (
+                      <div className="rounded-xl bg-secondary p-3">
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">{t(lang, "meeting.notes_label")}</p>
+                        <p className="text-xs text-foreground whitespace-pre-wrap leading-relaxed">{playbackMeeting.notes}</p>
+                      </div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -2738,36 +2923,65 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.05 }}
-                      className="rounded-xl border border-border bg-card p-4 flex items-center justify-between hover:bg-secondary/50 transition-colors"
+                      className="rounded-xl border border-border bg-card p-4 hover:bg-secondary/50 transition-colors"
                     >
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10">
-                          <Mic className="h-4 w-4 text-accent" />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 flex-1 min-w-0" onClick={() => setViewingMeeting(meeting)}>
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 cursor-pointer">
+                            <Mic className="h-4 w-4 text-accent" />
+                          </div>
+                          <div className="min-w-0 cursor-pointer">
+                            {editingMeetingId === meeting.id ? (
+                              <input
+                                value={editingTitle}
+                                onChange={e => setEditingTitle(e.target.value)}
+                                onBlur={() => {
+                                  const updated = savedMeetings.map(m => m.id === meeting.id ? { ...m, title: editingTitle || m.title } : m);
+                                  setSavedMeetings(updated);
+                                  localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
+                                  setEditingMeetingId(null);
+                                }}
+                                onKeyDown={e => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                                autoFocus
+                                className="text-sm font-medium text-foreground bg-transparent border-b border-accent outline-none w-full"
+                                onClick={e => e.stopPropagation()}
+                              />
+                            ) : (
+                              <p className="text-sm font-medium text-foreground truncate">{meeting.title}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground">{meeting.date} • {Math.floor(meeting.duration / 60)}:{(meeting.duration % 60).toString().padStart(2, "0")}</p>
+                            {meeting.summary && <p className="text-xs text-accent/70 truncate mt-0.5">{meeting.summary.slice(0, 60)}...</p>}
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">{meeting.title}</p>
-                          <p className="text-xs text-muted-foreground">{meeting.date} • {Math.floor(meeting.duration / 60)}:{(meeting.duration % 60).toString().padStart(2, "0")}</p>
+                        <div className="flex items-center gap-0.5">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setEditingMeetingId(meeting.id); setEditingTitle(meeting.title); }}
+                            className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                            title={t(lang, "meeting.rename")}
+                          >
+                            <FileText className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setPlaybackMeeting(meeting); setPlaybackSeconds(0); setIsPlaying(false); if (playbackTimerRef.current) clearInterval(playbackTimerRef.current); }}
+                            className="rounded-lg p-2 text-accent hover:bg-accent/10 transition-colors"
+                          >
+                            <Play className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const updated = savedMeetings.filter(m => m.id !== meeting.id);
+                              setSavedMeetings(updated);
+                              localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
+                              if (playbackMeeting?.id === meeting.id) { setPlaybackMeeting(null); setIsPlaying(false); if (playbackTimerRef.current) clearInterval(playbackTimerRef.current); }
+                              if (viewingMeeting?.id === meeting.id) setViewingMeeting(null);
+                              toast(t(lang, "meeting.deleted"));
+                            }}
+                            className="rounded-lg p-2 text-muted-foreground hover:text-destructive transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => { setPlaybackMeeting(meeting); setPlaybackSeconds(0); setIsPlaying(false); if (playbackTimerRef.current) clearInterval(playbackTimerRef.current); }}
-                          className="rounded-lg p-2 text-accent hover:bg-accent/10 transition-colors"
-                        >
-                          <Play className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            const updated = savedMeetings.filter(m => m.id !== meeting.id);
-                            setSavedMeetings(updated);
-                            localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
-                            if (playbackMeeting?.id === meeting.id) { setPlaybackMeeting(null); setIsPlaying(false); if (playbackTimerRef.current) clearInterval(playbackTimerRef.current); }
-                            toast(t(lang, "meeting.deleted"));
-                          }}
-                          className="rounded-lg p-2 text-muted-foreground hover:text-destructive transition-colors"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
                       </div>
                     </motion.div>
                   ))}
@@ -2775,24 +2989,55 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
               )}
             </div>
 
-            {/* Bottom disabled input */}
+            {/* Bottom input - active after recording stops */}
             <div className="border-t border-border p-4">
-              <div className="rounded-2xl border border-border bg-secondary/50 p-4 opacity-60">
-                <p className="text-sm text-muted-foreground mb-3">
-                  {meetingState === "recording" ? t(lang, "meeting.recording_progress_edit") : t(lang, "meeting.start_to_capture")}
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="rounded-full border border-border p-2"><Plus className="h-4 w-4 text-muted-foreground" /></div>
-                    <div className="rounded-full border border-border p-2"><SlidersHorizontal className="h-4 w-4 text-muted-foreground" /></div>
-                    <div className="rounded-full border border-border p-2"><Sparkles className="h-4 w-4 text-muted-foreground" /></div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="rounded-full border border-border p-2"><Mic className="h-4 w-4 text-muted-foreground" /></div>
-                    <div className="rounded-full border border-border bg-secondary p-2"><Send className="h-4 w-4 text-muted-foreground" /></div>
+              {meetingState === "stopped" ? (
+                <div className="rounded-2xl border border-border bg-card p-3 space-y-2">
+                  <textarea
+                    value={meetingNotes}
+                    onChange={e => setMeetingNotes(e.target.value)}
+                    placeholder={t(lang, "meeting.notes_placeholder")}
+                    rows={2}
+                    className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none resize-none"
+                  />
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">{t(lang, "meeting.notes_hint")}</p>
+                    <button
+                      onClick={() => {
+                        if (!meetingNotes.trim()) return;
+                        // Save notes to latest meeting
+                        if (savedMeetings.length > 0) {
+                          const updated = savedMeetings.map((m, i) => i === 0 ? { ...m, notes: meetingNotes } : m);
+                          setSavedMeetings(updated);
+                          localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
+                        }
+                        toast.success(t(lang, "meeting.notes_saved"));
+                      }}
+                      className="flex items-center gap-1.5 rounded-xl bg-accent text-accent-foreground px-4 py-2 text-xs font-semibold hover:bg-accent/90 transition-colors"
+                    >
+                      <Save className="h-3.5 w-3.5" />
+                      {t(lang, "meeting.save_notes")}
+                    </button>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="rounded-2xl border border-border bg-secondary/50 p-4 opacity-60">
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {meetingState === "recording" || meetingState === "paused" ? t(lang, "meeting.recording_progress_edit") : t(lang, "meeting.start_to_capture")}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="rounded-full border border-border p-2"><Plus className="h-4 w-4 text-muted-foreground" /></div>
+                      <div className="rounded-full border border-border p-2"><SlidersHorizontal className="h-4 w-4 text-muted-foreground" /></div>
+                      <div className="rounded-full border border-border p-2"><Sparkles className="h-4 w-4 text-muted-foreground" /></div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="rounded-full border border-border p-2"><Mic className="h-4 w-4 text-muted-foreground" /></div>
+                      <div className="rounded-full border border-border bg-secondary p-2"><Send className="h-4 w-4 text-muted-foreground" /></div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Recording pulse indicator */}
@@ -2804,6 +3049,18 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
               >
                 <div className="h-2 w-2 rounded-full bg-destructive" />
                 <span className="text-xs font-medium text-destructive">{t(lang, "meeting.recording_label")}</span>
+              </motion.div>
+            )}
+
+            {/* Paused indicator */}
+            {meetingState === "paused" && (
+              <motion.div
+                className="absolute top-14 left-1/2 -translate-x-1/2 flex items-center gap-2 rounded-full bg-accent/10 border border-accent/30 px-4 py-1.5"
+                animate={{ opacity: [1, 0.5, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Pause className="h-3 w-3 text-accent" />
+                <span className="text-xs font-medium text-accent">{t(lang, "meeting.paused_label")}</span>
               </motion.div>
             )}
           </motion.div>
