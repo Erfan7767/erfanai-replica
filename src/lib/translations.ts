@@ -1457,4 +1457,102 @@ const translations: Record<string, Record<Lang, string>> = {
     "Deutsch": "Deaktiviert",
     "Türkçe": "Devre dışı",
   },
+  },
+
+  // ── Help Panel ──
+  "help.title": {
+    "العربية": "مركز المساعدة", "English": "Help Center", "Français": "Centre d'aide", "Español": "Centro de ayuda", "Deutsch": "Hilfezentrum", "Türkçe": "Yardım Merkezi",
+  },
+  "help.subtitle": {
+    "العربية": "كيف يمكننا مساعدتك؟", "English": "How can we help you?", "Français": "Comment pouvons-nous vous aider ?", "Español": "¿Cómo podemos ayudarte?", "Deutsch": "Wie können wir Ihnen helfen?", "Türkçe": "Size nasıl yardımcı olabiliriz?",
+  },
+  "help.faq": {
+    "العربية": "الأسئلة الشائعة", "English": "FAQ", "Français": "FAQ", "Español": "Preguntas frecuentes", "Deutsch": "FAQ", "Türkçe": "SSS",
+  },
+  "help.faq1_q": {
+    "العربية": "ما هو ErfanAI؟", "English": "What is ErfanAI?", "Français": "Qu'est-ce qu'ErfanAI ?", "Español": "¿Qué es ErfanAI?", "Deutsch": "Was ist ErfanAI?", "Türkçe": "ErfanAI nedir?",
+  },
+  "help.faq1_a": {
+    "العربية": "ErfanAI هو مساعد ذكاء اصطناعي متقدم يساعدك في البرمجة والتصميم والكتابة وأكثر.", "English": "ErfanAI is an advanced AI assistant that helps you with coding, design, writing and more.", "Français": "ErfanAI est un assistant IA avancé qui vous aide pour le code, le design, l'écriture et plus.", "Español": "ErfanAI es un asistente de IA avanzado que te ayuda con programación, diseño, escritura y más.", "Deutsch": "ErfanAI ist ein fortgeschrittener KI-Assistent, der Ihnen bei Programmierung, Design, Schreiben und mehr hilft.", "Türkçe": "ErfanAI, kodlama, tasarım, yazma ve daha fazlasında size yardımcı olan gelişmiş bir yapay zeka asistanıdır.",
+  },
+  "help.faq2_q": {
+    "العربية": "كيف أحصل على أرصدة إضافية؟", "English": "How do I get more credits?", "Français": "Comment obtenir plus de crédits ?", "Español": "¿Cómo obtengo más créditos?", "Deutsch": "Wie bekomme ich mehr Credits?", "Türkçe": "Nasıl daha fazla kredi alabilirim?",
+  },
+  "help.faq2_a": {
+    "العربية": "يمكنك الترقية إلى خطة Pro للحصول على أرصدة غير محدودة، أو الانتظار لتجديد الأرصدة المجانية شهرياً.", "English": "You can upgrade to Pro plan for unlimited credits, or wait for your free credits to renew monthly.", "Français": "Vous pouvez passer au plan Pro pour des crédits illimités, ou attendre le renouvellement mensuel.", "Español": "Puedes actualizar al plan Pro para créditos ilimitados, o esperar la renovación mensual.", "Deutsch": "Sie können auf den Pro-Plan upgraden für unbegrenzte Credits, oder auf die monatliche Erneuerung warten.", "Türkçe": "Sınırsız kredi için Pro plana yükseltebilir veya ücretsiz kredilerinizin aylık yenilenmesini bekleyebilirsiniz.",
+  },
+  "help.faq3_q": {
+    "العربية": "ما النماذج المتاحة؟", "English": "What models are available?", "Français": "Quels modèles sont disponibles ?", "Español": "¿Qué modelos están disponibles?", "Deutsch": "Welche Modelle sind verfügbar?", "Türkçe": "Hangi modeller mevcut?",
+  },
+  "help.faq3_a": {
+    "العربية": "نقدم ثلاثة نماذج: ErfanAI 1.6 Max (الأقوى)، ErfanAI 1.6 (متوازن)، و ErfanAI 1.6 Lite (سريع ومجاني).", "English": "We offer three models: ErfanAI 1.6 Max (most powerful), ErfanAI 1.6 (balanced), and ErfanAI 1.6 Lite (fast & free).", "Français": "Nous proposons trois modèles : ErfanAI 1.6 Max (le plus puissant), ErfanAI 1.6 (équilibré), et ErfanAI 1.6 Lite (rapide et gratuit).", "Español": "Ofrecemos tres modelos: ErfanAI 1.6 Max (más potente), ErfanAI 1.6 (equilibrado) y ErfanAI 1.6 Lite (rápido y gratuito).", "Deutsch": "Wir bieten drei Modelle: ErfanAI 1.6 Max (leistungsstärkstes), ErfanAI 1.6 (ausgewogen) und ErfanAI 1.6 Lite (schnell & kostenlos).", "Türkçe": "Üç model sunuyoruz: ErfanAI 1.6 Max (en güçlü), ErfanAI 1.6 (dengeli) ve ErfanAI 1.6 Lite (hızlı ve ücretsiz).",
+  },
+  "help.faq4_q": {
+    "العربية": "كيف أستخدم التسجيل الصوتي؟", "English": "How do I use voice recording?", "Français": "Comment utiliser l'enregistrement vocal ?", "Español": "¿Cómo uso la grabación de voz?", "Deutsch": "Wie verwende ich die Sprachaufnahme?", "Türkçe": "Ses kaydını nasıl kullanırım?",
+  },
+  "help.faq4_a": {
+    "العربية": "اضغط على أيقونة الميكرفون في شريط الإدخال وتحدث. سيتم تحويل كلامك إلى نص تلقائياً.", "English": "Click the microphone icon in the input bar and speak. Your speech will be automatically converted to text.", "Français": "Cliquez sur l'icône du microphone et parlez. Votre parole sera automatiquement convertie en texte.", "Español": "Haz clic en el icono del micrófono y habla. Tu voz se convertirá automáticamente en texto.", "Deutsch": "Klicken Sie auf das Mikrofon-Symbol und sprechen Sie. Ihre Sprache wird automatisch in Text umgewandelt.", "Türkçe": "Giriş çubuğundaki mikrofon simgesine tıklayın ve konuşun. Konuşmanız otomatik olarak metne dönüştürülecektir.",
+  },
+  "help.contact": {
+    "العربية": "تواصل معنا", "English": "Contact Us", "Français": "Contactez-nous", "Español": "Contáctanos", "Deutsch": "Kontaktieren Sie uns", "Türkçe": "Bize Ulaşın",
+  },
+  "help.contact_desc": {
+    "العربية": "لم تجد إجابتك؟ أرسل لنا رسالة وسنرد عليك في أقرب وقت.", "English": "Didn't find your answer? Send us a message and we'll get back to you soon.", "Français": "Vous n'avez pas trouvé votre réponse ? Envoyez-nous un message.", "Español": "¿No encontraste tu respuesta? Envíanos un mensaje.", "Deutsch": "Antwort nicht gefunden? Senden Sie uns eine Nachricht.", "Türkçe": "Cevabınızı bulamadınız mı? Bize mesaj gönderin.",
+  },
+  "help.message_placeholder": {
+    "العربية": "اكتب رسالتك هنا...", "English": "Type your message here...", "Français": "Tapez votre message ici...", "Español": "Escribe tu mensaje aquí...", "Deutsch": "Schreiben Sie Ihre Nachricht hier...", "Türkçe": "Mesajınızı buraya yazın...",
+  },
+  "help.send": {
+    "العربية": "إرسال", "English": "Send", "Français": "Envoyer", "Español": "Enviar", "Deutsch": "Senden", "Türkçe": "Gönder",
+  },
+  "help.sent": {
+    "العربية": "تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.", "English": "Your message was sent successfully! We'll get back to you soon.", "Français": "Votre message a été envoyé avec succès !", "Español": "¡Tu mensaje fue enviado exitosamente!", "Deutsch": "Ihre Nachricht wurde erfolgreich gesendet!", "Türkçe": "Mesajınız başarıyla gönderildi!",
+  },
+  "help.shortcuts": {
+    "العربية": "اختصارات مفيدة", "English": "Useful Shortcuts", "Français": "Raccourcis utiles", "Español": "Atajos útiles", "Deutsch": "Nützliche Tastenkürzel", "Türkçe": "Faydalı kısayollar",
+  },
+  "help.shortcut_send": {
+    "العربية": "Enter لإرسال الرسالة", "English": "Enter to send message", "Français": "Entrée pour envoyer", "Español": "Enter para enviar", "Deutsch": "Enter zum Senden", "Türkçe": "Göndermek için Enter",
+  },
+  "help.shortcut_newline": {
+    "العربية": "Shift+Enter لسطر جديد", "English": "Shift+Enter for new line", "Français": "Shift+Entrée pour nouvelle ligne", "Español": "Shift+Enter para nueva línea", "Deutsch": "Shift+Enter für neue Zeile", "Türkçe": "Yeni satır için Shift+Enter",
+  },
+  "help.version": {
+    "العربية": "الإصدار", "English": "Version", "Français": "Version", "Español": "Versión", "Deutsch": "Version", "Türkçe": "Sürüm",
+  },
+
+  // ── Credits Panel ──
+  "credits.title": {
+    "العربية": "الأرصدة", "English": "Credits", "Français": "Crédits", "Español": "Créditos", "Deutsch": "Credits", "Türkçe": "Krediler",
+  },
+  "credits.remaining": {
+    "العربية": "الأرصدة المتبقية", "English": "Remaining Credits", "Français": "Crédits restants", "Español": "Créditos restantes", "Deutsch": "Verbleibende Credits", "Türkçe": "Kalan Krediler",
+  },
+  "credits.of": {
+    "العربية": "من", "English": "of", "Français": "sur", "Español": "de", "Deutsch": "von", "Türkçe": "toplam",
+  },
+  "credits.plan": {
+    "العربية": "الخطة الحالية", "English": "Current Plan", "Français": "Plan actuel", "Español": "Plan actual", "Deutsch": "Aktueller Plan", "Türkçe": "Mevcut Plan",
+  },
+  "credits.free_plan": {
+    "العربية": "مجاني", "English": "Free", "Français": "Gratuit", "Español": "Gratis", "Deutsch": "Kostenlos", "Türkçe": "Ücretsiz",
+  },
+  "credits.renews": {
+    "العربية": "تتجدد شهرياً", "English": "Renews monthly", "Français": "Renouvellement mensuel", "Español": "Se renueva mensualmente", "Deutsch": "Monatliche Erneuerung", "Türkçe": "Aylık yenilenir",
+  },
+  "credits.usage": {
+    "العربية": "الاستخدام", "English": "Usage", "Français": "Utilisation", "Español": "Uso", "Deutsch": "Nutzung", "Türkçe": "Kullanım",
+  },
+  "credits.messages_sent": {
+    "العربية": "رسائل مرسلة", "English": "Messages sent", "Français": "Messages envoyés", "Español": "Mensajes enviados", "Deutsch": "Gesendete Nachrichten", "Türkçe": "Gönderilen mesajlar",
+  },
+  "credits.images_generated": {
+    "العربية": "صور تم إنشاؤها", "English": "Images generated", "Français": "Images générées", "Español": "Imágenes generadas", "Deutsch": "Generierte Bilder", "Türkçe": "Oluşturulan görseller",
+  },
+  "credits.files_analyzed": {
+    "العربية": "ملفات تم تحليلها", "English": "Files analyzed", "Français": "Fichiers analysés", "Español": "Archivos analizados", "Deutsch": "Analysierte Dateien", "Türkçe": "Analiz edilen dosyalar",
+  },
+  "credits.get_more": {
+    "العربية": "احصل على أرصدة أكثر", "English": "Get more credits", "Français": "Obtenir plus de crédits", "Español": "Obtener más créditos", "Deutsch": "Mehr Credits erhalten", "Türkçe": "Daha fazla kredi al",
+  },
 };
