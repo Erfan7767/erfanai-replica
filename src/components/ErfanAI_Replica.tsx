@@ -2494,20 +2494,20 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
               dir={dir}
             >
               <div className="flex items-start justify-between mb-2">
-                <h3 className="text-base font-semibold text-foreground">Recording in Progress</h3>
+                <h3 className="text-base font-semibold text-foreground">{t(lang, "meeting.recording_in_progress")}</h3>
                 <button onClick={() => setIsRecordingDialogOpen(false)} className="rounded-lg p-1 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
                   <X className="h-4 w-4" />
                 </button>
               </div>
               <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                A meeting is currently in progress and being recorded.
+                {t(lang, "meeting.recording_desc")}
               </p>
               <div className="flex items-center justify-end gap-3">
                 <button
                   onClick={() => setIsRecordingDialogOpen(false)}
                   className="rounded-xl px-5 py-2.5 text-sm font-medium text-foreground hover:bg-secondary transition-colors"
                 >
-                  Cancel
+                  {t(lang, "meeting.cancel")}
                 </button>
                  <button
                   onClick={() => {
@@ -2518,7 +2518,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                   }}
                   className="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary transition-colors"
                 >
-                  View meeting
+                  {t(lang, "meeting.view_meeting")}
                 </button>
               </div>
             </motion.div>
@@ -2548,7 +2548,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
               </button>
               <div className="flex items-center gap-2 text-foreground">
                 <Mic className="h-4 w-4 text-accent" />
-                <span className="text-sm font-semibold">Meeting minutes</span>
+                <span className="text-sm font-semibold">{t(lang, "meeting.title")}</span>
               </div>
               <div className="w-9" />
             </div>
@@ -2570,7 +2570,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                 </div>
 
                 <p className="text-sm text-muted-foreground">
-                  A summary is generated automatically after recording.
+                  {t(lang, "meeting.summary_auto")}
                 </p>
 
                 <div className="flex items-center justify-between pt-4">
@@ -2587,7 +2587,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                       className="flex items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                     >
                       <Trash2 className="h-4 w-4" />
-                      Discard
+                      {t(lang, "meeting.discard")}
                     </button>
                     {meetingState === "recording" ? (
                       <button
@@ -2599,12 +2599,12 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                           const updated = [newMeeting, ...savedMeetings];
                           setSavedMeetings(updated);
                           localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
-                          toast.success("Meeting saved!");
+                          toast.success(t(lang, "meeting.saved"));
                         }}
                         className="flex items-center gap-2 rounded-xl bg-destructive text-destructive-foreground px-4 py-2.5 text-sm font-semibold hover:bg-destructive/90 transition-colors"
                       >
                         <X className="h-4 w-4" />
-                        Stop
+                        {t(lang, "meeting.stop")}
                       </button>
                     ) : (
                       <button
@@ -2624,7 +2624,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                         className="flex items-center gap-2 rounded-xl bg-foreground text-background px-4 py-2.5 text-sm font-semibold hover:bg-foreground/90 transition-colors"
                       >
                         <Play className="h-4 w-4" />
-                        Start
+                        {t(lang, "meeting.start")}
                       </button>
                     )}
                   </div>
@@ -2632,7 +2632,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
               </motion.div>
 
               <p className="text-xs text-muted-foreground text-center">
-                By starting, you confirm you have consent from all parties.
+                {t(lang, "meeting.consent")}
               </p>
 
               {/* Download App Card */}
@@ -2645,14 +2645,14 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                 <Smartphone className="h-8 w-8 text-accent shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Download the mobile app to record meeting notes anytime, anywhere.
+                    {t(lang, "meeting.download_desc")}
                   </p>
                 </div>
                 <button
-                  onClick={() => toast("Download link sent!")}
+                  onClick={() => toast(t(lang, "meeting.download_sent"))}
                   className="shrink-0 rounded-xl border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-secondary transition-colors"
                 >
-                  Download app
+                  {t(lang, "meeting.download_app")}
                 </button>
               </motion.div>
 
@@ -2729,7 +2729,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                 >
                   <div className="flex items-center gap-2 px-1">
                     <Clock className="h-4 w-4 text-accent" />
-                    <span className="text-sm font-semibold text-foreground">Previous Recordings</span>
+                    <span className="text-sm font-semibold text-foreground">{t(lang, "meeting.previous")}</span>
                     <span className="text-xs text-muted-foreground">({savedMeetings.length})</span>
                   </div>
                   {savedMeetings.map((meeting, idx) => (
@@ -2762,7 +2762,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                             setSavedMeetings(updated);
                             localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
                             if (playbackMeeting?.id === meeting.id) { setPlaybackMeeting(null); setIsPlaying(false); if (playbackTimerRef.current) clearInterval(playbackTimerRef.current); }
-                            toast("Recording deleted");
+                            toast(t(lang, "meeting.deleted"));
                           }}
                           className="rounded-lg p-2 text-muted-foreground hover:text-destructive transition-colors"
                         >
@@ -2779,7 +2779,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
             <div className="border-t border-border p-4">
               <div className="rounded-2xl border border-border bg-secondary/50 p-4 opacity-60">
                 <p className="text-sm text-muted-foreground mb-3">
-                  {meetingState === "recording" ? "Recording in progress. Edit after recording ends." : "Start recording to capture meeting minutes."}
+                  {meetingState === "recording" ? t(lang, "meeting.recording_progress_edit") : t(lang, "meeting.start_to_capture")}
                 </p>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -2803,7 +2803,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                 transition={{ duration: 1.5, repeat: Infinity }}
               >
                 <div className="h-2 w-2 rounded-full bg-destructive" />
-                <span className="text-xs font-medium text-destructive">Recording</span>
+                <span className="text-xs font-medium text-destructive">{t(lang, "meeting.recording_label")}</span>
               </motion.div>
             )}
           </motion.div>
