@@ -874,7 +874,7 @@ const ProfileDropdown = ({ isOpen, onClose, onLogout, onOpenSettings, onOpenProf
                 {isRTL(lang) && <BookOpen className="h-5 w-5 text-muted-foreground" />}
               </button>
               <div className="mx-3 border-t border-border" />
-              <button onClick={() => { toast(t(lang, "coming_soon")); onClose(); }} className={`flex w-full items-center ${isRTL(lang) ? "justify-end" : "justify-start"} gap-3 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-secondary transition-colors`}>
+              <button onClick={() => { onOpenProfile(); onClose(); }} className={`flex w-full items-center ${isRTL(lang) ? "justify-end" : "justify-start"} gap-3 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-secondary transition-colors`}>
                 {!isRTL(lang) && <User className="h-5 w-5 text-muted-foreground" />}
                 <span>{t(lang, "profile.account")}</span>
                 {isRTL(lang) && <User className="h-5 w-5 text-muted-foreground" />}
