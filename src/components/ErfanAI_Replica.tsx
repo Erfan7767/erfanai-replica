@@ -2457,6 +2457,136 @@ const AlignJustify = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
 );
 
+/* ═══════════════════════ CUSTOMIZE CAROUSEL ═══════════════════════ */
+const CustomizeCarousel = ({ lang, dir }: { lang: Lang; dir: string }) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slides = [
+    {
+      icon: LayoutGrid,
+      titleKey: "app.customize",
+      subtitleKey: "app.your",
+      animateIcon: { rotate: [0, -5, 5, -3, 3, 0], scale: [1, 1.05, 1] },
+    },
+    {
+      icon: Sparkles,
+      titleKey: "app.customize",
+      subtitleKey: "app.your",
+      animateIcon: { scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] },
+    },
+    {
+      icon: Palette,
+      titleKey: "app.customize",
+      subtitleKey: "app.your",
+      animateIcon: { y: [0, -4, 0], rotate: [0, 8, -8, 0] },
+    },
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [slides.length]);
+
+  return (
+    <div className="mt-6">
+      <div className="relative overflow-hidden rounded-2xl">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentSlide}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.4, ease: "easeInOut" }}
+            whileHover={{ scale: 1.03, y: -4, boxShadow: "0 12px 40px -10px hsl(var(--accent) / 0.4)" }}
+            whileTap={{ scale: 0.95 }}
+            className="overflow-hidden rounded-2xl bg-card cursor-pointer border border-border relative"
+            onClick={() => toast(t(lang, "coming_soon"))}
+          >
+            {/* Animated gradient border */}
+            <motion.div
+              className="absolute inset-0 rounded-2xl pointer-events-none"
+              style={{ background: "linear-gradient(90deg, hsl(var(--accent)/0.4), hsl(var(--accent)/0.1), hsl(var(--accent)/0.4))", backgroundSize: "200% 100%" }}
+              animate={{ backgroundPosition: ["0% 0%", "200% 0%"] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            />
+            <div className="relative flex items-center gap-4 p-5 bg-card rounded-2xl m-[1px]">
+              <motion.div
+                className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-xl bg-secondary gap-1"
+                animate={slides[currentSlide].animateIcon}
+                transition={{ duration: 3, repeat: Infinity, repeatDelay: 2, ease: "easeInOut" }}
+              >
+                <motion.div
+                  animate={{ scale: [1, 1.3, 1], rotate: [0, 15, -15, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 2.5, ease: "easeInOut" }}
+                >
+                  {(() => {
+                    const IconComponent = slides[currentSlide].icon;
+                    return <IconComponent className="h-6 w-6 text-accent" />;
+                  })()}
+                </motion.div>
+                <div className="flex flex-col gap-0.5">
+                  <motion.div
+                    animate={{ width: [0, 32, 20, 32], opacity: [0.3, 0.6, 0.3, 0.6] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                    className="h-[2px] rounded-full bg-accent/50"
+                  />
+                  <motion.div
+                    animate={{ width: [0, 24, 16, 24], opacity: [0.2, 0.5, 0.2, 0.5] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+                    className="h-[2px] rounded-full bg-accent/40"
+                  />
+                </div>
+              </motion.div>
+              <div className="text-sm font-semibold text-foreground leading-relaxed">
+                <motion.span
+                  className="inline-block"
+                  animate={{ opacity: [0, 1] }}
+                  transition={{ delay: 0.1, duration: 0.3 }}
+                >
+                  {t(lang, slides[currentSlide].titleKey)}{" "}
+                </motion.span>
+                <motion.span
+                  className="text-accent inline-block font-bold"
+                  animate={{
+                    scale: [1, 1.12, 1],
+                    textShadow: ["0 0 0px hsl(var(--accent)/0)", "0 0 12px hsl(var(--accent)/0.5)", "0 0 0px hsl(var(--accent)/0)"],
+                  }}
+                  transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1.5, ease: "easeInOut" }}
+                >
+                  ErfanAI
+                </motion.span>{" "}
+                <motion.span
+                  className="inline-block"
+                  animate={{ opacity: [0, 1] }}
+                  transition={{ delay: 0.2, duration: 0.3 }}
+                >
+                  {t(lang, slides[currentSlide].subtitleKey)}
+                </motion.span>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+      
+      {/* Dots indicator */}
+      <div className="mt-5 flex items-center justify-center gap-2">
+        {slides.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentSlide(index)}
+            className={`h-2 w-2 rounded-full transition-all duration-300 ${
+              currentSlide === index 
+                ? "bg-accent w-4" 
+                : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const { lang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
@@ -3014,85 +3144,9 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
           </motion.div>
         )}
 
-        {/* Bottom Customize Card */}
+        {/* Bottom Customize Carousel */}
         {messages.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 30, scale: 0.9 }}
-            animate={{ opacity: 1, y: [30, -5, 0], scale: [0.9, 1.02, 1] }}
-            transition={{ delay: 0.5, duration: 0.7, ease: "easeOut" }}
-            whileHover={{ scale: 1.03, y: -4, boxShadow: "0 12px 40px -10px hsl(var(--accent) / 0.4)" }}
-            whileTap={{ scale: 0.95 }}
-            className="mt-6 overflow-hidden rounded-2xl bg-card cursor-pointer border border-border relative"
-            onClick={() => toast(t(lang, "coming_soon"))}
-          >
-            {/* Animated gradient border */}
-            <motion.div
-              className="absolute inset-0 rounded-2xl pointer-events-none"
-              style={{ background: "linear-gradient(90deg, hsl(var(--accent)/0.4), hsl(var(--accent)/0.1), hsl(var(--accent)/0.4))", backgroundSize: "200% 100%" }}
-              animate={{ backgroundPosition: ["0% 0%", "200% 0%"] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            />
-            <div className="relative flex items-center gap-4 p-5 bg-card rounded-2xl m-[1px]">
-              <motion.div
-                className="flex h-16 w-16 shrink-0 flex-col items-center justify-center rounded-xl bg-secondary gap-1"
-                animate={{ rotate: [0, -5, 5, -3, 3, 0], scale: [1, 1.05, 1] }}
-                transition={{ duration: 3, repeat: Infinity, repeatDelay: 2, ease: "easeInOut" }}
-              >
-                <motion.div
-                  animate={{ scale: [1, 1.3, 1], rotate: [0, 15, -15, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 2.5, ease: "easeInOut" }}
-                >
-                  <LayoutGrid className="h-6 w-6 text-accent" />
-                </motion.div>
-                <div className="flex flex-col gap-0.5">
-                  <motion.div
-                    animate={{ width: [0, 32, 20, 32], opacity: [0.3, 0.6, 0.3, 0.6] }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                    className="h-[2px] rounded-full bg-accent/50"
-                  />
-                  <motion.div
-                    animate={{ width: [0, 24, 16, 24], opacity: [0.2, 0.5, 0.2, 0.5] }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-                    className="h-[2px] rounded-full bg-accent/40"
-                  />
-                </div>
-              </motion.div>
-              <div className="text-sm font-semibold text-foreground leading-relaxed">
-                <motion.span
-                  className="inline-block"
-                  animate={{ opacity: [0, 1] }}
-                  transition={{ delay: 0.6, duration: 0.4 }}
-                >
-                  {t(lang, "app.customize")}{" "}
-                </motion.span>
-                <motion.span
-                  className="text-accent inline-block font-bold"
-                  animate={{
-                    scale: [1, 1.12, 1],
-                    textShadow: ["0 0 0px hsl(var(--accent)/0)", "0 0 12px hsl(var(--accent)/0.5)", "0 0 0px hsl(var(--accent)/0)"],
-                  }}
-                  transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1.5, ease: "easeInOut" }}
-                >
-                  ErfanAI
-                </motion.span>{" "}
-                <motion.span
-                  className="inline-block"
-                  animate={{ opacity: [0, 1] }}
-                  transition={{ delay: 0.8, duration: 0.4 }}
-                >
-                  {t(lang, "app.your")}
-                </motion.span>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {messages.length === 0 && (
-          <div className="mt-5 flex items-center justify-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-accent" />
-            <div className="h-2 w-2 rounded-full bg-muted-foreground/30" />
-            <div className="h-2 w-2 rounded-full bg-muted-foreground/30" />
-          </div>
+          <CustomizeCarousel lang={lang} dir={dir} />
         )}
       </div>
 
