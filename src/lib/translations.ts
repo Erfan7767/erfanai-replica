@@ -306,7 +306,24 @@ const translations: Record<string, Record<Lang, string>> = {
     "Deutsch": "Bitte E-Mail eingeben",
     "Türkçe": "Lütfen e-postanızı girin",
   },
-
+  "login.enter_password": {
+    "العربية": "يرجى إدخال كلمة مرور (6 أحرف على الأقل)", "English": "Please enter a password (at least 6 characters)", "Français": "Veuillez entrer un mot de passe (6 caractères min.)", "Español": "Ingresa una contraseña (mínimo 6 caracteres)", "Deutsch": "Bitte Passwort eingeben (mind. 6 Zeichen)", "Türkçe": "Lütfen şifre girin (en az 6 karakter)",
+  },
+  "login.password_placeholder": {
+    "العربية": "كلمة المرور", "English": "Password", "Français": "Mot de passe", "Español": "Contraseña", "Deutsch": "Passwort", "Türkçe": "Şifre",
+  },
+  "login.sign_up": {
+    "العربية": "إنشاء حساب", "English": "Sign Up", "Français": "S'inscrire", "Español": "Registrarse", "Deutsch": "Registrieren", "Türkçe": "Kayıt Ol",
+  },
+  "login.have_account": {
+    "العربية": "لديك حساب بالفعل؟ تسجيل الدخول", "English": "Already have an account? Sign in", "Français": "Déjà un compte ? Se connecter", "Español": "¿Ya tienes cuenta? Inicia sesión", "Deutsch": "Bereits ein Konto? Anmelden", "Türkçe": "Hesabınız var mı? Giriş yapın",
+  },
+  "login.no_account": {
+    "العربية": "ليس لديك حساب؟ إنشاء حساب جديد", "English": "Don't have an account? Sign up", "Français": "Pas de compte ? S'inscrire", "Español": "¿No tienes cuenta? Regístrate", "Deutsch": "Kein Konto? Registrieren", "Türkçe": "Hesabınız yok mu? Kayıt olun",
+  },
+  "login.check_email": {
+    "العربية": "تم إرسال رابط التأكيد إلى بريدك الإلكتروني", "English": "Confirmation link sent to your email", "Français": "Lien de confirmation envoyé par e-mail", "Español": "Enlace de confirmación enviado a tu correo", "Deutsch": "Bestätigungslink per E-Mail gesendet", "Türkçe": "Onay bağlantısı e-postanıza gönderildi",
+  },
   // ── Sidebar ──
   "sidebar.new_task": {
     "العربية": "مهمة جديدة",
