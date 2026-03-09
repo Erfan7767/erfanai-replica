@@ -2462,6 +2462,56 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       <ChatModePanel isOpen={morePanel === "chat_mode"} onClose={() => setMorePanel(null)} onSelect={(m) => toast(`Mode: ${m}`)} />
       <PlaybookPanel isOpen={morePanel === "playbook"} onClose={() => setMorePanel(null)} onUse={(p) => setInputValue(p)} />
       <UpgradeProPanel isOpen={morePanel === "upgrade_pro"} onClose={() => setMorePanel(null)} />
+
+      {/* Recording in Progress Dialog */}
+      <AnimatePresence>
+        {isRecordingDialogOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[200] bg-black/60"
+              onClick={() => setIsRecordingDialogOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 350 }}
+              className="fixed left-1/2 top-1/2 z-[201] w-[90%] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-card border border-border p-6 shadow-2xl"
+              dir={dir}
+            >
+              <div className="flex items-start justify-between mb-2">
+                <h3 className="text-base font-semibold text-foreground">Recording in Progress</h3>
+                <button onClick={() => setIsRecordingDialogOpen(false)} className="rounded-lg p-1 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                A meeting is currently in progress and being recorded.
+              </p>
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setIsRecordingDialogOpen(false)}
+                  className="rounded-xl px-5 py-2.5 text-sm font-medium text-foreground hover:bg-secondary transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setIsRecordingDialogOpen(false);
+                    toast.success("Joining meeting...");
+                  }}
+                  className="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary transition-colors"
+                >
+                  View meeting
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
