@@ -2065,6 +2065,49 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const recognitionRef = useRef<any>(null);
   const lastTranscriptRef = useRef<string>("");
 
+  // ── Export helpers ──
+  const exportMeetingAsTxt = (meeting: typeof savedMeetings[0]) => {
+    const content = [
+      meeting.title,
+      `─────────────────────────`,
+      `${meeting.date}`,
+      `${Math.floor(meeting.duration / 60)}:${(meeting.duration % 60).toString().padStart(2, "0")}`,
+      "",
+      meeting.summary ? `${t(lang, "meeting.summary_label")}:\n${meeting.summary}` : "",
+      meeting.notes ? `\n${t(lang, "meeting.notes_label")}:\n${meeting.notes}` : "",
+    ].filter(Boolean).join("\n");
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `${meeting.title}.txt`; a.click(); URL.revokeObjectURL(url);
+    toast.success(t(lang, "meeting.exported"));
+  };
+
+  const exportMeetingAsPdf = (meeting: typeof savedMeetings[0]) => {
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${meeting.title}</title><style>body{font-family:Arial,sans-serif;padding:40px;max-width:700px;margin:0 auto;color:#1a1a1a;direction:${isRTL(lang)?"rtl":"ltr"}}h1{font-size:22px;border-bottom:2px solid #333;padding-bottom:10px}p{line-height:1.8;margin:8px 0}.meta{color:#666;font-size:13px;margin-bottom:20px}.section{background:#f5f5f5;padding:16px;border-radius:8px;margin:16px 0}h3{font-size:15px;color:#333;margin:0 0 8px 0}</style></head><body><h1>${meeting.title}</h1><p class="meta">${meeting.date} — ${Math.floor(meeting.duration / 60)}:${(meeting.duration % 60).toString().padStart(2, "0")}</p>${meeting.summary ? `<div class="section"><h3>${t(lang, "meeting.summary_label")}</h3><p>${meeting.summary}</p></div>` : ""}${meeting.notes ? `<div class="section"><h3>${t(lang, "meeting.notes_label")}</h3><p>${meeting.notes.replace(/\n/g, "<br>")}</p></div>` : ""}<p style="color:#999;font-size:11px;margin-top:40px;text-align:center">ErfanAI — Meeting Minutes</p></body></html>`;
+    const win = window.open("", "_blank");
+    if (win) { win.document.write(html); win.document.close(); win.print(); }
+    toast.success(t(lang, "meeting.exported"));
+  };
+
+  const exportMeetingAudio = (meeting: typeof savedMeetings[0]) => {
+    if (meeting.audioUrl) {
+      const a = document.createElement("a"); a.href = meeting.audioUrl; a.download = `${meeting.title}.webm`; a.click();
+      toast.success(t(lang, "meeting.exported"));
+    } else {
+      toast.error(t(lang, "meeting.no_audio"));
+    }
+  };
+
+  const shareMeeting = async (meeting: typeof savedMeetings[0]) => {
+    const text = [meeting.title, meeting.date, `${Math.floor(meeting.duration / 60)}:${(meeting.duration % 60).toString().padStart(2, "0")}`, meeting.summary || "", meeting.notes || ""].filter(Boolean).join("\n");
+    if (navigator.share) {
+      try { await navigator.share({ title: meeting.title, text }); } catch {}
+    } else {
+      await navigator.clipboard.writeText(text);
+      toast.success(t(lang, "meeting.copied"));
+    }
+  };
+
   useState(() => {
     const s = loadSettings();
     applyTheme(s.theme);
