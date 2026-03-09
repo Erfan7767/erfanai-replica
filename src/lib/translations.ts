@@ -1742,4 +1742,54 @@ const translations: Record<string, Record<Lang, string>> = {
   "meeting.stt_not_supported": {
     "العربية": "متصفحك لا يدعم تحويل الكلام إلى نص", "English": "Your browser doesn't support speech-to-text", "Français": "Votre navigateur ne prend pas en charge la reconnaissance vocale", "Español": "Tu navegador no admite voz a texto", "Deutsch": "Ihr Browser unterstützt keine Spracherkennung", "Türkçe": "Tarayıcınız konuşmadan metne desteklemiyor",
   },
+
+  // ── Task Execution Steps ──
+  "task.analyzing_request": {
+    "العربية": "تحليل الطلب وفهم المتطلبات...", "English": "Analyzing request and understanding requirements...", "Français": "Analyse de la demande...", "Español": "Analizando la solicitud...", "Deutsch": "Anfrage analysieren...", "Türkçe": "İstek analiz ediliyor...",
+  },
+  "task.planning_structure": {
+    "العربية": "تخطيط هيكل المشروع وتنظيم الملفات...", "English": "Planning project structure and organizing files...", "Français": "Planification de la structure...", "Español": "Planificando la estructura...", "Deutsch": "Struktur planen...", "Türkçe": "Proje yapısı planlanıyor...",
+  },
+  "task.generating_code": {
+    "العربية": "إنشاء الكود البرمجي وبناء الواجهات...", "English": "Generating code and building interfaces...", "Français": "Génération du code...", "Español": "Generando código...", "Deutsch": "Code generieren...", "Türkçe": "Kod oluşturuluyor...",
+  },
+  "task.applying_styles": {
+    "العربية": "تطبيق التنسيقات والتصميم المرئي...", "English": "Applying styles and visual design...", "Français": "Application des styles...", "Español": "Aplicando estilos...", "Deutsch": "Stile anwenden...", "Türkçe": "Stiller uygulanıyor...",
+  },
+  "task.final_review": {
+    "العربية": "المراجعة النهائية والتحقق من الجودة.", "English": "Final review and quality check.", "Français": "Révision finale et contrôle qualité.", "Español": "Revisión final y control de calidad.", "Deutsch": "Abschlussprüfung und Qualitätskontrolle.", "Türkçe": "Son inceleme ve kalite kontrolü.",
+  },
+  "task.understanding_vision": {
+    "العربية": "فهم الرؤية التصميمية والأهداف...", "English": "Understanding design vision and goals...", "Français": "Comprendre la vision de design...", "Español": "Comprendiendo la visión de diseño...", "Deutsch": "Design-Vision verstehen...", "Türkçe": "Tasarım vizyonu anlaşılıyor...",
+  },
+  "task.preparing_design": {
+    "العربية": "إعداد التصميم وتحضير العناصر...", "English": "Preparing design and elements...", "Français": "Préparation du design...", "Español": "Preparando el diseño...", "Deutsch": "Design vorbereiten...", "Türkçe": "Tasarım hazırlanıyor...",
+  },
+  "task.generating_assets": {
+    "العربية": "إنشاء الأصول البصرية والرسومات...", "English": "Generating visual assets and graphics...", "Français": "Génération des ressources visuelles...", "Español": "Generando recursos visuales...", "Deutsch": "Visuelle Assets generieren...", "Türkçe": "Görsel varlıklar oluşturuluyor...",
+  },
+  "task.final_check": {
+    "العربية": "التحقق النهائي من استجابة الخدمات.", "English": "Final verification of service responses.", "Français": "Vérification finale des réponses.", "Español": "Verificación final de respuestas.", "Deutsch": "Endgültige Überprüfung der Antworten.", "Türkçe": "Hizmet yanıtlarının son doğrulaması.",
+  },
+  "task.analyzing_requirements": {
+    "العربية": "تحليل المتطلبات البرمجية...", "English": "Analyzing programming requirements...", "Français": "Analyse des exigences...", "Español": "Analizando requisitos...", "Deutsch": "Anforderungen analysieren...", "Türkçe": "Gereksinimler analiz ediliyor...",
+  },
+  "task.writing_code": {
+    "العربية": "كتابة الكود البرمجي...", "English": "Writing code...", "Français": "Écriture du code...", "Español": "Escribiendo código...", "Deutsch": "Code schreiben...", "Türkçe": "Kod yazılıyor...",
+  },
+  "task.testing_code": {
+    "العربية": "اختبار الكود والتحقق من الأخطاء...", "English": "Testing code and checking for errors...", "Français": "Test du code...", "Español": "Probando el código...", "Deutsch": "Code testen...", "Türkçe": "Kod test ediliyor...",
+  },
+  "task.optimizing": {
+    "العربية": "تحسين الأداء وتنظيف الكود...", "English": "Optimizing performance and cleaning code...", "Français": "Optimisation des performances...", "Español": "Optimizando rendimiento...", "Deutsch": "Leistung optimieren...", "Türkçe": "Performans optimize ediliyor...",
+  },
+  "task.final_verification": {
+    "العربية": "التحقق النهائي من صحة النتائج.", "English": "Final verification of results.", "Français": "Vérification finale des résultats.", "Español": "Verificación final de resultados.", "Deutsch": "Endgültige Ergebnisüberprüfung.", "Türkçe": "Sonuçların son doğrulaması.",
+  },
+  "task.processing": {
+    "العربية": "معالجة البيانات وتجهيز الرد...", "English": "Processing data and preparing response...", "Français": "Traitement des données...", "Español": "Procesando datos...", "Deutsch": "Daten verarbeiten...", "Türkçe": "Veriler işleniyor...",
+  },
+  "task.generating_response": {
+    "العربية": "إنشاء الرد المناسب وتنسيقه...", "English": "Generating and formatting response...", "Français": "Génération de la réponse...", "Español": "Generando respuesta...", "Deutsch": "Antwort generieren...", "Türkçe": "Yanıt oluşturuluyor...",
+  },
 };
