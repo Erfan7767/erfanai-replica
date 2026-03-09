@@ -1943,7 +1943,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                         { icon: MessageCircle, key: "more.chat_mode" },
                         { icon: BookCopy, key: "more.playbook", hasExternal: true },
                       ].map((item) => (
-                        <button key={item.key} onClick={() => { toast(t(lang, item.key)); setIsMoreMenuOpen(false); }} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
+                        <button key={item.key} onClick={() => { setMorePanel(item.key.replace("more.", "")); setIsMoreMenuOpen(false); }} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
                           <item.icon className="h-4 w-4 text-muted-foreground" />
                           <span className="flex-1 text-start">{t(lang, item.key)}</span>
                           {item.hasExternal && <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />}
@@ -1999,6 +1999,14 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       <KnowledgePanel isOpen={isKnowledgeOpen} onClose={() => setIsKnowledgeOpen(false)} />
       <SearchConversationsPanel isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} messages={messages} onSelectMessage={(msg) => { setInputValue(msg); }} />
       <DiscoverPanel isOpen={isDiscoverOpen} onClose={() => setIsDiscoverOpen(false)} onUseTemplate={(prompt) => { setInputValue(prompt); }} />
+      <ScheduleTaskPanel isOpen={morePanel === "schedule_task"} onClose={() => setMorePanel(null)} />
+      <WideResearchPanel isOpen={morePanel === "wide_research"} onClose={() => setMorePanel(null)} onSubmit={(q) => setInputValue(q)} />
+      <SpreadsheetPanel isOpen={morePanel === "spreadsheet"} onClose={() => setMorePanel(null)} />
+      <VisualizationPanel isOpen={morePanel === "visualization"} onClose={() => setMorePanel(null)} />
+      <VideoPanel isOpen={morePanel === "video"} onClose={() => setMorePanel(null)} onSubmit={(p) => setInputValue(p)} />
+      <AudioPanel isOpen={morePanel === "audio"} onClose={() => setMorePanel(null)} onSubmit={(p) => setInputValue(p)} />
+      <ChatModePanel isOpen={morePanel === "chat_mode"} onClose={() => setMorePanel(null)} onSelect={(m) => toast(`Mode: ${m}`)} />
+      <PlaybookPanel isOpen={morePanel === "playbook"} onClose={() => setMorePanel(null)} onUse={(p) => setInputValue(p)} />
     </div>
   );
 };
