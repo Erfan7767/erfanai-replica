@@ -1066,10 +1066,67 @@ const ProfileDropdown = ({ isOpen, onClose, onLogout, onOpenSettings, onOpenProf
   );
 };
 
+/* ═══════════════════════ TASK EXECUTION STEP ═══════════════════════ */
+type TaskStep = {
+  id: string;
+  label: string;
+  status: "pending" | "running" | "done" | "error";
+  icon: "edit" | "terminal" | "check" | "search" | "sparkles";
+};
+
+const stepIconMap = {
+  edit: Pencil,
+  terminal: Terminal,
+  check: Check,
+  search: Search,
+  sparkles: Sparkles,
+};
+
+const stepStatusColors = {
+  pending: "bg-muted-foreground/20 text-muted-foreground",
+  running: "bg-accent/15 text-accent border border-accent/30",
+  done: "bg-green-500/15 text-green-500 border border-green-500/30",
+  error: "bg-destructive/15 text-destructive border border-destructive/30",
+};
+
+const TaskExecutionSteps = ({ steps }: { steps: TaskStep[] }) => {
+  const { lang } = useLang();
+  return (
+    <div className="space-y-2 py-1">
+      {steps.map((step, i) => {
+        const Icon = stepIconMap[step.icon] || Terminal;
+        return (
+          <motion.div
+            key={step.id}
+            initial={{ opacity: 0, x: isRTL(lang) ? 20 : -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.08, duration: 0.3 }}
+            className="flex items-center gap-2.5"
+          >
+            <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs ${stepStatusColors[step.status]}`}>
+              {step.status === "running" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : step.status === "done" ? (
+                <Check className="h-3.5 w-3.5" />
+              ) : (
+                <Icon className="h-3.5 w-3.5" />
+              )}
+            </div>
+            <span className={`text-xs leading-relaxed ${step.status === "done" ? "text-muted-foreground" : step.status === "running" ? "text-foreground font-medium" : "text-muted-foreground/60"}`}>
+              {step.label}
+            </span>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+};
+
 /* ═══════════════════════ CHAT MESSAGE ═══════════════════════ */
-const ChatMessage = ({ message, isUser, files }: { message: string; isUser: boolean; files?: File[] }) => (
+const ChatMessage = ({ message, isUser, files, steps }: { message: string; isUser: boolean; files?: File[]; steps?: TaskStep[] }) => (
   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex ${isUser ? "justify-start" : "justify-end"} mb-3`}>
-    <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${isUser ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground"}`}>
+    <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${isUser ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground"}`}>
+      {steps && steps.length > 0 && <TaskExecutionSteps steps={steps} />}
       {message && <p className="leading-relaxed">{message}</p>}
       {files && files.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5">
