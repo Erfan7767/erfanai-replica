@@ -324,6 +324,12 @@ const translations: Record<string, Record<Lang, string>> = {
   "login.check_email": {
     "العربية": "تم إرسال رابط التأكيد إلى بريدك الإلكتروني", "English": "Confirmation link sent to your email", "Français": "Lien de confirmation envoyé par e-mail", "Español": "Enlace de confirmación enviado a tu correo", "Deutsch": "Bestätigungslink per E-Mail gesendet", "Türkçe": "Onay bağlantısı e-postanıza gönderildi",
   },
+  "login.sign_up_success": {
+    "العربية": "تم إنشاء الحساب بنجاح!", "English": "Account created successfully!", "Français": "Compte créé avec succès !", "Español": "¡Cuenta creada con éxito!", "Deutsch": "Konto erfolgreich erstellt!", "Türkçe": "Hesap başarıyla oluşturuldu!",
+  },
+  "login.invalid_credentials": {
+    "العربية": "البريد الإلكتروني أو كلمة المرور غير صحيحة", "English": "Invalid email or password", "Français": "E-mail ou mot de passe invalide", "Español": "Correo electrónico o contraseña no válidos", "Deutsch": "Ungültige E-Mail oder Passwort", "Türkçe": "Geçersiz e-posta veya şifre",
+  },
   // ── Sidebar ──
   "sidebar.new_task": {
     "العربية": "مهمة جديدة",
