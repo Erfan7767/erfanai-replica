@@ -170,17 +170,21 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
         if (error) {
           toast.error(error.message);
         } else {
-          toast.success(t(lang, "login.check_email"));
+          // Auto-confirm is enabled, so user is logged in immediately
+          toast.success(t(lang, "login.sign_up_success") || "تم إنشاء الحساب بنجاح!");
         }
       } else {
         const { error } = await signIn(email, password);
         if (error) {
-          toast.error(error.message);
+          if (error.message.includes("Invalid login credentials")) {
+            toast.error(t(lang, "login.invalid_credentials") || "البريد الإلكتروني أو كلمة المرور غير صحيحة");
+          } else {
+            toast.error(error.message);
+          }
         }
-        // onLogin will be triggered by auth state change
       }
     } catch (e: any) {
-      toast.error(e.message || "Error");
+      toast.error(e.message || "حدث خطأ غير متوقع");
     } finally {
       setIsLoading(false);
     }
