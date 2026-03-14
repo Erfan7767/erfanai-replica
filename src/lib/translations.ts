@@ -330,6 +330,15 @@ const translations: Record<string, Record<Lang, string>> = {
   "login.invalid_credentials": {
     "العربية": "البريد الإلكتروني أو كلمة المرور غير صحيحة", "English": "Invalid email or password", "Français": "E-mail ou mot de passe invalide", "Español": "Correo electrónico o contraseña no válidos", "Deutsch": "Ungültige E-Mail oder Passwort", "Türkçe": "Geçersiz e-posta veya şifre",
   },
+  "login.forgot_password": {
+    "العربية": "نسيت كلمة المرور؟", "English": "Forgot password?", "Français": "Mot de passe oublié ?", "Español": "¿Olvidaste tu contraseña?", "Deutsch": "Passwort vergessen?", "Türkçe": "Şifrenizi mi unuttunuz?",
+  },
+  "login.enter_email_for_reset": {
+    "العربية": "أدخل بريدك الإلكتروني أولاً", "English": "Enter your email first", "Français": "Entrez d'abord votre e-mail", "Español": "Ingresa tu correo primero", "Deutsch": "Geben Sie zuerst Ihre E-Mail ein", "Türkçe": "Önce e-postanızı girin",
+  },
+  "login.reset_link_sent": {
+    "العربية": "تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني", "English": "Reset link sent to your email", "Français": "Lien de réinitialisation envoyé", "Español": "Enlace de restablecimiento enviado", "Deutsch": "Link zum Zurücksetzen gesendet", "Türkçe": "Sıfırlama bağlantısı gönderildi",
+  },
   // ── Sidebar ──
   "sidebar.new_task": {
     "العربية": "مهمة جديدة",
