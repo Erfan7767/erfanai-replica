@@ -152,7 +152,22 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signUp, signInWithGoogle, signInWithApple } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithApple, resetPassword } = useAuth();
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      toast.error(t(lang, "login.enter_email_for_reset"));
+      return;
+    }
+    setIsLoading(true);
+    const { error } = await resetPassword(email);
+    setIsLoading(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success(t(lang, "login.reset_link_sent"));
+    }
+  };
 
   const handleEmailAuth = async () => {
     if (!email.trim()) {
