@@ -152,7 +152,22 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signUp, signInWithGoogle, signInWithApple } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithApple, resetPassword } = useAuth();
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      toast.error(t(lang, "login.enter_email_for_reset"));
+      return;
+    }
+    setIsLoading(true);
+    const { error } = await resetPassword(email);
+    setIsLoading(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success(t(lang, "login.reset_link_sent"));
+    }
+  };
 
   const handleEmailAuth = async () => {
     if (!email.trim()) {
@@ -244,6 +259,11 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
 
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t(lang, "login.email_placeholder")} className="w-full rounded-xl px-4 py-4 text-sm outline-none" style={{ background: "#1a1a1a", border: "1px solid #333", color: "#e5e5e5" }} dir={dir} />
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t(lang, "login.password_placeholder")} className="mt-3 w-full rounded-xl px-4 py-4 text-sm outline-none" style={{ background: "#1a1a1a", border: "1px solid #333", color: "#e5e5e5" }} dir={dir} onKeyDown={(e) => { if (e.key === "Enter") handleEmailAuth(); }} />
+          {!isSignUp && (
+            <button onClick={handleForgotPassword} disabled={isLoading} className="mt-2 self-start text-xs transition-colors hover:opacity-80" style={{ color: "#a3a3a3" }}>
+              {t(lang, "login.forgot_password")}
+            </button>
+          )}
           <button onClick={handleEmailAuth} disabled={isLoading} className="mt-4 w-full rounded-xl py-4 text-sm font-semibold transition-all hover:bg-[#4a4a4a] disabled:opacity-50" style={{ background: "#404040", color: "#d4d4d4" }}>
             {isLoading ? "..." : isSignUp ? t(lang, "login.sign_up") : t(lang, "login.continue")}
           </button>
