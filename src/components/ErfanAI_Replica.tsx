@@ -3110,16 +3110,20 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         <AnimatePresence>
           {isExecuting && (
             <ExecutionPanel
-              steps={executionSteps}
+              taskGroups={executionGroups}
               isVisible={isExecuting}
               isExpanded={isExecutionExpanded}
               onToggleExpand={() => setIsExecutionExpanded(!isExecutionExpanded)}
+              onToggleGroup={(id) => setExecutionGroups(prev => prev.map(g => g.id === id ? { ...g, isExpanded: !g.isExpanded } : g))}
               finalMessage={executionFinalMessage}
+              elapsedSeconds={executionElapsed}
               onContinue={() => {
                 toast.success(t(lang, "execution.can_continue"));
                 setIsExecuting(false);
-                setExecutionSteps([]);
+                setExecutionGroups([]);
                 setExecutionFinalMessage("");
+                setExecutionElapsed(0);
+                if (executionTimerRef.current) clearInterval(executionTimerRef.current);
               }}
             />
           )}
