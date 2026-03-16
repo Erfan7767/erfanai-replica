@@ -1143,12 +1143,21 @@ const ProfileDropdown = ({ isOpen, onClose, onLogout, onOpenSettings, onOpenProf
   );
 };
 
-/* ═══════════════════════ TASK EXECUTION STEP ═══════════════════════ */
+/* ═══════════════════════ TASK EXECUTION TYPES ═══════════════════════ */
 type TaskStep = {
   id: string;
   label: string;
   status: "pending" | "running" | "done" | "error";
   icon: "edit" | "terminal" | "check" | "search" | "sparkles";
+};
+
+type TaskGroup = {
+  id: string;
+  title: string;
+  description: string;
+  status: "pending" | "running" | "done";
+  subtasks: { label: string; icon: "edit" | "terminal" }[];
+  isExpanded: boolean;
 };
 
 const stepIconMap = {
@@ -1168,28 +1177,38 @@ const stepStatusColors = {
 
 /* ═══════════════════════ EXECUTION PANEL (Manus-style) ═══════════════════════ */
 const ExecutionPanel = ({ 
-  steps, 
+  taskGroups,
   isVisible, 
   isExpanded, 
   onToggleExpand,
+  onToggleGroup,
   finalMessage,
-  onContinue
+  onContinue,
+  elapsedSeconds,
 }: { 
-  steps: TaskStep[]; 
+  taskGroups: TaskGroup[];
   isVisible: boolean; 
   isExpanded: boolean; 
   onToggleExpand: () => void;
+  onToggleGroup: (id: string) => void;
   finalMessage?: string;
   onContinue?: () => void;
+  elapsedSeconds: number;
 }) => {
   const { lang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
-  const completedSteps = steps.filter(s => s.status === "done").length;
-  const totalSteps = steps.length;
-  const isAllDone = completedSteps === totalSteps && totalSteps > 0;
-  const currentStep = steps.find(s => s.status === "running");
+  const completedGroups = taskGroups.filter(g => g.status === "done").length;
+  const totalGroups = taskGroups.length;
+  const isAllDone = completedGroups === totalGroups && totalGroups > 0;
+  const currentGroup = taskGroups.find(g => g.status === "running");
 
-  // Generate fake code preview lines based on current step
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec.toString().padStart(2, "0")}`;
+  };
+
+  // Terminal preview lines
   const getPreviewLines = () => {
     const codeLines = [
       "$ npm run build",
@@ -1200,7 +1219,7 @@ const ExecutionPanel = ({
       "};",
       "export default App;",
     ];
-    return codeLines.slice(0, Math.min(completedSteps + 2, codeLines.length));
+    return codeLines.slice(0, Math.min(completedGroups + 2, codeLines.length));
   };
 
   if (!isVisible) return null;
@@ -1213,7 +1232,7 @@ const ExecutionPanel = ({
       className="mb-4 rounded-2xl border border-border bg-card overflow-hidden shadow-xl"
       dir={dir}
     >
-      {/* Expanded Content - Task Steps */}
+      {/* Expanded Content - Task Groups */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div
@@ -1223,47 +1242,114 @@ const ExecutionPanel = ({
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
           >
-            <div className="p-4 space-y-3 max-h-[50vh] overflow-y-auto">
-              {steps.map((step, i) => {
-                const Icon = stepIconMap[step.icon] || Terminal;
-                return (
-                  <motion.div
-                    key={step.id}
-                    initial={{ opacity: 0, x: isRTL(lang) ? 15 : -15 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05, duration: 0.25 }}
-                    className="flex items-start gap-3"
+            <div className="max-h-[60vh] overflow-y-auto">
+              {taskGroups.map((group, gi) => (
+                <motion.div
+                  key={group.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: gi * 0.08 }}
+                  className="border-b border-border/50 last:border-b-0"
+                >
+                  {/* Group Header */}
+                  <button
+                    onClick={() => onToggleGroup(group.id)}
+                    className="w-full flex items-start gap-3 px-4 py-3.5 hover:bg-secondary/30 transition-colors"
                   >
-                    <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs transition-all ${stepStatusColors[step.status]}`}>
-                      {step.status === "running" ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : step.status === "done" ? (
-                        <Check className="h-4 w-4" />
+                    {/* Status Icon */}
+                    <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full mt-0.5 ${
+                      group.status === "done" 
+                        ? "bg-green-500/15 text-green-500" 
+                        : group.status === "running"
+                          ? "bg-blue-500/15 text-blue-500"
+                          : "bg-muted-foreground/10 text-muted-foreground/40"
+                    }`}>
+                      {group.status === "done" ? (
+                        <Check className="h-3.5 w-3.5" />
+                      ) : group.status === "running" ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       ) : (
-                        <Icon className="h-4 w-4" />
+                        <div className="h-2 w-2 rounded-full bg-muted-foreground/30" />
                       )}
                     </div>
-                    <div className="flex-1 pt-0.5">
-                      <span className={`text-sm leading-relaxed ${
-                        step.status === "done" 
-                          ? "text-muted-foreground" 
-                          : step.status === "running" 
-                            ? "text-foreground font-medium" 
-                            : "text-muted-foreground/50"
+
+                    {/* Title */}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-bold leading-relaxed ${isRTL(lang) ? "text-right" : "text-left"} ${
+                        group.status === "done" 
+                          ? "text-foreground" 
+                          : group.status === "running" 
+                            ? "text-foreground"
+                            : "text-muted-foreground/60"
                       }`}>
-                        {step.label}
-                      </span>
+                        {group.title}
+                      </p>
                     </div>
-                  </motion.div>
-                );
-              })}
+
+                    {/* Expand Arrow */}
+                    <motion.div
+                      animate={{ rotate: group.isExpanded ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="shrink-0 mt-0.5"
+                    >
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    </motion.div>
+                  </button>
+
+                  {/* Group Content (expanded) */}
+                  <AnimatePresence>
+                    {group.isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className={`px-4 pb-4 ${isRTL(lang) ? "pr-[52px]" : "pl-[52px]"}`}>
+                          {/* Description */}
+                          <p className={`text-sm text-muted-foreground leading-relaxed mb-3 ${isRTL(lang) ? "text-right" : "text-left"}`}>
+                            {group.description}
+                          </p>
+
+                          {/* Sub-task Chips */}
+                          <div className="flex flex-wrap gap-2">
+                            {group.subtasks.map((sub, si) => (
+                              <motion.div
+                                key={si}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: si * 0.05 }}
+                                className="flex items-center gap-2 rounded-full bg-secondary/80 border border-border px-3 py-1.5"
+                              >
+                                <div className={`flex h-5 w-5 items-center justify-center rounded-md ${
+                                  group.status === "done" 
+                                    ? "bg-green-500/15 text-green-500" 
+                                    : "bg-accent/15 text-accent"
+                                }`}>
+                                  {sub.icon === "edit" ? (
+                                    <Pencil className="h-3 w-3" />
+                                  ) : (
+                                    <Terminal className="h-3 w-3" />
+                                  )}
+                                </div>
+                                <span className="text-xs text-foreground/80 font-medium">{sub.label}</span>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ))}
 
               {/* Final AI Response */}
               {isAllDone && finalMessage && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 pt-4 border-t border-border"
+                  className="px-4 py-4 border-t border-border"
                 >
                   <div className="flex items-start gap-3">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent/15">
@@ -1309,14 +1395,14 @@ const ExecutionPanel = ({
         )}
       </AnimatePresence>
 
-      {/* Collapsed Bar / Preview with Enhanced Animated Thumbnail */}
+      {/* Collapsed Bar / Preview with Terminal Thumbnail */}
       <motion.button
         onClick={onToggleExpand}
         className="w-full flex items-center gap-3 px-4 py-3 bg-secondary/50 hover:bg-secondary/80 transition-colors"
         whileHover={{ scale: 1.005 }}
         whileTap={{ scale: 0.995 }}
       >
-        {/* Live Code Thumbnail Preview with Enhanced Animations */}
+        {/* Live Code Thumbnail Preview */}
         <motion.div 
           className="h-14 w-20 rounded-xl overflow-hidden shrink-0 border border-border relative"
           style={{ background: "linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%)" }}
@@ -1348,86 +1434,42 @@ const ExecutionPanel = ({
               <motion.div
                 key={`${line}-${i}`}
                 initial={{ opacity: 0, x: -10, scaleX: 0 }}
-                animate={{ 
-                  opacity: 1, 
-                  x: 0, 
-                  scaleX: 1,
-                }}
-                transition={{ 
-                  delay: i * 0.12, 
-                  duration: 0.3,
-                  ease: "easeOut"
-                }}
+                animate={{ opacity: 1, x: 0, scaleX: 1 }}
+                transition={{ delay: i * 0.12, duration: 0.3, ease: "easeOut" }}
                 className="flex items-center gap-1 origin-left"
               >
-                {/* Line Number Indicator */}
                 <motion.div 
                   className="h-[4px] w-[4px] rounded-full shrink-0"
                   style={{ 
                     background: line.startsWith("$") ? "#22c55e" : 
-                               line.startsWith("✓") ? "hsl(var(--accent))" : 
-                               "#525252"
+                               line.startsWith("✓") ? "hsl(var(--accent))" : "#525252"
                   }}
-                  animate={line.startsWith("✓") ? {
-                    scale: [1, 1.3, 1],
-                    opacity: [1, 0.8, 1]
-                  } : {}}
-                  transition={{ duration: 0.5, delay: i * 0.1 }}
                 />
-                {/* Code Line */}
                 <motion.div 
                   className={`h-[4px] rounded-full ${
                     line.startsWith("$") ? "bg-green-400" : 
-                    line.startsWith("✓") ? "bg-accent" : 
-                    "bg-muted-foreground/50"
+                    line.startsWith("✓") ? "bg-accent" : "bg-muted-foreground/50"
                   }`}
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.min(line.length * 2, 100)}%` }}
-                  transition={{ 
-                    delay: i * 0.12 + 0.1, 
-                    duration: 0.4,
-                    ease: "easeOut"
-                  }}
+                  transition={{ delay: i * 0.12 + 0.1, duration: 0.4, ease: "easeOut" }}
                 />
               </motion.div>
             ))}
             
-            {/* Typing Cursor Effect */}
+            {/* Typing Cursor */}
             {!isAllDone && (
-              <motion.div
-                className="flex items-center gap-1 mt-auto"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                <motion.div 
-                  className="h-[4px] w-[2px] bg-accent rounded-full"
-                  animate={{ opacity: [1, 0, 1] }}
-                  transition={{ duration: 0.8, repeat: Infinity }}
-                />
-                <motion.div 
-                  className="h-[4px] bg-muted-foreground/30 rounded-full"
-                  animate={{ width: ["0%", "40%", "60%", "40%"] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
+              <motion.div className="flex items-center gap-1 mt-auto" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
+                <motion.div className="h-[4px] w-[2px] bg-accent rounded-full" animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.8, repeat: Infinity }} />
+                <motion.div className="h-[4px] bg-muted-foreground/30 rounded-full" animate={{ width: ["0%", "40%", "60%", "40%"] }} transition={{ duration: 2, repeat: Infinity }} />
               </motion.div>
             )}
             
-            {/* Success Checkmark Overlay when done */}
+            {/* Success Overlay */}
             <AnimatePresence>
               {isAllDone && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.5 }}
-                  className="absolute inset-0 flex items-center justify-center bg-green-500/10 backdrop-blur-[1px]"
-                >
-                  <motion.div
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: "spring", damping: 12, stiffness: 200 }}
-                    className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500/20 border border-green-500/40"
-                  >
+                <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.5 }} className="absolute inset-0 flex items-center justify-center bg-green-500/10 backdrop-blur-[1px]">
+                  <motion.div initial={{ scale: 0, rotate: -180 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", damping: 12, stiffness: 200 }} className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500/20 border border-green-500/40">
                     <Check className="h-3.5 w-3.5 text-green-400" />
                   </motion.div>
                 </motion.div>
@@ -1435,60 +1477,44 @@ const ExecutionPanel = ({
             </AnimatePresence>
           </div>
           
-          {/* Corner Glow Effect */}
+          {/* Corner Glow */}
           {!isAllDone && (
-            <motion.div
-              className="absolute -top-2 -right-2 h-6 w-6 rounded-full blur-md"
-              style={{ background: "hsl(var(--accent)/0.4)" }}
-              animate={{ 
-                opacity: [0.3, 0.6, 0.3],
-                scale: [1, 1.2, 1]
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
+            <motion.div className="absolute -top-2 -right-2 h-6 w-6 rounded-full blur-md" style={{ background: "hsl(var(--accent)/0.4)" }} animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }} />
           )}
         </motion.div>
 
-        {/* Progress Info */}
-        <div className="flex-1 flex items-center gap-2">
-          <motion.div 
-            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-[10px] ${
-              isAllDone ? "bg-green-500/15 text-green-500" : "bg-blue-500/15 text-blue-500"
-            }`}
-            animate={!isAllDone ? { scale: [1, 1.1, 1] } : {}}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          >
-            {isAllDone ? (
-              <motion.div
-                initial={{ scale: 0, rotate: -90 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", damping: 10 }}
-              >
-                <Check className="h-3 w-3" />
-              </motion.div>
-            ) : (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            )}
-          </motion.div>
+        {/* Progress Info - Title + Time + Status */}
+        <div className="flex-1 flex flex-col gap-0.5 min-w-0">
           <motion.span 
-            className="text-xs text-muted-foreground truncate"
-            key={currentStep?.label || "done"}
+            className="text-xs text-foreground font-semibold truncate"
+            key={currentGroup?.title || "done"}
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
           >
             {isAllDone 
               ? t(lang, "execution.completed")
-              : currentStep?.label || t(lang, "execution.processing")
+              : currentGroup?.title || t(lang, "execution.processing")
             }
           </motion.span>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-muted-foreground font-mono">{formatTime(elapsedSeconds)}</span>
+            <span className="text-[11px] text-muted-foreground">
+              {isAllDone ? t(lang, "execution.completed") : "Thinking"}
+            </span>
+            {!isAllDone && (
+              <motion.div 
+                className="flex h-4 w-4 items-center justify-center"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                <Loader2 className="h-3 w-3 text-blue-500 animate-spin" />
+              </motion.div>
+            )}
+          </div>
         </div>
 
-        {/* Expand/Collapse Icon */}
-        <motion.div
-          animate={{ rotate: isExpanded ? 180 : 0 }}
-          transition={{ type: "spring", damping: 15 }}
-        >
+        {/* Expand/Collapse */}
+        <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ type: "spring", damping: 15 }}>
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </motion.div>
       </motion.button>
@@ -2676,9 +2702,12 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
 
   // ── Execution Panel State ──
   const [executionSteps, setExecutionSteps] = useState<TaskStep[]>([]);
+  const [executionGroups, setExecutionGroups] = useState<TaskGroup[]>([]);
   const [isExecuting, setIsExecuting] = useState(false);
   const [isExecutionExpanded, setIsExecutionExpanded] = useState(true);
   const [executionFinalMessage, setExecutionFinalMessage] = useState("");
+  const [executionElapsed, setExecutionElapsed] = useState(0);
+  const executionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ── Speech-to-Text helpers ──
   const startSpeechRecognition = () => {
@@ -2815,87 +2844,125 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     setInputValue("");
     setAttachedFiles([]);
 
-    // Generate context-aware task steps based on user message
-    const generateSteps = (msg: string): { label: string; icon: TaskStep["icon"] }[] => {
+    // Generate Manus-style task groups based on user message
+    const generateGroups = (msg: string): Omit<TaskGroup, "id" | "status" | "isExpanded">[] => {
       const lower = msg.toLowerCase();
       if (lower.includes("موقع") || lower.includes("website") || lower.includes("صفحة") || lower.includes("page")) {
         return [
-          { label: t(lang, "task.analyzing_request"), icon: "search" },
-          { label: t(lang, "task.planning_structure"), icon: "edit" },
-          { label: t(lang, "task.generating_code"), icon: "terminal" },
-          { label: t(lang, "task.applying_styles"), icon: "sparkles" },
-          { label: t(lang, "task.final_review"), icon: "check" },
+          { title: t(lang, "task.analyzing_request"), description: t(lang, "taskgroup.analyze_desc"), subtasks: [
+            { label: t(lang, "taskgroup.sub_parse_requirements"), icon: "edit" },
+            { label: t(lang, "taskgroup.sub_identify_components"), icon: "edit" },
+          ]},
+          { title: t(lang, "task.planning_structure"), description: t(lang, "taskgroup.plan_desc"), subtasks: [
+            { label: t(lang, "taskgroup.sub_create_architecture"), icon: "edit" },
+            { label: t(lang, "taskgroup.sub_setup_routing"), icon: "terminal" },
+          ]},
+          { title: t(lang, "task.generating_code"), description: t(lang, "taskgroup.generate_desc"), subtasks: [
+            { label: t(lang, "taskgroup.sub_build_components"), icon: "terminal" },
+            { label: t(lang, "taskgroup.sub_apply_styles"), icon: "edit" },
+            { label: t(lang, "taskgroup.sub_add_interactions"), icon: "terminal" },
+          ]},
+          { title: t(lang, "task.final_review"), description: t(lang, "taskgroup.review_desc"), subtasks: [
+            { label: t(lang, "taskgroup.sub_test_responsive"), icon: "terminal" },
+            { label: t(lang, "taskgroup.sub_optimize_performance"), icon: "edit" },
+          ]},
         ];
       } else if (lower.includes("تصميم") || lower.includes("design") || lower.includes("صورة") || lower.includes("image")) {
         return [
-          { label: t(lang, "task.understanding_vision"), icon: "search" },
-          { label: t(lang, "task.preparing_design"), icon: "edit" },
-          { label: t(lang, "task.generating_assets"), icon: "sparkles" },
-          { label: t(lang, "task.final_check"), icon: "check" },
+          { title: t(lang, "task.understanding_vision"), description: t(lang, "taskgroup.vision_desc"), subtasks: [
+            { label: t(lang, "taskgroup.sub_analyze_style"), icon: "edit" },
+            { label: t(lang, "taskgroup.sub_gather_references"), icon: "edit" },
+          ]},
+          { title: t(lang, "task.preparing_design"), description: t(lang, "taskgroup.design_desc"), subtasks: [
+            { label: t(lang, "taskgroup.sub_create_mockup"), icon: "edit" },
+            { label: t(lang, "taskgroup.sub_choose_colors"), icon: "edit" },
+          ]},
+          { title: t(lang, "task.generating_assets"), description: t(lang, "taskgroup.assets_desc"), subtasks: [
+            { label: t(lang, "taskgroup.sub_generate_images"), icon: "terminal" },
+            { label: t(lang, "taskgroup.sub_export_files"), icon: "terminal" },
+          ]},
         ];
       } else if (lower.includes("كود") || lower.includes("code") || lower.includes("برمج") || lower.includes("program")) {
         return [
-          { label: t(lang, "task.analyzing_requirements"), icon: "search" },
-          { label: t(lang, "task.writing_code"), icon: "terminal" },
-          { label: t(lang, "task.testing_code"), icon: "terminal" },
-          { label: t(lang, "task.optimizing"), icon: "sparkles" },
-          { label: t(lang, "task.final_verification"), icon: "check" },
+          { title: t(lang, "task.analyzing_requirements"), description: t(lang, "taskgroup.requirements_desc"), subtasks: [
+            { label: t(lang, "taskgroup.sub_parse_specs"), icon: "edit" },
+            { label: t(lang, "taskgroup.sub_plan_approach"), icon: "edit" },
+          ]},
+          { title: t(lang, "task.writing_code"), description: t(lang, "taskgroup.writing_desc"), subtasks: [
+            { label: t(lang, "taskgroup.sub_implement_logic"), icon: "terminal" },
+            { label: t(lang, "taskgroup.sub_handle_errors"), icon: "terminal" },
+          ]},
+          { title: t(lang, "task.testing_code"), description: t(lang, "taskgroup.testing_desc"), subtasks: [
+            { label: t(lang, "taskgroup.sub_run_tests"), icon: "terminal" },
+            { label: t(lang, "taskgroup.sub_fix_bugs"), icon: "edit" },
+          ]},
         ];
       } else {
         return [
-          { label: t(lang, "task.analyzing_request"), icon: "search" },
-          { label: t(lang, "task.processing"), icon: "terminal" },
-          { label: t(lang, "task.generating_response"), icon: "edit" },
-          { label: t(lang, "task.final_check"), icon: "check" },
+          { title: t(lang, "task.analyzing_request"), description: t(lang, "taskgroup.general_analyze_desc"), subtasks: [
+            { label: t(lang, "taskgroup.sub_understand_context"), icon: "edit" },
+            { label: t(lang, "taskgroup.sub_research_topic"), icon: "edit" },
+          ]},
+          { title: t(lang, "task.processing"), description: t(lang, "taskgroup.processing_desc"), subtasks: [
+            { label: t(lang, "taskgroup.sub_process_data"), icon: "terminal" },
+            { label: t(lang, "taskgroup.sub_generate_content"), icon: "edit" },
+          ]},
+          { title: t(lang, "task.generating_response"), description: t(lang, "taskgroup.response_desc"), subtasks: [
+            { label: t(lang, "taskgroup.sub_format_output"), icon: "edit" },
+            { label: t(lang, "taskgroup.sub_verify_quality"), icon: "terminal" },
+          ]},
         ];
       }
     };
 
-    const rawSteps = generateSteps(userMsg);
-    const taskSteps: TaskStep[] = rawSteps.map((s, i) => ({
-      id: `step-${Date.now()}-${i}`,
-      label: s.label,
-      icon: s.icon,
+    const rawGroups = generateGroups(userMsg);
+    const groups: TaskGroup[] = rawGroups.map((g, i) => ({
+      ...g,
+      id: `group-${Date.now()}-${i}`,
       status: i === 0 ? "running" : "pending",
+      isExpanded: i === 0,
     }));
 
-    // Show execution panel with steps
+    // Show execution panel
     setIsExecuting(true);
     setIsExecutionExpanded(true);
-    setExecutionSteps(taskSteps);
+    setExecutionGroups(groups);
     setExecutionFinalMessage("");
+    setExecutionElapsed(0);
 
-    // Progressively update each step
-    taskSteps.forEach((_, stepIdx) => {
+    // Start elapsed timer
+    if (executionTimerRef.current) clearInterval(executionTimerRef.current);
+    executionTimerRef.current = setInterval(() => {
+      setExecutionElapsed(prev => prev + 1);
+    }, 1000);
+
+    // Progressively update each group
+    groups.forEach((_, groupIdx) => {
       setTimeout(() => {
-        setExecutionSteps(prev => prev.map((s, i) => ({
-          ...s,
-          status: i < stepIdx + 1 ? "done" : i === stepIdx + 1 ? "running" : "pending",
+        setExecutionGroups(prev => prev.map((g, i) => ({
+          ...g,
+          status: i < groupIdx + 1 ? "done" : i === groupIdx + 1 ? "running" : "pending",
+          isExpanded: i === groupIdx + 1 || (i < groupIdx + 1 && g.isExpanded),
         })));
-      }, (stepIdx + 1) * 800);
+      }, (groupIdx + 1) * 1500);
     });
 
     // Final: mark all done, show response, add to chat
     setTimeout(() => {
+      if (executionTimerRef.current) clearInterval(executionTimerRef.current);
       const finalResponse = t(lang, "app.ai_response");
-      setExecutionSteps(prev => prev.map(s => ({ ...s, status: "done" as const })));
+      setExecutionGroups(prev => prev.map(g => ({ ...g, status: "done" as const })));
       setExecutionFinalMessage(finalResponse);
-      
-      // Add AI response to messages
       setMessages(prev => [...prev, { text: finalResponse, isUser: false }]);
       
-      // Collapse panel after a short delay
-      setTimeout(() => {
-        setIsExecutionExpanded(false);
-      }, 1500);
-      
-      // Hide execution panel after collapse animation
+      setTimeout(() => { setIsExecutionExpanded(false); }, 1500);
       setTimeout(() => {
         setIsExecuting(false);
-        setExecutionSteps([]);
+        setExecutionGroups([]);
         setExecutionFinalMessage("");
+        setExecutionElapsed(0);
       }, 4000);
-    }, (taskSteps.length + 1) * 800);
+    }, (groups.length + 1) * 1500);
   };
 
   const handleMic = async () => {
@@ -3043,16 +3110,20 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         <AnimatePresence>
           {isExecuting && (
             <ExecutionPanel
-              steps={executionSteps}
+              taskGroups={executionGroups}
               isVisible={isExecuting}
               isExpanded={isExecutionExpanded}
               onToggleExpand={() => setIsExecutionExpanded(!isExecutionExpanded)}
+              onToggleGroup={(id) => setExecutionGroups(prev => prev.map(g => g.id === id ? { ...g, isExpanded: !g.isExpanded } : g))}
               finalMessage={executionFinalMessage}
+              elapsedSeconds={executionElapsed}
               onContinue={() => {
                 toast.success(t(lang, "execution.can_continue"));
                 setIsExecuting(false);
-                setExecutionSteps([]);
+                setExecutionGroups([]);
                 setExecutionFinalMessage("");
+                setExecutionElapsed(0);
+                if (executionTimerRef.current) clearInterval(executionTimerRef.current);
               }}
             />
           )}
