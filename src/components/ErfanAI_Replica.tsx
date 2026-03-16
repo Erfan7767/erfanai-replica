@@ -2702,9 +2702,12 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
 
   // ── Execution Panel State ──
   const [executionSteps, setExecutionSteps] = useState<TaskStep[]>([]);
+  const [executionGroups, setExecutionGroups] = useState<TaskGroup[]>([]);
   const [isExecuting, setIsExecuting] = useState(false);
   const [isExecutionExpanded, setIsExecutionExpanded] = useState(true);
   const [executionFinalMessage, setExecutionFinalMessage] = useState("");
+  const [executionElapsed, setExecutionElapsed] = useState(0);
+  const executionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ── Speech-to-Text helpers ──
   const startSpeechRecognition = () => {
