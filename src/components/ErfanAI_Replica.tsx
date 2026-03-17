@@ -2431,71 +2431,78 @@ const CreditsPanel = ({ isOpen, onClose, onUpgrade, messagesCount }: { isOpen: b
   const dir = isRTL(lang) ? "rtl" : "ltr";
   const totalCredits = 300;
   const usedCredits = Math.min(messagesCount * 2, totalCredits);
-  const remainingCredits = Math.max(totalCredits - usedCredits, 0);
-  const percentage = (remainingCredits / totalCredits) * 100;
+  const freeCredits = 0;
+  const remainingCredits = 0;
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40" style={{ background: "hsl(0 0% 0% / 0.7)" }} />
-          <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className="fixed inset-x-3 top-16 z-50 flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden max-h-[80vh]" dir={dir}>
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
-              <button onClick={onClose} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"><X className="h-5 w-5" /></button>
-              <h3 className="text-lg font-bold text-foreground">{t(lang, "credits.title")}</h3>
-              <div className="w-8" />
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40" />
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.96 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            style={{ transformOrigin: isRTL(lang) ? "top left" : "top right" }}
+            className={`absolute ${isRTL(lang) ? "left-3" : "right-3"} top-[60px] z-50 w-[300px] rounded-2xl border border-border bg-card shadow-2xl overflow-hidden`}
+            dir={dir}
+          >
+            {/* Header: مجاني + ترقية */}
+            <div className="flex items-center justify-between px-5 pt-4 pb-3">
+              <button
+                onClick={() => { onUpgrade(); onClose(); }}
+                className="rounded-full border border-border bg-secondary px-5 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition-colors"
+              >
+                {t(lang, "profile.upgrade")}
+              </button>
+              <span className="text-base font-bold text-foreground">{t(lang, "profile.free")}</span>
             </div>
 
-            <div className="overflow-y-auto p-5 space-y-5">
-              {/* Credits Circle */}
-              <div className="flex flex-col items-center gap-3">
-                <div className="relative flex h-32 w-32 items-center justify-center">
-                  <svg className="h-32 w-32 -rotate-90" viewBox="0 0 120 120">
-                    <circle cx="60" cy="60" r="52" fill="none" stroke="hsl(var(--secondary))" strokeWidth="8" />
-                    <motion.circle cx="60" cy="60" r="52" fill="none" stroke="hsl(var(--accent))" strokeWidth="8" strokeLinecap="round" strokeDasharray={`${2 * Math.PI * 52}`} initial={{ strokeDashoffset: 2 * Math.PI * 52 }} animate={{ strokeDashoffset: 2 * Math.PI * 52 * (1 - percentage / 100) }} transition={{ duration: 1, ease: "easeOut" }} />
-                  </svg>
-                  <div className="absolute flex flex-col items-center">
-                    <span className="text-2xl font-bold text-foreground">{remainingCredits}</span>
-                    <span className="text-[10px] text-muted-foreground">{t(lang, "credits.of")} {totalCredits}</span>
+            {/* Dashed separator */}
+            <div className="mx-5 border-t border-dashed border-border" />
+
+            {/* الأرصدة */}
+            <div className="px-5 py-3 space-y-3">
+              {/* Credits row */}
+              <div className="flex items-center justify-between">
+                <span className="text-lg font-bold text-foreground">{remainingCredits}</span>
+                <div className="flex items-center gap-2">
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">{t(lang, "profile.credits")}</span>
+                  <Sparkles className="h-4 w-4 text-foreground" />
+                </div>
+              </div>
+              {/* Free credits row */}
+              <div className="flex items-center justify-between">
+                <span className="text-lg font-bold text-foreground">{freeCredits}</span>
+                <span className="text-sm text-muted-foreground">{t(lang, "credits.free_credits")}</span>
+              </div>
+
+              {/* Daily renewal row */}
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-lg font-bold text-foreground">{totalCredits}</span>
+                  <div className="flex items-center gap-2">
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">{t(lang, "credits.daily_renewal")}</span>
+                    <CalendarCheck className="h-4 w-4 text-foreground" />
                   </div>
                 </div>
-                <p className="text-sm font-semibold text-foreground">{t(lang, "credits.remaining")}</p>
+                <p className={`text-xs text-muted-foreground mt-1 ${isRTL(lang) ? "text-right" : "text-left"}`}>
+                  {t(lang, "credits.renews_daily")}
+                </p>
               </div>
-
-              {/* Plan info */}
-              <div className="rounded-xl border border-border bg-secondary/50 p-4">
-                <div className="flex items-center justify-between">
-                  <span className="rounded-full bg-accent/15 px-3 py-1 text-xs font-bold text-accent">{t(lang, "credits.free_plan")}</span>
-                  <span className="text-xs text-muted-foreground">{t(lang, "credits.plan")}</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">{t(lang, "credits.renews")}</p>
-              </div>
-
-              {/* Usage stats */}
-              <div>
-                <h4 className="text-sm font-bold text-foreground mb-3">{t(lang, "credits.usage")}</h4>
-                <div className="space-y-2">
-                  {[
-                    { icon: MessageSquare, label: "credits.messages_sent", value: messagesCount },
-                    { icon: Image, label: "credits.images_generated", value: 0 },
-                    { icon: FileText, label: "credits.files_analyzed", value: 0 },
-                  ].map((stat, i) => (
-                    <div key={i} className="flex items-center justify-between rounded-xl bg-secondary px-4 py-3">
-                      <span className="text-sm font-semibold text-foreground">{stat.value}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">{t(lang, stat.label)}</span>
-                        <stat.icon className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Get more */}
-              <button onClick={() => { onUpgrade(); onClose(); }} className="w-full rounded-xl bg-accent text-accent-foreground py-3.5 text-sm font-bold hover:opacity-90 transition-opacity active:scale-[0.98]">
-                {t(lang, "credits.get_more")}
-              </button>
             </div>
+
+            {/* View usage link */}
+            <button
+              onClick={() => { toast(t(lang, "coming_soon")); onClose(); }}
+              className="flex w-full items-center justify-center gap-1.5 border-t border-border px-5 py-3 text-sm font-semibold text-foreground hover:bg-secondary/50 transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+              <span>{t(lang, "credits.view_usage")}</span>
+            </button>
           </motion.div>
         </>
       )}
@@ -3075,7 +3082,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
             <Bell className="h-5 w-5" />
             {(() => { const notifs = loadNotifications(); const unread = notifs.filter(n => !n.read).length; return unread > 0 ? <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">{unread}</span> : null; })()}
           </button>
-          <button onClick={() => toast(`✨ ${t(lang, "coming_soon")}`)} className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"><Sparkles className="h-5 w-5" /></button>
+          <button onClick={() => setIsCreditsOpen(true)} className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"><Sparkles className="h-5 w-5" /></button>
           <button onClick={() => setIsProfileOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-full bg-primary overflow-hidden transition-transform hover:scale-105">
             {headerProfile.avatar ? (
               <img src={headerProfile.avatar} alt={headerProfile.name} className="h-full w-full object-cover" />

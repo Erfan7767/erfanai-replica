@@ -1615,6 +1615,18 @@ const translations: Record<string, Record<Lang, string>> = {
   "credits.renews": {
     "العربية": "تتجدد شهرياً", "English": "Renews monthly", "Français": "Renouvellement mensuel", "Español": "Se renueva mensualmente", "Deutsch": "Monatliche Erneuerung", "Türkçe": "Aylık yenilenir",
   },
+  "credits.free_credits": {
+    "العربية": "الأرصدة المجانية", "English": "Free Credits", "Français": "Crédits gratuits", "Español": "Créditos gratuitos", "Deutsch": "Kostenlose Credits", "Türkçe": "Ücretsiz krediler",
+  },
+  "credits.daily_renewal": {
+    "العربية": "تجديد النقاط اليومي", "English": "Daily Points Renewal", "Français": "Renouvellement quotidien", "Español": "Renovación diaria", "Deutsch": "Tägliche Erneuerung", "Türkçe": "Günlük yenileme",
+  },
+  "credits.renews_daily": {
+    "العربية": "تحديث إلى 300 في 00:00 كل يوم", "English": "Resets to 300 at 00:00 daily", "Français": "Réinitialisé à 300 à 00h00 chaque jour", "Español": "Se restablece a 300 a las 00:00 diariamente", "Deutsch": "Wird täglich um 00:00 auf 300 zurückgesetzt", "Türkçe": "Her gün 00:00'da 300'e sıfırlanır",
+  },
+  "credits.view_usage": {
+    "العربية": "عرض الاستخدام", "English": "View Usage", "Français": "Voir l'utilisation", "Español": "Ver uso", "Deutsch": "Nutzung anzeigen", "Türkçe": "Kullanımı görüntüle",
+  },
   "credits.usage": {
     "العربية": "الاستخدام", "English": "Usage", "Français": "Utilisation", "Español": "Uso", "Deutsch": "Nutzung", "Türkçe": "Kullanım",
   },
