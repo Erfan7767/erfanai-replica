@@ -3082,7 +3082,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
             <Bell className="h-5 w-5" />
             {(() => { const notifs = loadNotifications(); const unread = notifs.filter(n => !n.read).length; return unread > 0 ? <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">{unread}</span> : null; })()}
           </button>
-          <button onClick={() => toast(`✨ ${t(lang, "coming_soon")}`)} className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"><Sparkles className="h-5 w-5" /></button>
+          <button onClick={() => setIsCreditsOpen(true)} className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"><Sparkles className="h-5 w-5" /></button>
           <button onClick={() => setIsProfileOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-full bg-primary overflow-hidden transition-transform hover:scale-105">
             {headerProfile.avatar ? (
               <img src={headerProfile.avatar} alt={headerProfile.name} className="h-full w-full object-cover" />
