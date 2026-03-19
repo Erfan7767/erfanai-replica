@@ -2851,6 +2851,9 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     const userMsg = inputValue;
     setInputValue("");
     setAttachedFiles([]);
+    
+    // Track credit usage
+    consumeCredits(2);
 
     // Generate Manus-style task groups based on user message
     const generateGroups = (msg: string): Omit<TaskGroup, "id" | "status" | "isExpanded">[] => {
