@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, createContext, useContext } from "react";
+import { useState, useEffect, useRef, createContext, useContext, useCallback } from "react";
+import { useCredits } from "@/hooks/useCredits";
 import { motion, AnimatePresence } from "framer-motion";
 import ErfanAILogo from "@/components/ErfanAILogo";
 import { toast } from "sonner";
