@@ -2427,13 +2427,12 @@ const HelpPanel = ({ isOpen, onClose, onUpgrade }: { isOpen: boolean; onClose: (
 };
 
 /* ═══════════════════════ CREDITS PANEL ═══════════════════════ */
-const CreditsPanel = ({ isOpen, onClose, onUpgrade, messagesCount }: { isOpen: boolean; onClose: () => void; onUpgrade: () => void; messagesCount: number }) => {
+const CreditsPanel = ({ isOpen, onClose, onUpgrade, usage }: { isOpen: boolean; onClose: () => void; onUpgrade: () => void; usage: { credits_used: number; total_daily_credits: number; remaining: number } }) => {
   const { lang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
-  const totalCredits = 300;
-  const usedCredits = Math.min(messagesCount * 2, totalCredits);
-  const freeCredits = 0;
-  const remainingCredits = 0;
+  const totalCredits = usage.total_daily_credits;
+  const remainingCredits = Math.max(0, usage.remaining);
+  const freeCredits = Math.max(0, usage.remaining);
 
   return (
     <AnimatePresence>
