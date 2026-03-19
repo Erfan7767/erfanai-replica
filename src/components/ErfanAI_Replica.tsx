@@ -3267,7 +3267,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       <ProfilePanel isOpen={isProfilePanelOpen} onClose={() => setIsProfilePanelOpen(false)} onLogout={onLogout} />
       <KnowledgePanel isOpen={isKnowledgeOpen} onClose={() => setIsKnowledgeOpen(false)} />
       <HelpPanel isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} onUpgrade={() => { setIsHelpOpen(false); setMorePanel("upgrade_pro"); }} />
-      <CreditsPanel isOpen={isCreditsOpen} onClose={() => setIsCreditsOpen(false)} onUpgrade={() => { setIsCreditsOpen(false); setMorePanel("upgrade_pro"); }} messagesCount={messages.filter(m => m.isUser).length} />
+      <CreditsPanel isOpen={isCreditsOpen} onClose={() => setIsCreditsOpen(false)} onUpgrade={() => { setIsCreditsOpen(false); setMorePanel("upgrade_pro"); }} usage={usage} />
       <SearchConversationsPanel isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} messages={messages} onSelectMessage={(msg) => { setInputValue(msg); }} />
       <DiscoverPanel isOpen={isDiscoverOpen} onClose={() => setIsDiscoverOpen(false)} onUseTemplate={(prompt) => { setInputValue(prompt); }} />
       <ScheduleTaskPanel isOpen={morePanel === "schedule_task"} onClose={() => setMorePanel(null)} />
