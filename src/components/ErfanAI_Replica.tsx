@@ -2646,6 +2646,7 @@ const CustomizeCarousel = ({ lang, dir }: { lang: Lang; dir: string }) => {
 
 const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const { lang } = useLang();
+  const { usage, consumeCredits } = useCredits();
   const dir = isRTL(lang) ? "rtl" : "ltr";
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
