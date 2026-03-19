@@ -14,13 +14,43 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      user_usage: {
+        Row: {
+          created_at: string
+          credits_used: number
+          date: string
+          id: string
+          total_daily_credits: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credits_used?: number
+          date?: string
+          id?: string
+          total_daily_credits?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credits_used?: number
+          date?: string
+          id?: string
+          total_daily_credits?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_today_usage: { Args: never; Returns: Json }
+      increment_credits: { Args: { p_cost?: number }; Returns: Json }
     }
     Enums: {
       [_ in never]: never
