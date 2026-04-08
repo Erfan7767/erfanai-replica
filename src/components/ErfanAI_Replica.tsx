@@ -653,12 +653,12 @@ const NotificationsPanel = ({ isOpen, onClose, onUpgrade }: { isOpen: boolean; o
 
 /* ═══════════════════════ MODEL SELECTOR ═══════════════════════ */
 const modelData = [
-  { id: "ErfanAI Max", label: "ErfanAI 1.6 Max", badge: "Pro", descKey: "model.max_desc", badgeColor: "bg-primary text-primary-foreground" },
-  { id: "ErfanAI Pro", label: "ErfanAI 1.6", badge: "Pro", descKey: "model.pro_desc", badgeColor: "bg-primary text-primary-foreground" },
-  { id: "ErfanAI Lite", label: "ErfanAI 1.6 Lite", badge: null, descKey: "model.lite_desc", badgeColor: "" },
+  { id: "ErfanAI Max", label: "ErfanAI 1.6 Max", badge: "Pro", descKey: "model.max_desc", badgeColor: "bg-primary text-primary-foreground", isPro: true },
+  { id: "ErfanAI Pro", label: "ErfanAI 1.6", badge: "Pro", descKey: "model.pro_desc", badgeColor: "bg-primary text-primary-foreground", isPro: true },
+  { id: "ErfanAI Lite", label: "ErfanAI 1.6 Lite", badge: null, descKey: "model.lite_desc", badgeColor: "", isPro: false },
 ];
 
-const ModelSelector = ({ isOpen, onClose, currentModel, onSelect }: { isOpen: boolean; onClose: () => void; currentModel: string; onSelect: (m: string) => void }) => {
+const ModelSelector = ({ isOpen, onClose, currentModel, onSelect, onUpgrade }: { isOpen: boolean; onClose: () => void; currentModel: string; onSelect: (m: string) => void; onUpgrade: () => void }) => {
   const { lang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
   return (
@@ -669,7 +669,7 @@ const ModelSelector = ({ isOpen, onClose, currentModel, onSelect }: { isOpen: bo
           <motion.div initial={{ opacity: 0, y: -10, scaleY: 0.95 }} animate={{ opacity: 1, y: 0, scaleY: 1 }} exit={{ opacity: 0, y: -10, scaleY: 0.95 }} transition={{ duration: 0.2 }} style={{ transformOrigin: "top center" }} className="absolute right-4 left-4 top-[56px] z-50 rounded-2xl border border-border bg-card shadow-2xl overflow-hidden" dir={dir}>
             <div className="py-2">
               {modelData.map((model) => (
-                <button key={model.id} onClick={() => { onSelect(model.id); onClose(); }} className={`flex w-full items-center justify-between px-5 py-3.5 transition-colors ${currentModel === model.id ? "bg-secondary/60" : "hover:bg-secondary/40"}`}>
+                <button key={model.id} onClick={() => { if (model.isPro) { onClose(); onUpgrade(); } else { onSelect(model.id); onClose(); } }} className={`flex w-full items-center justify-between px-5 py-3.5 transition-colors ${currentModel === model.id ? "bg-secondary/60" : "hover:bg-secondary/40"}`}>
                   <div className="w-6 flex items-center justify-center">
                     {currentModel === model.id && (
                       <svg className="h-5 w-5 text-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
@@ -691,7 +691,6 @@ const ModelSelector = ({ isOpen, onClose, currentModel, onSelect }: { isOpen: bo
     </AnimatePresence>
   );
 };
-
 /* ═══════════════════════ SETTINGS HELPERS ═══════════════════════ */
 const SETTINGS_KEY = "erfanai_settings";
 
@@ -2274,52 +2273,143 @@ const PlaybookPanel = ({ isOpen, onClose, onUse }: { isOpen: boolean; onClose: (
 };
 
 /* ═══════════════════════ UPGRADE PRO PANEL ═══════════════════════ */
+const pricingPlans = [
+  {
+    id: "standard",
+    priceMonthly: 15,
+    priceYearly: 12,
+    descKey: "pricing.standard_desc",
+    highlighted: false,
+    monthlyCredits: 4000,
+    features: [
+      { icon: RotateCcw, key: "pricing.f_refresh" },
+      { icon: Sparkles, key: "pricing.f_monthly_4k" },
+      { icon: Search, key: "pricing.f_research_standard" },
+      { icon: Globe, key: "pricing.f_websites_standard" },
+      { icon: Presentation, key: "pricing.f_slides_standard" },
+      { icon: Target, key: "pricing.f_scaling_standard" },
+      { icon: Zap, key: "pricing.f_beta" },
+      { icon: BarChart3, key: "pricing.f_concurrent" },
+      { icon: CalendarCheck, key: "pricing.f_scheduled" },
+    ],
+  },
+  {
+    id: "plus",
+    priceMonthly: 30,
+    priceYearly: 25,
+    descKey: "pricing.plus_desc",
+    highlighted: true,
+    monthlyCredits: 8000,
+    creditOptions: [4000, 8000, 12000],
+    features: [
+      { icon: RotateCcw, key: "pricing.f_refresh" },
+      { icon: Sparkles, key: "pricing.f_monthly_8k" },
+      { icon: Search, key: "pricing.f_research_plus" },
+      { icon: Globe, key: "pricing.f_websites_plus" },
+      { icon: Presentation, key: "pricing.f_slides_plus" },
+      { icon: Target, key: "pricing.f_scaling_plus" },
+      { icon: Zap, key: "pricing.f_beta" },
+      { icon: BarChart3, key: "pricing.f_concurrent" },
+      { icon: CalendarCheck, key: "pricing.f_scheduled" },
+    ],
+  },
+  {
+    id: "max",
+    priceMonthly: 150,
+    priceYearly: 125,
+    descKey: "pricing.max_desc",
+    highlighted: false,
+    monthlyCredits: 40000,
+    features: [
+      { icon: RotateCcw, key: "pricing.f_refresh" },
+      { icon: Sparkles, key: "pricing.f_monthly_40k" },
+      { icon: Search, key: "pricing.f_research_max" },
+      { icon: Globe, key: "pricing.f_websites_max" },
+      { icon: Presentation, key: "pricing.f_slides_max" },
+      { icon: Target, key: "pricing.f_scaling_max" },
+      { icon: Zap, key: "pricing.f_beta" },
+      { icon: BarChart3, key: "pricing.f_concurrent" },
+      { icon: CalendarCheck, key: "pricing.f_scheduled" },
+    ],
+  },
+];
+
 const UpgradeProPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const { lang } = useLang();
-  const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
-  const features = ["pro.feature_1", "pro.feature_2", "pro.feature_3", "pro.feature_4", "pro.feature_5", "pro.feature_6"];
+  const dir = isRTL(lang) ? "rtl" : "ltr";
+  const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
+  const [selectedCredits, setSelectedCredits] = useState(8000);
 
   return (
-    <MorePanelWrapper isOpen={isOpen} onClose={onClose} title={t(lang, "pro.title")} icon={Zap}>
-      <div className="space-y-5">
-        {/* Hero */}
-        <div className="text-center">
-          <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/15">
-            <Zap className="h-8 w-8 text-accent" />
-          </div>
-          <p className="text-sm text-muted-foreground">{t(lang, "pro.subtitle")}</p>
-        </div>
-
-        {/* Billing toggle */}
-        <div className="flex items-center justify-center gap-1 rounded-xl bg-secondary p-1">
-          <button onClick={() => setBilling("monthly")} className={`flex-1 rounded-lg py-2.5 text-xs font-semibold transition-colors ${billing === "monthly" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>{t(lang, "pro.monthly")}</button>
-          <button onClick={() => setBilling("yearly")} className={`flex-1 rounded-lg py-2.5 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 ${billing === "yearly" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>
-            {t(lang, "pro.yearly")}
-            <span className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold text-accent">{t(lang, "pro.save")}</span>
-          </button>
-        </div>
-
-        {/* Price */}
-        <div className="text-center">
-          <span className="text-3xl font-bold text-foreground">{t(lang, billing === "monthly" ? "pro.price_monthly" : "pro.price_yearly")}</span>
-        </div>
-
-        {/* Features */}
-        <div className="space-y-2.5">
-          {features.map(f => (
-            <div key={f} className="flex items-center gap-3 rounded-xl bg-secondary px-4 py-3">
-              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-accent/20"><Sparkles className="h-3 w-3 text-accent" /></div>
-              <span className="text-sm text-foreground">{t(lang, f)}</span>
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40" style={{ background: "hsl(0 0% 0% / 0.7)" }} />
+          <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className="fixed inset-x-3 top-8 bottom-8 z-50 flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden" dir={dir}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 shrink-0">
+              <h2 className="text-xl font-bold text-foreground">{t(lang, "pricing.title")}</h2>
+              <button onClick={onClose} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"><X className="h-5 w-5" /></button>
             </div>
-          ))}
-        </div>
 
-        {/* Subscribe button */}
-        <button onClick={() => { toast.success(t(lang, "pro.subscribe")); onClose(); }} className="w-full rounded-xl bg-accent text-accent-foreground py-3.5 text-sm font-bold hover:opacity-90 transition-opacity active:scale-[0.98]">
-          {t(lang, "pro.subscribe")}
-        </button>
-      </div>
-    </MorePanelWrapper>
+            {/* Billing Toggle */}
+            <div className="flex items-center justify-center gap-1 mx-5 mb-4 rounded-xl bg-secondary p-1">
+              <button onClick={() => setBilling("monthly")} className={`flex-1 rounded-lg py-2.5 text-xs font-semibold transition-colors ${billing === "monthly" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>{t(lang, "pro.monthly")}</button>
+              <button onClick={() => setBilling("yearly")} className={`flex-1 rounded-lg py-2.5 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 ${billing === "yearly" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}>
+                {t(lang, "pro.yearly")} · {t(lang, "pricing.save_17")}
+              </button>
+            </div>
+
+            {/* Plans */}
+            <div className="flex-1 overflow-y-auto px-5 pb-6 space-y-5">
+              {pricingPlans.map((plan) => {
+                const price = billing === "monthly" ? plan.priceMonthly : plan.priceYearly;
+                return (
+                  <div key={plan.id} className={`rounded-2xl border p-5 ${plan.highlighted ? "border-accent shadow-lg shadow-accent/10" : "border-border"}`} style={plan.highlighted ? { borderWidth: 2 } : {}}>
+                    {/* Price */}
+                    <div className="mb-1">
+                      <span className="text-3xl font-bold text-foreground">${price}</span>
+                      <span className="text-sm text-muted-foreground"> / {t(lang, "pricing.month")}</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-4">{t(lang, plan.descKey)}</p>
+
+                    {/* Upgrade Button */}
+                    <button onClick={() => { toast.success(t(lang, "pro.subscribe")); onClose(); }} className={`w-full rounded-full py-3 text-sm font-bold transition-opacity hover:opacity-90 active:scale-[0.98] mb-4 ${plan.highlighted ? "bg-accent text-accent-foreground" : "bg-foreground text-background"}`}>
+                      {t(lang, "pricing.upgrade")}
+                    </button>
+
+                    {/* Credits selector for plus plan */}
+                    {plan.creditOptions && (
+                      <div className="relative mb-4">
+                        <select value={selectedCredits} onChange={e => setSelectedCredits(Number(e.target.value))} className="w-full appearance-none rounded-xl bg-secondary px-4 py-3 text-sm text-foreground outline-none border-none cursor-pointer" style={{ direction: "ltr" }}>
+                          {plan.creditOptions.map(c => (
+                            <option key={c} value={c}>{c.toLocaleString()} {t(lang, "pricing.credits_month")}</option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute top-1/2 -translate-y-1/2 right-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      </div>
+                    )}
+
+                    {/* Features */}
+                    <div className="space-y-3">
+                      {plan.features.map((feat, i) => (
+                        <div key={i} className="flex items-center gap-3">
+                          <feat.icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <span className="text-sm text-muted-foreground">{t(lang, feat.key)}</span>
+                          {(feat.key.includes("refresh") || feat.key.includes("monthly")) && (
+                            <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
 
@@ -3265,7 +3355,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       }} />
       <ProfileDropdown isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} onLogout={onLogout} onOpenSettings={() => setIsSettingsOpen(true)} onOpenProfile={() => setIsProfilePanelOpen(true)} onOpenKnowledge={() => setIsKnowledgeOpen(true)} onUpgrade={() => setMorePanel("upgrade_pro")} onHome={onLogout} onHelp={() => setIsHelpOpen(true)} />
       <NotificationsPanel isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} onUpgrade={() => { setIsNotificationsOpen(false); setMorePanel("upgrade_pro"); }} />
-      <ModelSelector isOpen={isModelSelectorOpen} onClose={() => setIsModelSelectorOpen(false)} currentModel={currentModel} onSelect={(m) => { setCurrentModel(m); toast(`${t(lang, "model.switched_to")} ${m}`); }} />
+      <ModelSelector isOpen={isModelSelectorOpen} onClose={() => setIsModelSelectorOpen(false)} currentModel={currentModel} onSelect={(m) => { setCurrentModel(m); toast(`${t(lang, "model.switched_to")} ${m}`); }} onUpgrade={() => setMorePanel("upgrade_pro")} />
       <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} onChangeModel={(m) => setCurrentModel(m)} onClearHistory={() => { setMessages([]); setActiveChips([]); }} onLogout={onLogout} currentModel={currentModel} />
       <ProfilePanel isOpen={isProfilePanelOpen} onClose={() => setIsProfilePanelOpen(false)} onLogout={onLogout} />
       <KnowledgePanel isOpen={isKnowledgeOpen} onClose={() => setIsKnowledgeOpen(false)} />
