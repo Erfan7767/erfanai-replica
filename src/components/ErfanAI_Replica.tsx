@@ -2275,7 +2275,24 @@ const PlaybookPanel = ({ isOpen, onClose, onUse }: { isOpen: boolean; onClose: (
 /* ═══════════════════════ UPGRADE PRO PANEL ═══════════════════════ */
 const pricingPlans = [
   {
-    id: "standard",
+    id: "free",
+    priceMonthly: 0,
+    priceYearly: 0,
+    descKey: "pricing.free_desc",
+    highlighted: false,
+    monthlyCredits: 0,
+    isFree: true,
+    features: [
+      { icon: RotateCcw, key: "pricing.f_refresh_free" },
+      { icon: Sparkles, key: "pricing.f_monthly_free" },
+      { icon: Search, key: "pricing.f_research_free" },
+      { icon: Globe, key: "pricing.f_websites_free" },
+      { icon: Presentation, key: "pricing.f_slides_free" },
+      { icon: BarChart3, key: "pricing.f_concurrent_free" },
+      { icon: CalendarCheck, key: "pricing.f_scheduled_free" },
+    ],
+  },
+  {
     priceMonthly: 15,
     priceYearly: 12,
     descKey: "pricing.standard_desc",
