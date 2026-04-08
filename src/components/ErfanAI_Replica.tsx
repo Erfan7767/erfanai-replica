@@ -2275,7 +2275,24 @@ const PlaybookPanel = ({ isOpen, onClose, onUse }: { isOpen: boolean; onClose: (
 /* ═══════════════════════ UPGRADE PRO PANEL ═══════════════════════ */
 const pricingPlans = [
   {
-    id: "standard",
+    id: "free",
+    priceMonthly: 0,
+    priceYearly: 0,
+    descKey: "pricing.free_desc",
+    highlighted: false,
+    monthlyCredits: 0,
+    isFree: true,
+    features: [
+      { icon: RotateCcw, key: "pricing.f_refresh_free" },
+      { icon: Sparkles, key: "pricing.f_monthly_free" },
+      { icon: Search, key: "pricing.f_research_free" },
+      { icon: Globe, key: "pricing.f_websites_free" },
+      { icon: Presentation, key: "pricing.f_slides_free" },
+      { icon: BarChart3, key: "pricing.f_concurrent_free" },
+      { icon: CalendarCheck, key: "pricing.f_scheduled_free" },
+    ],
+  },
+  {
     priceMonthly: 15,
     priceYearly: 12,
     descKey: "pricing.standard_desc",
@@ -2368,15 +2385,27 @@ const UpgradeProPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
                   <div key={plan.id} className={`rounded-2xl border p-5 ${plan.highlighted ? "border-accent shadow-lg shadow-accent/10" : "border-border"}`} style={plan.highlighted ? { borderWidth: 2 } : {}}>
                     {/* Price */}
                     <div className="mb-1">
-                      <span className="text-3xl font-bold text-foreground">${price}</span>
-                      <span className="text-sm text-muted-foreground"> / {t(lang, "pricing.month")}</span>
+                      {(plan as any).isFree ? (
+                        <span className="text-3xl font-bold text-foreground">{t(lang, "pricing.free")}</span>
+                      ) : (
+                        <>
+                          <span className="text-3xl font-bold text-foreground">${price}</span>
+                          <span className="text-sm text-muted-foreground"> / {t(lang, "pricing.month")}</span>
+                        </>
+                      )}
                     </div>
                     <p className="text-sm text-muted-foreground mb-4">{t(lang, plan.descKey)}</p>
 
-                    {/* Upgrade Button */}
-                    <button onClick={() => { toast.success(t(lang, "pro.subscribe")); onClose(); }} className={`w-full rounded-full py-3 text-sm font-bold transition-opacity hover:opacity-90 active:scale-[0.98] mb-4 ${plan.highlighted ? "bg-accent text-accent-foreground" : "bg-foreground text-background"}`}>
-                      {t(lang, "pricing.upgrade")}
-                    </button>
+                    {/* Button */}
+                    {(plan as any).isFree ? (
+                      <button disabled className="w-full rounded-full py-3 text-sm font-bold mb-4 bg-secondary text-muted-foreground cursor-default">
+                        {t(lang, "pricing.current_plan")}
+                      </button>
+                    ) : (
+                      <button onClick={() => { toast.success(t(lang, "pro.subscribe")); onClose(); }} className={`w-full rounded-full py-3 text-sm font-bold transition-opacity hover:opacity-90 active:scale-[0.98] mb-4 ${plan.highlighted ? "bg-accent text-accent-foreground" : "bg-foreground text-background"}`}>
+                        {t(lang, "pricing.upgrade")}
+                      </button>
+                    )}
 
                     {/* Credits selector for plus plan */}
                     {plan.creditOptions && (
