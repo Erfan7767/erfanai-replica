@@ -4198,13 +4198,29 @@ const ErfanReplica = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="flex min-h-screen flex-col items-center justify-center gradient-bg-dark">
         <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="relative"
+          animate={{ scale: [1, 1.08, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         >
-          <ErfanAILogo className="h-16 w-16" />
+          <motion.div
+            className="absolute inset-0 rounded-full"
+            style={{ background: "radial-gradient(circle, hsl(43 80% 55% / 0.2), transparent 70%)" }}
+            animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <ErfanAILogo className="h-20 w-20 relative z-10" />
         </motion.div>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0.3, 0.7, 0.3] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="mt-6 text-sm font-medium"
+          style={{ color: "hsl(43 80% 55%)" }}
+        >
+          ErfanAI
+        </motion.p>
       </div>
     );
   }
