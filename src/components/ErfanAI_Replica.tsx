@@ -92,29 +92,53 @@ const LandingPage = ({ onLogin, onRegister }: { onLogin: () => void; onRegister:
   ];
 
   return (
-    <div className="relative flex min-h-screen flex-col font-cairo" dir={dir} style={{ background: "#f5f5f4" }}>
-      <header className="relative flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-2">
-          <ErfanAILogo className="h-12 w-12" color="#1a1a1a" />
-          <span className="text-xl font-bold" style={{ color: "#1a1a1a" }}>ErfanAI</span>
+    <div className="relative flex min-h-screen flex-col font-cairo gradient-bg-light noise-overlay" dir={dir}>
+      {/* Decorative gradient orbs */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <motion.div
+          className="absolute -top-32 -right-32 h-96 w-96 rounded-full opacity-20"
+          style={{ background: "radial-gradient(circle, hsl(43 80% 60%), transparent 70%)" }}
+          animate={{ scale: [1, 1.15, 1], opacity: [0.15, 0.25, 0.15] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute -bottom-40 -left-40 h-[500px] w-[500px] rounded-full opacity-15"
+          style={{ background: "radial-gradient(circle, hsl(142 71% 50%), transparent 70%)" }}
+          animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.2, 0.1] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
+      </div>
+
+      <header className="relative z-10 flex items-center justify-between px-5 py-4">
+        <div className="flex items-center gap-2.5">
+          <motion.div animate={{ rotate: [0, 5, -5, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}>
+            <ErfanAILogo className="h-11 w-11" color="#1a1a1a" />
+          </motion.div>
+          <span className="text-xl font-extrabold tracking-tight" style={{ color: "#1a1a1a" }}>ErfanAI</span>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={onLogin} className="rounded-lg px-4 py-2 text-sm font-semibold transition-colors hover:opacity-90" style={{ background: "#1a1a1a", color: "#fff" }}>{t(lang, "landing.login")}</button>
-          <button onClick={onRegister} className="rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100" style={{ borderColor: "#d4d4d4", color: "#525252" }}>{t(lang, "landing.register")}</button>
-          <button className="p-2 transition-colors hover:bg-gray-200 rounded-lg" style={{ color: "#525252" }} onClick={() => setIsMenuOpen(true)}><Menu className="h-5 w-5" /></button>
+        <div className="flex items-center gap-2.5">
+          <button onClick={onLogin} className="rounded-xl px-5 py-2.5 text-sm font-semibold transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]" style={{ background: "linear-gradient(135deg, #1a1a1a, #333)", color: "#fff" }}>{t(lang, "landing.login")}</button>
+          <button onClick={onRegister} className="rounded-xl border px-5 py-2.5 text-sm font-medium transition-all hover:bg-white/80 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] backdrop-blur-sm" style={{ borderColor: "#d4d4d4", color: "#525252", background: "hsl(0 0% 100% / 0.5)" }}>{t(lang, "landing.register")}</button>
+          <button className="p-2.5 transition-all hover:bg-white/60 rounded-xl" style={{ color: "#525252" }} onClick={() => setIsMenuOpen(true)}><Menu className="h-5 w-5" /></button>
         </div>
         <LandingMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} onLogin={onLogin} />
       </header>
 
-      <div className="flex flex-1 flex-col items-center justify-center px-4 pb-10">
-        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mb-8 text-center text-2xl font-bold leading-relaxed" style={{ color: "#1a1a1a" }}>{t(lang, "landing.how_can_i_help")}</motion.h1>
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 pb-10">
+        <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1, type: "spring", stiffness: 200 }} className="mb-6 animate-float">
+          <ErfanAILogo className="h-20 w-20" color="#1a1a1a" />
+        </motion.div>
+        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-2 text-center text-3xl font-extrabold leading-relaxed gradient-hero">{t(lang, "landing.how_can_i_help")}</motion.h1>
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }} className="mb-8 text-center text-sm" style={{ color: "#737373" }}>
+          {t(lang, "landing.subtitle") || "ذكاء اصطناعي متقدم لمساعدتك في كل شيء"}
+        </motion.p>
 
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="w-full max-w-lg rounded-2xl border p-4 shadow-sm" style={{ background: "#fff", borderColor: "#e5e5e5" }}>
-          <textarea value={landingInput} onChange={(e) => setLandingInput(e.target.value)} placeholder={t(lang, "landing.input_placeholder")} rows={3} className="w-full resize-none bg-transparent text-sm outline-none leading-relaxed" style={{ color: "#1a1a1a" }} dir={dir} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleLandingSend(); } }} />
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="w-full max-w-lg rounded-2xl p-4 shadow-xl glass-light animate-border-glow hover-lift" style={{ borderColor: "hsl(43 80% 55% / 0.2)" }}>
+          <textarea value={landingInput} onChange={(e) => setLandingInput(e.target.value)} placeholder={t(lang, "landing.input_placeholder")} rows={3} className="w-full resize-none bg-transparent text-sm outline-none leading-relaxed placeholder:text-gray-400" style={{ color: "#1a1a1a" }} dir={dir} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleLandingSend(); } }} />
           {landingFiles.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
               {landingFiles.map((file, i) => (
-                <div key={i} className="flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs" style={{ borderColor: "#d4d4d4", color: "#525252" }}>
+                <div key={i} className="flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs backdrop-blur-sm" style={{ borderColor: "#d4d4d4", color: "#525252", background: "hsl(0 0% 100% / 0.5)" }}>
                   {file.type.startsWith("image/") ? <Image className="h-3.5 w-3.5" /> : <FileText className="h-3.5 w-3.5" />}
                   <span className="max-w-[100px] truncate">{file.name}</span>
                   <button onClick={() => setLandingFiles(prev => prev.filter((_, idx) => idx !== i))} className="hover:text-red-500"><X className="h-3 w-3" /></button>
@@ -122,25 +146,30 @@ const LandingPage = ({ onLogin, onRegister }: { onLogin: () => void; onRegister:
               ))}
             </div>
           )}
-          <div className="mt-2 flex items-center justify-between">
-            <button onClick={handleLandingSend} disabled={!landingInput.trim() && landingFiles.length === 0} className="flex h-9 w-9 items-center justify-center rounded-full transition-colors disabled:opacity-30" style={{ background: "#1a1a1a", color: "#fff" }}><Send className="h-4 w-4" /></button>
+          <div className="mt-3 flex items-center justify-between">
+            <motion.button onClick={handleLandingSend} disabled={!landingInput.trim() && landingFiles.length === 0} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex h-10 w-10 items-center justify-center rounded-full transition-all disabled:opacity-30 shadow-lg" style={{ background: "linear-gradient(135deg, hsl(43 80% 50%), hsl(43 70% 45%))", color: "#fff" }}><Send className="h-4 w-4" /></motion.button>
             <div className="flex items-center gap-2">
-              <button onClick={() => landingFileRef.current?.click()} className="flex h-9 w-9 items-center justify-center rounded-full border transition-colors hover:bg-gray-100" style={{ borderColor: "#d4d4d4", color: "#a3a3a3" }}><UploadIcon className="h-4 w-4" /></button>
-              <button onClick={() => landingFileRef.current?.click()} className="flex h-9 w-9 items-center justify-center rounded-full border transition-colors hover:bg-gray-100" style={{ borderColor: "#d4d4d4", color: "#a3a3a3" }}><Plus className="h-4 w-4" /></button>
+              <button onClick={() => landingFileRef.current?.click()} className="flex h-9 w-9 items-center justify-center rounded-full border transition-all hover:bg-white/80 hover:shadow-sm active:scale-95" style={{ borderColor: "#d4d4d4", color: "#a3a3a3" }}><UploadIcon className="h-4 w-4" /></button>
+              <button onClick={() => landingFileRef.current?.click()} className="flex h-9 w-9 items-center justify-center rounded-full border transition-all hover:bg-white/80 hover:shadow-sm active:scale-95" style={{ borderColor: "#d4d4d4", color: "#a3a3a3" }}><Plus className="h-4 w-4" /></button>
             </div>
           </div>
           <input ref={landingFileRef} type="file" className="hidden" multiple onChange={handleLandingFileSelect} />
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="mt-5 flex flex-wrap justify-center gap-2.5">
-          {chipItems.map((chip) => (
-            <button key={chip.key} onClick={() => handleChipClick(t(lang, chip.key))} className="flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-white active:scale-95" style={{ borderColor: "#d4d4d4", color: "#525252", background: "transparent" }}>
-              <chip.icon className="h-4 w-4" />
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }} className="mt-6 flex flex-wrap justify-center gap-2.5">
+          {chipItems.map((chip, i) => (
+            <motion.button key={chip.key} onClick={() => handleChipClick(t(lang, chip.key))} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + i * 0.06 }} whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.96 }} className="flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-all backdrop-blur-sm shadow-sm hover:shadow-md" style={{ borderColor: "hsl(43 80% 55% / 0.25)", color: "#525252", background: "hsl(0 0% 100% / 0.6)" }}>
+              <chip.icon className="h-4 w-4" style={{ color: "hsl(43 80% 45%)" }} />
               {t(lang, chip.key)}
-            </button>
+            </motion.button>
           ))}
         </motion.div>
       </div>
+
+      {/* Footer */}
+      <motion.footer initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="relative z-10 pb-4 text-center">
+        <p className="text-xs" style={{ color: "#a3a3a3" }}>© 2026 ErfanAI — Powered by Advanced AI</p>
+      </motion.footer>
     </div>
   );
 };
