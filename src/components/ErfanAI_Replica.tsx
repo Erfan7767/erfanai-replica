@@ -92,29 +92,53 @@ const LandingPage = ({ onLogin, onRegister }: { onLogin: () => void; onRegister:
   ];
 
   return (
-    <div className="relative flex min-h-screen flex-col font-cairo" dir={dir} style={{ background: "#f5f5f4" }}>
-      <header className="relative flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-2">
-          <ErfanAILogo className="h-12 w-12" color="#1a1a1a" />
-          <span className="text-xl font-bold" style={{ color: "#1a1a1a" }}>ErfanAI</span>
+    <div className="relative flex min-h-screen flex-col font-cairo gradient-bg-light noise-overlay" dir={dir}>
+      {/* Decorative gradient orbs */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <motion.div
+          className="absolute -top-32 -right-32 h-96 w-96 rounded-full opacity-20"
+          style={{ background: "radial-gradient(circle, hsl(43 80% 60%), transparent 70%)" }}
+          animate={{ scale: [1, 1.15, 1], opacity: [0.15, 0.25, 0.15] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute -bottom-40 -left-40 h-[500px] w-[500px] rounded-full opacity-15"
+          style={{ background: "radial-gradient(circle, hsl(142 71% 50%), transparent 70%)" }}
+          animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.2, 0.1] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        />
+      </div>
+
+      <header className="relative z-10 flex items-center justify-between px-5 py-4">
+        <div className="flex items-center gap-2.5">
+          <motion.div animate={{ rotate: [0, 5, -5, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}>
+            <ErfanAILogo className="h-11 w-11" color="#1a1a1a" />
+          </motion.div>
+          <span className="text-xl font-extrabold tracking-tight" style={{ color: "#1a1a1a" }}>ErfanAI</span>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={onLogin} className="rounded-lg px-4 py-2 text-sm font-semibold transition-colors hover:opacity-90" style={{ background: "#1a1a1a", color: "#fff" }}>{t(lang, "landing.login")}</button>
-          <button onClick={onRegister} className="rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-100" style={{ borderColor: "#d4d4d4", color: "#525252" }}>{t(lang, "landing.register")}</button>
-          <button className="p-2 transition-colors hover:bg-gray-200 rounded-lg" style={{ color: "#525252" }} onClick={() => setIsMenuOpen(true)}><Menu className="h-5 w-5" /></button>
+        <div className="flex items-center gap-2.5">
+          <button onClick={onLogin} className="rounded-xl px-5 py-2.5 text-sm font-semibold transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]" style={{ background: "linear-gradient(135deg, #1a1a1a, #333)", color: "#fff" }}>{t(lang, "landing.login")}</button>
+          <button onClick={onRegister} className="rounded-xl border px-5 py-2.5 text-sm font-medium transition-all hover:bg-white/80 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] backdrop-blur-sm" style={{ borderColor: "#d4d4d4", color: "#525252", background: "hsl(0 0% 100% / 0.5)" }}>{t(lang, "landing.register")}</button>
+          <button className="p-2.5 transition-all hover:bg-white/60 rounded-xl" style={{ color: "#525252" }} onClick={() => setIsMenuOpen(true)}><Menu className="h-5 w-5" /></button>
         </div>
         <LandingMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} onLogin={onLogin} />
       </header>
 
-      <div className="flex flex-1 flex-col items-center justify-center px-4 pb-10">
-        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mb-8 text-center text-2xl font-bold leading-relaxed" style={{ color: "#1a1a1a" }}>{t(lang, "landing.how_can_i_help")}</motion.h1>
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 pb-10">
+        <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1, type: "spring", stiffness: 200 }} className="mb-6 animate-float">
+          <ErfanAILogo className="h-20 w-20" color="#1a1a1a" />
+        </motion.div>
+        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-2 text-center text-3xl font-extrabold leading-relaxed gradient-hero">{t(lang, "landing.how_can_i_help")}</motion.h1>
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }} className="mb-8 text-center text-sm" style={{ color: "#737373" }}>
+          {t(lang, "landing.subtitle") || "ذكاء اصطناعي متقدم لمساعدتك في كل شيء"}
+        </motion.p>
 
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="w-full max-w-lg rounded-2xl border p-4 shadow-sm" style={{ background: "#fff", borderColor: "#e5e5e5" }}>
-          <textarea value={landingInput} onChange={(e) => setLandingInput(e.target.value)} placeholder={t(lang, "landing.input_placeholder")} rows={3} className="w-full resize-none bg-transparent text-sm outline-none leading-relaxed" style={{ color: "#1a1a1a" }} dir={dir} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleLandingSend(); } }} />
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="w-full max-w-lg rounded-2xl p-4 shadow-xl glass-light animate-border-glow hover-lift" style={{ borderColor: "hsl(43 80% 55% / 0.2)" }}>
+          <textarea value={landingInput} onChange={(e) => setLandingInput(e.target.value)} placeholder={t(lang, "landing.input_placeholder")} rows={3} className="w-full resize-none bg-transparent text-sm outline-none leading-relaxed placeholder:text-gray-400" style={{ color: "#1a1a1a" }} dir={dir} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleLandingSend(); } }} />
           {landingFiles.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
               {landingFiles.map((file, i) => (
-                <div key={i} className="flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs" style={{ borderColor: "#d4d4d4", color: "#525252" }}>
+                <div key={i} className="flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs backdrop-blur-sm" style={{ borderColor: "#d4d4d4", color: "#525252", background: "hsl(0 0% 100% / 0.5)" }}>
                   {file.type.startsWith("image/") ? <Image className="h-3.5 w-3.5" /> : <FileText className="h-3.5 w-3.5" />}
                   <span className="max-w-[100px] truncate">{file.name}</span>
                   <button onClick={() => setLandingFiles(prev => prev.filter((_, idx) => idx !== i))} className="hover:text-red-500"><X className="h-3 w-3" /></button>
@@ -122,25 +146,30 @@ const LandingPage = ({ onLogin, onRegister }: { onLogin: () => void; onRegister:
               ))}
             </div>
           )}
-          <div className="mt-2 flex items-center justify-between">
-            <button onClick={handleLandingSend} disabled={!landingInput.trim() && landingFiles.length === 0} className="flex h-9 w-9 items-center justify-center rounded-full transition-colors disabled:opacity-30" style={{ background: "#1a1a1a", color: "#fff" }}><Send className="h-4 w-4" /></button>
+          <div className="mt-3 flex items-center justify-between">
+            <motion.button onClick={handleLandingSend} disabled={!landingInput.trim() && landingFiles.length === 0} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex h-10 w-10 items-center justify-center rounded-full transition-all disabled:opacity-30 shadow-lg" style={{ background: "linear-gradient(135deg, hsl(43 80% 50%), hsl(43 70% 45%))", color: "#fff" }}><Send className="h-4 w-4" /></motion.button>
             <div className="flex items-center gap-2">
-              <button onClick={() => landingFileRef.current?.click()} className="flex h-9 w-9 items-center justify-center rounded-full border transition-colors hover:bg-gray-100" style={{ borderColor: "#d4d4d4", color: "#a3a3a3" }}><UploadIcon className="h-4 w-4" /></button>
-              <button onClick={() => landingFileRef.current?.click()} className="flex h-9 w-9 items-center justify-center rounded-full border transition-colors hover:bg-gray-100" style={{ borderColor: "#d4d4d4", color: "#a3a3a3" }}><Plus className="h-4 w-4" /></button>
+              <button onClick={() => landingFileRef.current?.click()} className="flex h-9 w-9 items-center justify-center rounded-full border transition-all hover:bg-white/80 hover:shadow-sm active:scale-95" style={{ borderColor: "#d4d4d4", color: "#a3a3a3" }}><UploadIcon className="h-4 w-4" /></button>
+              <button onClick={() => landingFileRef.current?.click()} className="flex h-9 w-9 items-center justify-center rounded-full border transition-all hover:bg-white/80 hover:shadow-sm active:scale-95" style={{ borderColor: "#d4d4d4", color: "#a3a3a3" }}><Plus className="h-4 w-4" /></button>
             </div>
           </div>
           <input ref={landingFileRef} type="file" className="hidden" multiple onChange={handleLandingFileSelect} />
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="mt-5 flex flex-wrap justify-center gap-2.5">
-          {chipItems.map((chip) => (
-            <button key={chip.key} onClick={() => handleChipClick(t(lang, chip.key))} className="flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-white active:scale-95" style={{ borderColor: "#d4d4d4", color: "#525252", background: "transparent" }}>
-              <chip.icon className="h-4 w-4" />
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }} className="mt-6 flex flex-wrap justify-center gap-2.5">
+          {chipItems.map((chip, i) => (
+            <motion.button key={chip.key} onClick={() => handleChipClick(t(lang, chip.key))} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 + i * 0.06 }} whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.96 }} className="flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-all backdrop-blur-sm shadow-sm hover:shadow-md" style={{ borderColor: "hsl(43 80% 55% / 0.25)", color: "#525252", background: "hsl(0 0% 100% / 0.6)" }}>
+              <chip.icon className="h-4 w-4" style={{ color: "hsl(43 80% 45%)" }} />
               {t(lang, chip.key)}
-            </button>
+            </motion.button>
           ))}
         </motion.div>
       </div>
+
+      {/* Footer */}
+      <motion.footer initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="relative z-10 pb-4 text-center">
+        <p className="text-xs" style={{ color: "#a3a3a3" }}>© 2026 ErfanAI — Powered by Advanced AI</p>
+      </motion.footer>
     </div>
   );
 };
@@ -221,54 +250,72 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden font-cairo" dir={dir} style={{ background: "#0a0a0a" }}>
-      <div className="dot-pattern absolute inset-0 opacity-10" />
+    <div className="relative flex min-h-screen flex-col overflow-hidden font-cairo gradient-bg-dark noise-overlay" dir={dir}>
+      <div className="dot-pattern absolute inset-0 opacity-5" />
+      {/* Decorative gradient orbs */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <motion.div
+          className="absolute top-20 right-10 h-72 w-72 rounded-full opacity-10"
+          style={{ background: "radial-gradient(circle, hsl(43 80% 55%), transparent 70%)" }}
+          animate={{ scale: [1, 1.2, 1], opacity: [0.08, 0.15, 0.08] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-20 left-10 h-60 w-60 rounded-full opacity-10"
+          style={{ background: "radial-gradient(circle, hsl(142 71% 50%), transparent 70%)" }}
+          animate={{ scale: [1, 1.15, 1], opacity: [0.05, 0.12, 0.05] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
+      </div>
+
       <header className="relative z-10 flex items-center justify-end px-5 py-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <span className="text-lg font-bold" style={{ color: "#e5e5e5" }}>ErfanAI</span>
-          <ErfanAILogo className="h-11 w-11" color="#e5e5e5" />
+          <motion.div animate={{ rotate: [0, 5, -5, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}>
+            <ErfanAILogo className="h-11 w-11" color="#e5e5e5" />
+          </motion.div>
         </div>
       </header>
 
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6">
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="flex w-full max-w-md flex-col items-center">
-          <div className="mb-6 flex h-32 w-32 items-center justify-center">
-            <ErfanAILogo className="h-32 w-32" color="#f5f5f5" />
-          </div>
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, type: "spring", stiffness: 100 }} className="flex w-full max-w-md flex-col items-center">
+          <motion.div className="mb-8 flex h-28 w-28 items-center justify-center animate-pulse-glow rounded-full" style={{ background: "hsl(0 0% 8%)" }}>
+            <ErfanAILogo className="h-24 w-24" color="#f5f5f5" />
+          </motion.div>
 
-          <h1 className="mb-2 text-2xl font-bold" style={{ color: "#f5f5f5" }}>{t(lang, "login.title")}</h1>
-          <p className="mb-10 text-sm" style={{ color: "#737373" }}>
-            {t(lang, "login.subtitle")} <span style={{ color: "#a3a3a3" }}>ErfanAI</span>
+          <h1 className="mb-2 text-2xl font-extrabold gradient-hero">{t(lang, "login.title")}</h1>
+          <p className="mb-10 text-sm text-center" style={{ color: "#737373" }}>
+            {t(lang, "login.subtitle")} <span className="font-semibold" style={{ color: "hsl(43 80% 55%)" }}>ErfanAI</span>
           </p>
 
           <div className="flex w-full flex-col gap-3">
-            <button onClick={handleGoogleLogin} disabled={isLoading} className="flex w-full items-center justify-center gap-3 rounded-xl py-4 text-sm font-medium transition-colors hover:bg-[#333] disabled:opacity-50" style={{ background: "#262626", color: "#e5e5e5" }}>
-              <span>{t(lang, "login.continue_google")}</span>
+            <motion.button onClick={handleGoogleLogin} disabled={isLoading} whileHover={{ scale: 1.01, y: -1 }} whileTap={{ scale: 0.98 }} className="flex w-full items-center justify-center gap-3 rounded-xl py-4 text-sm font-medium transition-all glass hover:border-white/15 disabled:opacity-50 shadow-lg">
+              <span style={{ color: "#e5e5e5" }}>{t(lang, "login.continue_google")}</span>
               <svg className="h-5 w-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" /><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>
-            </button>
-            <button onClick={handleAppleLogin} disabled={isLoading} className="flex w-full items-center justify-center gap-3 rounded-xl py-4 text-sm font-medium transition-colors hover:bg-[#333] disabled:opacity-50" style={{ background: "#262626", color: "#e5e5e5" }}>
-              <span>{t(lang, "login.continue_apple")}</span>
+            </motion.button>
+            <motion.button onClick={handleAppleLogin} disabled={isLoading} whileHover={{ scale: 1.01, y: -1 }} whileTap={{ scale: 0.98 }} className="flex w-full items-center justify-center gap-3 rounded-xl py-4 text-sm font-medium transition-all glass hover:border-white/15 disabled:opacity-50 shadow-lg">
+              <span style={{ color: "#e5e5e5" }}>{t(lang, "login.continue_apple")}</span>
               <svg className="h-5 w-5" fill="#e5e5e5" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" /></svg>
-            </button>
+            </motion.button>
           </div>
 
-          <div className="my-6 flex w-full items-center gap-3">
-            <div className="h-px flex-1" style={{ background: "#333" }} />
+          <div className="my-7 flex w-full items-center gap-3">
+            <div className="h-px flex-1" style={{ background: "linear-gradient(90deg, transparent, hsl(43 80% 55% / 0.3), transparent)" }} />
             <span className="text-sm" style={{ color: "#737373" }}>{t(lang, "login.or")}</span>
-            <div className="h-px flex-1" style={{ background: "#333" }} />
+            <div className="h-px flex-1" style={{ background: "linear-gradient(90deg, transparent, hsl(43 80% 55% / 0.3), transparent)" }} />
           </div>
 
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t(lang, "login.email_placeholder")} className="w-full rounded-xl px-4 py-4 text-sm outline-none" style={{ background: "#1a1a1a", border: "1px solid #333", color: "#e5e5e5" }} dir={dir} />
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t(lang, "login.password_placeholder")} className="mt-3 w-full rounded-xl px-4 py-4 text-sm outline-none" style={{ background: "#1a1a1a", border: "1px solid #333", color: "#e5e5e5" }} dir={dir} onKeyDown={(e) => { if (e.key === "Enter") handleEmailAuth(); }} />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t(lang, "login.email_placeholder")} className="w-full rounded-xl px-4 py-4 text-sm outline-none transition-all glass focus-ring-accent" style={{ color: "#e5e5e5" }} dir={dir} />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t(lang, "login.password_placeholder")} className="mt-3 w-full rounded-xl px-4 py-4 text-sm outline-none transition-all glass focus-ring-accent" style={{ color: "#e5e5e5" }} dir={dir} onKeyDown={(e) => { if (e.key === "Enter") handleEmailAuth(); }} />
           {!isSignUp && (
-            <button onClick={handleForgotPassword} disabled={isLoading} className="mt-2 self-start text-xs transition-colors hover:opacity-80" style={{ color: "#a3a3a3" }}>
+            <button onClick={handleForgotPassword} disabled={isLoading} className="mt-2 self-start text-xs transition-all hover:opacity-80" style={{ color: "hsl(43 80% 55%)" }}>
               {t(lang, "login.forgot_password")}
             </button>
           )}
-          <button onClick={handleEmailAuth} disabled={isLoading} className="mt-4 w-full rounded-xl py-4 text-sm font-semibold transition-all hover:bg-[#4a4a4a] disabled:opacity-50" style={{ background: "#404040", color: "#d4d4d4" }}>
-            {isLoading ? "..." : isSignUp ? t(lang, "login.sign_up") : t(lang, "login.continue")}
-          </button>
-          <button onClick={() => setIsSignUp(!isSignUp)} className="mt-3 text-sm transition-colors hover:opacity-80" style={{ color: "#737373" }}>
+          <motion.button onClick={handleEmailAuth} disabled={isLoading} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }} className="mt-5 w-full rounded-xl py-4 text-sm font-semibold transition-all disabled:opacity-50 shadow-lg" style={{ background: "linear-gradient(135deg, hsl(43 80% 50%), hsl(43 70% 40%))", color: "#fff" }}>
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : isSignUp ? t(lang, "login.sign_up") : t(lang, "login.continue")}
+          </motion.button>
+          <button onClick={() => setIsSignUp(!isSignUp)} className="mt-4 text-sm transition-colors hover:opacity-80" style={{ color: "#737373" }}>
             {isSignUp ? t(lang, "login.have_account") : t(lang, "login.no_account")}
           </button>
         </motion.div>
@@ -4151,13 +4198,29 @@ const ErfanReplica = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="flex min-h-screen flex-col items-center justify-center gradient-bg-dark">
         <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="relative"
+          animate={{ scale: [1, 1.08, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         >
-          <ErfanAILogo className="h-16 w-16" />
+          <motion.div
+            className="absolute inset-0 rounded-full"
+            style={{ background: "radial-gradient(circle, hsl(43 80% 55% / 0.2), transparent 70%)" }}
+            animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <ErfanAILogo className="h-20 w-20 relative z-10" />
         </motion.div>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0.3, 0.7, 0.3] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="mt-6 text-sm font-medium"
+          style={{ color: "hsl(43 80% 55%)" }}
+        >
+          ErfanAI
+        </motion.p>
       </div>
     );
   }
