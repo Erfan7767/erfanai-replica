@@ -4373,6 +4373,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
           </motion.div>
         )}
       </AnimatePresence>
+      {/* Onboarding Overlay */}
+      {showOnboarding && <OnboardingOverlay onComplete={() => setShowOnboarding(false)} />}
     </div>
   );
 };
