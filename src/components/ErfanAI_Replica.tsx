@@ -2809,8 +2809,222 @@ const CustomizeCarousel = ({ lang, dir }: { lang: Lang; dir: string }) => {
     </div>
   );
 };
+/* ═══════════════════════ ONBOARDING ═══════════════════════ */
+const ONBOARDING_KEY = "erfanai_onboarding_done";
+
+const onboardingSteps = [
+  {
+    titleKey: "onboarding.step1_title",
+    descKey: "onboarding.step1_desc",
+    icon: Sparkles,
+    gradient: "from-[hsl(43,80%,50%)] to-[hsl(43,70%,35%)]",
+    illustration: "✨",
+  },
+  {
+    titleKey: "onboarding.step2_title",
+    descKey: "onboarding.step2_desc",
+    icon: MessageSquare,
+    gradient: "from-[hsl(142,71%,45%)] to-[hsl(142,60%,30%)]",
+    illustration: "💬",
+  },
+  {
+    titleKey: "onboarding.step3_title",
+    descKey: "onboarding.step3_desc",
+    icon: Code,
+    gradient: "from-[hsl(220,80%,55%)] to-[hsl(220,70%,35%)]",
+    illustration: "🛠️",
+  },
+  {
+    titleKey: "onboarding.step4_title",
+    descKey: "onboarding.step4_desc",
+    icon: Mic,
+    gradient: "from-[hsl(280,70%,55%)] to-[hsl(280,60%,35%)]",
+    illustration: "🎙️",
+  },
+  {
+    titleKey: "onboarding.step5_title",
+    descKey: "onboarding.step5_desc",
+    icon: Zap,
+    gradient: "from-[hsl(15,80%,55%)] to-[hsl(15,70%,35%)]",
+    illustration: "⚡",
+  },
+];
+
+const OnboardingOverlay = ({ onComplete }: { onComplete: () => void }) => {
+  const { lang } = useLang();
+  const dir = isRTL(lang) ? "rtl" : "ltr";
+  const [step, setStep] = useState(0);
+  const [isExiting, setIsExiting] = useState(false);
+  const total = onboardingSteps.length;
+  const current = onboardingSteps[step];
+
+  const handleNext = () => {
+    if (step < total - 1) setStep(step + 1);
+    else handleFinish();
+  };
+
+  const handleSkip = () => handleFinish();
+
+  const handleFinish = () => {
+    setIsExiting(true);
+    localStorage.setItem(ONBOARDING_KEY, "true");
+    setTimeout(onComplete, 400);
+  };
+
+  return (
+    <AnimatePresence>
+      {!isExiting && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center font-cairo"
+          style={{ background: "hsl(0 0% 0% / 0.85)", backdropFilter: "blur(12px)" }}
+          dir={dir}
+        >
+          {/* Background particles */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            {[...Array(6)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute rounded-full"
+                style={{
+                  width: 4 + Math.random() * 6,
+                  height: 4 + Math.random() * 6,
+                  left: `${10 + Math.random() * 80}%`,
+                  top: `${10 + Math.random() * 80}%`,
+                  background: `hsl(43 80% 55% / ${0.15 + Math.random() * 0.2})`,
+                }}
+                animate={{
+                  y: [0, -30, 0],
+                  opacity: [0.2, 0.6, 0.2],
+                }}
+                transition={{
+                  duration: 3 + Math.random() * 3,
+                  repeat: Infinity,
+                  delay: Math.random() * 2,
+                  ease: "easeInOut",
+                }}
+              />
+            ))}
+          </div>
+
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, y: 40, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -40, scale: 0.92 }}
+            transition={{ type: "spring", stiffness: 200, damping: 25 }}
+            className="relative mx-6 flex w-full max-w-md flex-col items-center"
+          >
+            {/* Illustration */}
+            <motion.div
+              className={`mb-8 flex h-32 w-32 items-center justify-center rounded-3xl bg-gradient-to-br ${current.gradient} shadow-2xl`}
+              animate={{ rotate: [0, 3, -3, 0], scale: [1, 1.05, 1] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <span className="text-6xl">{current.illustration}</span>
+            </motion.div>
+
+            {/* Step counter */}
+            <div className="mb-4 flex items-center gap-2">
+              {onboardingSteps.map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="rounded-full"
+                  animate={{
+                    width: i === step ? 24 : 8,
+                    height: 8,
+                    background: i === step ? "hsl(43 80% 55%)" : i < step ? "hsl(142 71% 45%)" : "hsl(0 0% 30%)",
+                  }}
+                  transition={{ duration: 0.3 }}
+                />
+              ))}
+            </div>
+
+            {/* Title */}
+            <motion.h2
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="mb-3 text-center text-2xl font-extrabold gradient-hero"
+            >
+              {t(lang, current.titleKey)}
+            </motion.h2>
+
+            {/* Description */}
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="mb-10 text-center text-sm leading-relaxed px-4"
+              style={{ color: "hsl(0 0% 65%)" }}
+            >
+              {t(lang, current.descKey)}
+            </motion.p>
+
+            {/* Buttons */}
+            <div className="flex w-full gap-3">
+              {step < total - 1 && (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleSkip}
+                  className="flex-1 rounded-xl py-3.5 text-sm font-medium transition-all glass"
+                  style={{ color: "hsl(0 0% 65%)" }}
+                >
+                  {t(lang, "onboarding.skip")}
+                </motion.button>
+              )}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleNext}
+                className={`${step < total - 1 ? "flex-1" : "w-full"} rounded-xl py-3.5 text-sm font-bold transition-all shadow-lg`}
+                style={{
+                  background: "linear-gradient(135deg, hsl(43 80% 50%), hsl(43 70% 40%))",
+                  color: "#fff",
+                }}
+              >
+                {step < total - 1 ? t(lang, "onboarding.next") : t(lang, "onboarding.start")}
+              </motion.button>
+            </div>
+
+            {/* Feature preview icons row */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="mt-8 flex items-center gap-4"
+            >
+              {onboardingSteps.map((s, i) => {
+                const Icon = s.icon;
+                return (
+                  <motion.div
+                    key={i}
+                    className="flex h-9 w-9 items-center justify-center rounded-xl transition-all"
+                    style={{
+                      background: i === step ? "hsl(43 80% 55% / 0.15)" : "hsl(0 0% 15%)",
+                      border: i === step ? "1px solid hsl(43 80% 55% / 0.3)" : "1px solid transparent",
+                    }}
+                    animate={i === step ? { scale: [1, 1.15, 1] } : {}}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <Icon className="h-4 w-4" style={{ color: i === step ? "hsl(43 80% 55%)" : "hsl(0 0% 40%)" }} />
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
 
 const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem(ONBOARDING_KEY));
   const { lang } = useLang();
   const { usage, consumeCredits } = useCredits();
   const dir = isRTL(lang) ? "rtl" : "ltr";
@@ -4159,6 +4373,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
           </motion.div>
         )}
       </AnimatePresence>
+      {/* Onboarding Overlay */}
+      {showOnboarding && <OnboardingOverlay onComplete={() => setShowOnboarding(false)} />}
     </div>
   );
 };
