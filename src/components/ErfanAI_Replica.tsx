@@ -3023,6 +3023,8 @@ const OnboardingOverlay = ({ onComplete }: { onComplete: () => void }) => {
   );
 };
 
+const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem(ONBOARDING_KEY));
   const { lang } = useLang();
   const { usage, consumeCredits } = useCredits();
   const dir = isRTL(lang) ? "rtl" : "ltr";
