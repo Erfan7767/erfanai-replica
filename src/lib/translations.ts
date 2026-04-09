@@ -8,6 +8,14 @@ export const t = (lang: Lang, key: string): string => {
 
 const translations: Record<string, Record<Lang, string>> = {
   // ── Landing Page ──
+  "landing.subtitle": {
+    "العربية": "ذكاء اصطناعي متقدم لمساعدتك في كل شيء",
+    "English": "Advanced AI to help you with everything",
+    "Français": "IA avancée pour vous aider en tout",
+    "Español": "IA avanzada para ayudarte con todo",
+    "Deutsch": "Fortgeschrittene KI, die Ihnen bei allem hilft",
+    "Türkçe": "Her konuda size yardımcı olacak gelişmiş yapay zeka",
+  },
   "landing.how_can_i_help": {
     "العربية": "كيف يمكنني مساعدتك؟",
     "English": "How can I help you?",
