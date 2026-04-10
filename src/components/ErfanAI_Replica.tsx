@@ -3361,7 +3361,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         {messages.length > 0 ? (
           <div className="mt-6 space-y-1">
             {messages.map((msg, i) => (
-              <ChatMessage key={i} message={msg.text} isUser={msg.isUser} files={msg.files} steps={msg.steps} />
+              <ChatMessage key={i} message={msg.text} isUser={msg.isUser} files={msg.files} steps={msg.steps} isStreaming={msg.isStreaming} />
             ))}
           </div>
         ) : (
