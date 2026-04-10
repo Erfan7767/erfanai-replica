@@ -1028,8 +1028,8 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
                   <div className="flex items-center gap-4 rounded-xl bg-secondary p-4">
                     <div className={`${isRTL(lang) ? "text-right" : "text-left"} flex-1`}>
-                      <p className="text-sm font-bold text-foreground">Erfan Moharam</p>
-                      <p className="text-xs text-muted-foreground mt-1">nmoharam7796@gmail.com</p>
+                      <p className="text-sm font-bold text-foreground">{(() => { try { const u = supabase.auth.getUser; } catch {} })() || ""}{(() => { const { user } = useAuth(); return user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "User"; })()}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{(() => { const { user } = useAuth(); return user?.email || ""; })()}</p>
                     </div>
                     <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">E</div>
                   </div>
