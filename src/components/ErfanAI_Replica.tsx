@@ -356,11 +356,7 @@ const Sidebar = ({ isOpen, onClose, onNewTask, onNavigate }: { isOpen: boolean; 
             </nav>
             <div className="border-t border-border p-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">E</div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">Erfan Moharam</p>
-                  <p className="text-xs text-muted-foreground">{t(lang, "sidebar.free_plan")}</p>
-                </div>
+                <SidebarUserInfo />
               </div>
             </div>
           </motion.div>
@@ -1062,7 +1058,14 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
                               if (!oldPassword || !newPassword || !confirmPassword) { toast.error(t(lang, "settings.fill_all_fields")); return; }
                               if (newPassword !== confirmPassword) { toast.error(t(lang, "settings.password_mismatch")); return; }
                               if (newPassword.length < 6) { toast.error(t(lang, "settings.password_min")); return; }
-                              toast.success(t(lang, "settings.password_changed")); setOldPassword(""); setNewPassword(""); setConfirmPassword(""); setShowPasswordDialog(false);
+                              (async () => {
+                                try {
+                                  const { error } = await supabase.auth.updateUser({ password: newPassword });
+                                  if (error) { toast.error(error.message); return; }
+                                  toast.success(t(lang, "settings.password_changed"));
+                                  setOldPassword(""); setNewPassword(""); setConfirmPassword(""); setShowPasswordDialog(false);
+                                } catch (e: any) { toast.error(e.message || "Error"); }
+                              })();
                             }} className="flex-1 rounded-xl bg-accent py-3 text-sm font-bold text-accent-foreground">{t(lang, "settings.save")}</button>
                           </div>
                         </motion.div>
