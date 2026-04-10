@@ -1831,7 +1831,7 @@ const KnowledgePanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
 
 /* ═══════════════════════ PROFILE PANEL ═══════════════════════ */
 const PROFILE_KEY = "erfanai_profile";
-const defaultProfile = { name: "Erfan Moharam", email: "nmoharam7796@gmail.com", avatar: null as string | null };
+const defaultProfile = { name: "", email: "", avatar: null as string | null };
 
 const ProfilePanel = ({ isOpen, onClose, onLogout }: { isOpen: boolean; onClose: () => void; onLogout: () => void }) => {
   const { lang } = useLang();
