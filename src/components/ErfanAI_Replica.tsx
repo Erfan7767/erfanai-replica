@@ -3028,129 +3028,161 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
 
   const removeFile = (index: number) => setAttachedFiles(prev => prev.filter((_, i) => i !== index));
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!inputValue.trim() && attachedFiles.length === 0) return;
     
-    // Add user message to chat
-    setMessages(prev => [...prev, { text: inputValue, isUser: true, files: attachedFiles.length > 0 ? [...attachedFiles] : undefined }]);
-    const userMsg = inputValue;
+    const userMsg = inputValue.trim();
+    setMessages(prev => [...prev, { text: userMsg, isUser: true, files: attachedFiles.length > 0 ? [...attachedFiles] : undefined }]);
     setInputValue("");
     setAttachedFiles([]);
     
     // Track credit usage
     consumeCredits(2);
 
-    // Generate Manus-style task groups based on user message
-    const generateGroups = (msg: string): Omit<TaskGroup, "id" | "status" | "isExpanded">[] => {
-      const lower = msg.toLowerCase();
-      if (lower.includes("موقع") || lower.includes("website") || lower.includes("صفحة") || lower.includes("page")) {
-        return [
-          { title: t(lang, "task.analyzing_request"), description: t(lang, "taskgroup.analyze_desc"), subtasks: [
-            { label: t(lang, "taskgroup.sub_parse_requirements"), icon: "edit" },
-            { label: t(lang, "taskgroup.sub_identify_components"), icon: "edit" },
-          ]},
-          { title: t(lang, "task.planning_structure"), description: t(lang, "taskgroup.plan_desc"), subtasks: [
-            { label: t(lang, "taskgroup.sub_create_architecture"), icon: "edit" },
-            { label: t(lang, "taskgroup.sub_setup_routing"), icon: "terminal" },
-          ]},
-          { title: t(lang, "task.generating_code"), description: t(lang, "taskgroup.generate_desc"), subtasks: [
-            { label: t(lang, "taskgroup.sub_build_components"), icon: "terminal" },
-            { label: t(lang, "taskgroup.sub_apply_styles"), icon: "edit" },
-            { label: t(lang, "taskgroup.sub_add_interactions"), icon: "terminal" },
-          ]},
-          { title: t(lang, "task.final_review"), description: t(lang, "taskgroup.review_desc"), subtasks: [
-            { label: t(lang, "taskgroup.sub_test_responsive"), icon: "terminal" },
-            { label: t(lang, "taskgroup.sub_optimize_performance"), icon: "edit" },
-          ]},
-        ];
-      } else if (lower.includes("تصميم") || lower.includes("design") || lower.includes("صورة") || lower.includes("image")) {
-        return [
-          { title: t(lang, "task.understanding_vision"), description: t(lang, "taskgroup.vision_desc"), subtasks: [
-            { label: t(lang, "taskgroup.sub_analyze_style"), icon: "edit" },
-            { label: t(lang, "taskgroup.sub_gather_references"), icon: "edit" },
-          ]},
-          { title: t(lang, "task.preparing_design"), description: t(lang, "taskgroup.design_desc"), subtasks: [
-            { label: t(lang, "taskgroup.sub_create_mockup"), icon: "edit" },
-            { label: t(lang, "taskgroup.sub_choose_colors"), icon: "edit" },
-          ]},
-          { title: t(lang, "task.generating_assets"), description: t(lang, "taskgroup.assets_desc"), subtasks: [
-            { label: t(lang, "taskgroup.sub_generate_images"), icon: "terminal" },
-            { label: t(lang, "taskgroup.sub_export_files"), icon: "terminal" },
-          ]},
-        ];
-      } else if (lower.includes("كود") || lower.includes("code") || lower.includes("برمج") || lower.includes("program")) {
-        return [
-          { title: t(lang, "task.analyzing_requirements"), description: t(lang, "taskgroup.requirements_desc"), subtasks: [
-            { label: t(lang, "taskgroup.sub_parse_specs"), icon: "edit" },
-            { label: t(lang, "taskgroup.sub_plan_approach"), icon: "edit" },
-          ]},
-          { title: t(lang, "task.writing_code"), description: t(lang, "taskgroup.writing_desc"), subtasks: [
-            { label: t(lang, "taskgroup.sub_implement_logic"), icon: "terminal" },
-            { label: t(lang, "taskgroup.sub_handle_errors"), icon: "terminal" },
-          ]},
-          { title: t(lang, "task.testing_code"), description: t(lang, "taskgroup.testing_desc"), subtasks: [
-            { label: t(lang, "taskgroup.sub_run_tests"), icon: "terminal" },
-            { label: t(lang, "taskgroup.sub_fix_bugs"), icon: "edit" },
-          ]},
-        ];
-      } else {
-        return [
-          { title: t(lang, "task.analyzing_request"), description: t(lang, "taskgroup.general_analyze_desc"), subtasks: [
-            { label: t(lang, "taskgroup.sub_understand_context"), icon: "edit" },
-            { label: t(lang, "taskgroup.sub_research_topic"), icon: "edit" },
-          ]},
-          { title: t(lang, "task.processing"), description: t(lang, "taskgroup.processing_desc"), subtasks: [
-            { label: t(lang, "taskgroup.sub_process_data"), icon: "terminal" },
-            { label: t(lang, "taskgroup.sub_generate_content"), icon: "edit" },
-          ]},
-          { title: t(lang, "task.generating_response"), description: t(lang, "taskgroup.response_desc"), subtasks: [
-            { label: t(lang, "taskgroup.sub_format_output"), icon: "edit" },
-            { label: t(lang, "taskgroup.sub_verify_quality"), icon: "terminal" },
-          ]},
-        ];
-      }
-    };
+    // Build conversation history for AI
+    const conversationHistory = messages
+      .filter(m => m.text)
+      .map(m => ({ role: m.isUser ? "user" as const : "assistant" as const, content: m.text }));
+    conversationHistory.push({ role: "user", content: userMsg });
 
-    const rawGroups = generateGroups(userMsg);
-    const groups: TaskGroup[] = rawGroups.map((g, i) => ({
-      ...g,
-      id: `group-${Date.now()}-${i}`,
-      status: i === 0 ? "running" : "pending",
-      isExpanded: i === 0,
-    }));
-
-    // Show execution panel
+    // Show execution panel with real progress
     setIsExecuting(true);
     setIsExecutionExpanded(true);
-    setExecutionGroups(groups);
-    setExecutionFinalMessage("");
     setExecutionElapsed(0);
+    setExecutionFinalMessage("");
+    
+    const thinkingGroups: TaskGroup[] = [
+      { id: `g-${Date.now()}-0`, title: t(lang, "task.analyzing_request"), description: "", subtasks: [], status: "running", isExpanded: true },
+      { id: `g-${Date.now()}-1`, title: t(lang, "task.generating_response"), description: "", subtasks: [], status: "pending", isExpanded: false },
+    ];
+    setExecutionGroups(thinkingGroups);
 
-    // Start elapsed timer
     if (executionTimerRef.current) clearInterval(executionTimerRef.current);
     executionTimerRef.current = setInterval(() => {
       setExecutionElapsed(prev => prev + 1);
     }, 1000);
 
-    // Progressively update each group
-    groups.forEach((_, groupIdx) => {
-      setTimeout(() => {
-        setExecutionGroups(prev => prev.map((g, i) => ({
-          ...g,
-          status: i < groupIdx + 1 ? "done" : i === groupIdx + 1 ? "running" : "pending",
-          isExpanded: i === groupIdx + 1 || (i < groupIdx + 1 && g.isExpanded),
-        })));
-      }, (groupIdx + 1) * 1500);
-    });
+    // Add empty assistant message for streaming
+    setMessages(prev => [...prev, { text: "", isUser: false, isStreaming: true }]);
+    setIsStreaming(true);
 
-    // Final: mark all done, show response, add to chat
-    setTimeout(() => {
+    try {
+      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+      const resp = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          messages: conversationHistory,
+          model: currentModel,
+          chatMode,
+        }),
+      });
+
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({ error: "حدث خطأ غير معروف" }));
+        throw new Error(errData.error || `HTTP ${resp.status}`);
+      }
+
+      if (!resp.body) throw new Error("No response body");
+
+      // Mark first group done, second running
+      setExecutionGroups(prev => prev.map((g, i) => ({
+        ...g,
+        status: i === 0 ? "done" : "running",
+        isExpanded: i === 1,
+      })));
+
+      // Stream response token by token
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = "";
+      let assistantSoFar = "";
+      let streamDone = false;
+
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") {
+            streamDone = true;
+            break;
+          }
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              assistantSoFar += content;
+              setMessages(prev => {
+                const last = prev[prev.length - 1];
+                if (last && !last.isUser) {
+                  return prev.map((m, i) => i === prev.length - 1 ? { ...m, text: assistantSoFar } : m);
+                }
+                return prev;
+              });
+            }
+          } catch {
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
+        }
+      }
+
+      // Final flush
+      if (textBuffer.trim()) {
+        for (let raw of textBuffer.split("\n")) {
+          if (!raw) continue;
+          if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+          if (raw.startsWith(":") || raw.trim() === "") continue;
+          if (!raw.startsWith("data: ")) continue;
+          const jsonStr = raw.slice(6).trim();
+          if (jsonStr === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              assistantSoFar += content;
+              setMessages(prev => prev.map((m, i) => i === prev.length - 1 && !m.isUser ? { ...m, text: assistantSoFar } : m));
+            }
+          } catch {}
+        }
+      }
+
+      // Mark streaming done
+      setMessages(prev => prev.map((m, i) => i === prev.length - 1 && !m.isUser ? { ...m, isStreaming: false } : m));
+      setIsStreaming(false);
+      setExecutionFinalMessage(assistantSoFar);
+
+    } catch (e: any) {
+      console.error("AI chat error:", e);
+      const errorMsg = e.message || "حدث خطأ أثناء الاتصال بالذكاء الاصطناعي";
+      setMessages(prev => {
+        const last = prev[prev.length - 1];
+        if (last && !last.isUser && !last.text) {
+          return prev.map((m, i) => i === prev.length - 1 ? { ...m, text: `⚠️ ${errorMsg}`, isStreaming: false } : m);
+        }
+        return [...prev, { text: `⚠️ ${errorMsg}`, isUser: false }];
+      });
+      setIsStreaming(false);
+      toast.error(errorMsg);
+    } finally {
+      // Clean up execution panel
       if (executionTimerRef.current) clearInterval(executionTimerRef.current);
-      const finalResponse = t(lang, "app.ai_response");
       setExecutionGroups(prev => prev.map(g => ({ ...g, status: "done" as const })));
-      setExecutionFinalMessage(finalResponse);
-      setMessages(prev => [...prev, { text: finalResponse, isUser: false }]);
-      
       setTimeout(() => { setIsExecutionExpanded(false); }, 1500);
       setTimeout(() => {
         setIsExecuting(false);
@@ -3158,7 +3190,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         setExecutionFinalMessage("");
         setExecutionElapsed(0);
       }, 4000);
-    }, (groups.length + 1) * 1500);
+    }
   };
 
   const handleMic = async () => {
