@@ -2847,7 +2847,9 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [morePanel, setMorePanel] = useState<string | null>(null);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-  const [messages, setMessages] = useState<{ text: string; isUser: boolean; files?: File[]; steps?: TaskStep[] }[]>(() => {
+  const [chatMode, setChatMode] = useState("standard");
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [messages, setMessages] = useState<{ text: string; isUser: boolean; files?: File[]; steps?: TaskStep[]; isStreaming?: boolean }[]>(() => {
     try {
       const saved = localStorage.getItem("erfanai_messages");
       if (saved) return JSON.parse(saved);
