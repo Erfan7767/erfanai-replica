@@ -326,6 +326,27 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
   );
 };
 
+/* ═══════════════════════ SIDEBAR USER INFO ═══════════════════════ */
+const SidebarUserInfo = () => {
+  const { lang } = useLang();
+  const { user } = useAuth();
+  const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
+  const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
+  return (
+    <>
+      {avatarUrl ? (
+        <img src={avatarUrl} alt={displayName} className="h-9 w-9 rounded-full object-cover" />
+      ) : (
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">{displayName.charAt(0).toUpperCase()}</div>
+      )}
+      <div>
+        <p className="text-sm font-semibold text-foreground">{displayName}</p>
+        <p className="text-xs text-muted-foreground">{t(lang, "sidebar.free_plan")}</p>
+      </div>
+    </>
+  );
+};
+
 /* ═══════════════════════ SIDEBAR ═══════════════════════ */
 const Sidebar = ({ isOpen, onClose, onNewTask, onNavigate }: { isOpen: boolean; onClose: () => void; onNewTask: () => void; onNavigate: (page: string) => void }) => {
   const { lang } = useLang();
