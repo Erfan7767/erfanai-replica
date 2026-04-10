@@ -3520,7 +3520,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       <VisualizationPanel isOpen={morePanel === "visualization"} onClose={() => setMorePanel(null)} />
       <VideoPanel isOpen={morePanel === "video"} onClose={() => setMorePanel(null)} onSubmit={(p) => setInputValue(p)} />
       <AudioPanel isOpen={morePanel === "audio"} onClose={() => setMorePanel(null)} onSubmit={(p) => setInputValue(p)} />
-      <ChatModePanel isOpen={morePanel === "chat_mode"} onClose={() => setMorePanel(null)} onSelect={(m) => toast(`Mode: ${m}`)} />
+      <ChatModePanel isOpen={morePanel === "chat_mode"} onClose={() => setMorePanel(null)} onSelect={(m) => { setChatMode(m); }} />
       <PlaybookPanel isOpen={morePanel === "playbook"} onClose={() => setMorePanel(null)} onUse={(p) => setInputValue(p)} />
       <UpgradeProPanel isOpen={morePanel === "upgrade_pro"} onClose={() => setMorePanel(null)} />
 
