@@ -1030,13 +1030,17 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
               {/* ── Account Tab ── */}
               {activeTab === "account" && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
-                  {(() => { const { user: authUser } = useAuth(); const dn = authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || authUser?.email?.split("@")[0] || "User"; const em = authUser?.email || ""; const av = authUser?.user_metadata?.avatar_url || authUser?.user_metadata?.picture || null; return null; })()}
                   <div className="flex items-center gap-4 rounded-xl bg-secondary p-4">
                     <div className={`${isRTL(lang) ? "text-right" : "text-left"} flex-1`}>
-                      <SettingsAccountInfo />
+                      <p className="text-sm font-bold text-foreground">{settingsDisplayName}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{settingsEmail}</p>
                     </div>
                     <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground overflow-hidden">
-                      <SettingsAccountAvatar />
+                      {settingsAvatar ? (
+                        <img src={settingsAvatar} alt={settingsDisplayName} className="h-full w-full object-cover" />
+                      ) : (
+                        settingsDisplayName.charAt(0).toUpperCase()
+                      )}
                     </div>
                   </div>
 
