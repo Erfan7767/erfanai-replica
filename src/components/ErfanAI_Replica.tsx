@@ -1026,12 +1026,14 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
               {/* ── Account Tab ── */}
               {activeTab === "account" && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+                  {(() => { const { user: authUser } = useAuth(); const dn = authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || authUser?.email?.split("@")[0] || "User"; const em = authUser?.email || ""; const av = authUser?.user_metadata?.avatar_url || authUser?.user_metadata?.picture || null; return null; })()}
                   <div className="flex items-center gap-4 rounded-xl bg-secondary p-4">
                     <div className={`${isRTL(lang) ? "text-right" : "text-left"} flex-1`}>
-                      <p className="text-sm font-bold text-foreground">{(() => { try { const u = supabase.auth.getUser; } catch {} })() || ""}{(() => { const { user } = useAuth(); return user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "User"; })()}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{(() => { const { user } = useAuth(); return user?.email || ""; })()}</p>
+                      <SettingsAccountInfo />
                     </div>
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">E</div>
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground overflow-hidden">
+                      <SettingsAccountAvatar />
+                    </div>
                   </div>
 
                   <div className="rounded-xl border border-border overflow-hidden">
