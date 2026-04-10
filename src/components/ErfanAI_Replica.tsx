@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, createContext, useContext, useCallback } from "react";
 import { useCredits } from "@/hooks/useCredits";
 import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
 import ErfanAILogo from "@/components/ErfanAILogo";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { type Lang, t, isRTL } from "@/lib/translations";
 import { useAuth } from "@/contexts/AuthContext";
@@ -1603,11 +1605,26 @@ const TaskExecutionSteps = ({ steps }: { steps: TaskStep[] }) => {
 };
 
 /* ═══════════════════════ CHAT MESSAGE ═══════════════════════ */
-const ChatMessage = ({ message, isUser, files, steps }: { message: string; isUser: boolean; files?: File[]; steps?: TaskStep[] }) => (
+const ChatMessage = ({ message, isUser, files, steps, isStreaming }: { message: string; isUser: boolean; files?: File[]; steps?: TaskStep[]; isStreaming?: boolean }) => (
   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex ${isUser ? "justify-start" : "justify-end"} mb-3`}>
     <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${isUser ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground"}`}>
       {steps && steps.length > 0 && <TaskExecutionSteps steps={steps} />}
-      {message && <p className="leading-relaxed">{message}</p>}
+      {message && (
+        isUser ? (
+          <p className="leading-relaxed">{message}</p>
+        ) : (
+          <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1 [&>pre]:my-2 [&>pre]:rounded-lg [&>pre]:bg-background/30 [&>pre]:p-3 [&>code]:bg-background/30 [&>code]:rounded [&>code]:px-1 [&>code]:py-0.5 [&>code]:text-xs">
+            <ReactMarkdown>{message}</ReactMarkdown>
+            {isStreaming && (
+              <motion.span
+                className="inline-block w-1.5 h-4 bg-accent rounded-sm ml-0.5 align-middle"
+                animate={{ opacity: [1, 0, 1] }}
+                transition={{ duration: 0.8, repeat: Infinity }}
+              />
+            )}
+          </div>
+        )
+      )}
       {files && files.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {files.map((f, i) => (
