@@ -2908,17 +2908,19 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [chatMode, setChatMode] = useState("standard");
   const [isStreaming, setIsStreaming] = useState(false);
-  const [messages, setMessages] = useState<{ text: string; isUser: boolean; files?: File[]; steps?: TaskStep[]; isStreaming?: boolean }[]>(() => {
-    try {
-      const saved = localStorage.getItem("erfanai_messages");
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return [];
-  });
-
-  useEffect(() => {
-    localStorage.setItem("erfanai_messages", JSON.stringify(messages.map(m => ({ text: m.text, isUser: m.isUser }))));
-  }, [messages]);
+  const {
+    conversations: dbConversations,
+    currentConversationId,
+    messages,
+    setMessages,
+    loadMessages: loadConvMessages,
+    createConversation,
+    saveMessage,
+    startNewChat,
+    deleteConversation,
+    clearAllConversations,
+    updateTitle,
+  } = useConversations();
   const [isRecording, setIsRecording] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isDiscoverOpen, setIsDiscoverOpen] = useState(false);
