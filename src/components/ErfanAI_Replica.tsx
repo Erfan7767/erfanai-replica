@@ -349,9 +349,28 @@ const SidebarUserInfo = () => {
 };
 
 /* ═══════════════════════ SIDEBAR ═══════════════════════ */
-const Sidebar = ({ isOpen, onClose, onNewTask, onNavigate, conversations, onSelectConversation, onDeleteConversation }: { isOpen: boolean; onClose: () => void; onNewTask: () => void; onNavigate: (page: string) => void; conversations?: { id: string; title: string; updated_at: string }[]; onSelectConversation?: (id: string) => void; onDeleteConversation?: (id: string) => void }) => {
+const Sidebar = ({ isOpen, onClose, onNewTask, onNavigate, conversations, onSelectConversation, onDeleteConversation, onRenameConversation }: { isOpen: boolean; onClose: () => void; onNewTask: () => void; onNavigate: (page: string) => void; conversations?: { id: string; title: string; updated_at: string }[]; onSelectConversation?: (id: string) => void; onDeleteConversation?: (id: string) => void; onRenameConversation?: (id: string, title: string) => void }) => {
   const { lang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const editInputRef = useRef<HTMLInputElement>(null);
+
+  const handleStartRename = (conv: { id: string; title: string }) => {
+    setEditingId(conv.id);
+    setEditTitle(conv.title);
+    setTimeout(() => editInputRef.current?.focus(), 50);
+  };
+
+  const handleSaveRename = () => {
+    if (editingId && editTitle.trim()) {
+      onRenameConversation?.(editingId, editTitle.trim());
+      toast.success(t(lang, "profile.saved"));
+    }
+    setEditingId(null);
+    setEditTitle("");
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -382,18 +401,40 @@ const Sidebar = ({ isOpen, onClose, onNewTask, onNavigate, conversations, onSele
                 <div className="space-y-0.5">
                   {conversations.map((conv) => (
                     <div key={conv.id} className="group flex items-center gap-1">
-                      <button
-                        onClick={() => { onSelectConversation?.(conv.id); onClose(); }}
-                        className="flex-1 truncate rounded-lg px-4 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors text-start"
-                      >
-                        <span className="truncate block">{conv.title}</span>
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); onDeleteConversation?.(conv.id); }}
-                        className="opacity-0 group-hover:opacity-100 p-1.5 text-muted-foreground hover:text-destructive transition-all rounded-lg hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      {editingId === conv.id ? (
+                        <div className="flex-1 flex items-center gap-1 px-2">
+                          <input
+                            ref={editInputRef}
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === "Enter") handleSaveRename(); if (e.key === "Escape") { setEditingId(null); setEditTitle(""); } }}
+                            onBlur={handleSaveRename}
+                            className="flex-1 rounded-lg border border-accent bg-secondary px-2.5 py-1.5 text-sm text-foreground outline-none focus:ring-1 focus:ring-accent"
+                            dir={dir}
+                          />
+                        </div>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => { onSelectConversation?.(conv.id); onClose(); }}
+                            className="flex-1 truncate rounded-lg px-4 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors text-start"
+                          >
+                            <span className="truncate block">{conv.title}</span>
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleStartRename(conv); }}
+                            className="opacity-0 group-hover:opacity-100 p-1.5 text-muted-foreground hover:text-accent transition-all rounded-lg hover:bg-accent/10"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onDeleteConversation?.(conv.id); }}
+                            className="opacity-0 group-hover:opacity-100 p-1.5 text-muted-foreground hover:text-destructive transition-all rounded-lg hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
