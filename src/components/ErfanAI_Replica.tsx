@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, createContext, useContext, useCallback } from "react";
+import { useConversations, type ChatMessage as DBChatMsg } from "@/hooks/useConversations";
 import { useCredits } from "@/hooks/useCredits";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
@@ -348,7 +349,7 @@ const SidebarUserInfo = () => {
 };
 
 /* ═══════════════════════ SIDEBAR ═══════════════════════ */
-const Sidebar = ({ isOpen, onClose, onNewTask, onNavigate }: { isOpen: boolean; onClose: () => void; onNewTask: () => void; onNavigate: (page: string) => void }) => {
+const Sidebar = ({ isOpen, onClose, onNewTask, onNavigate, conversations, onSelectConversation, onDeleteConversation }: { isOpen: boolean; onClose: () => void; onNewTask: () => void; onNavigate: (page: string) => void; conversations?: { id: string; title: string; updated_at: string }[]; onSelectConversation?: (id: string) => void; onDeleteConversation?: (id: string) => void }) => {
   const { lang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
   return (
@@ -361,12 +362,11 @@ const Sidebar = ({ isOpen, onClose, onNewTask, onNavigate }: { isOpen: boolean; 
               <h2 className="text-lg font-bold text-accent">ErfanAI</h2>
               <button onClick={onClose} className="rounded-lg p-2 text-muted-foreground hover:bg-secondary transition-colors"><X className="h-5 w-5" /></button>
             </div>
-            <nav className="flex-1 p-3 space-y-1">
+            <nav className="p-3 space-y-1">
               {[
                 { icon: Plus, labelKey: "sidebar.new_task", isAccent: true, action: "new_task" },
                 { icon: Bot, labelKey: "sidebar.agents", isAccent: false, action: "agents" },
                 { icon: Search, labelKey: "sidebar.search", isAccent: false, action: "search" },
-                { icon: MessageSquare, labelKey: "sidebar.chats", isAccent: false, action: "chats" },
                 { icon: Sparkles, labelKey: "sidebar.discover", isAccent: false, action: "discover" },
               ].map((item) => (
                 <button key={item.labelKey} onClick={() => { if (item.action === "new_task") { onNewTask(); onClose(); } else { onNavigate(item.action); onClose(); } }} className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${item.isAccent ? "bg-accent text-accent-foreground" : "text-foreground hover:bg-secondary"}`}>
@@ -375,6 +375,31 @@ const Sidebar = ({ isOpen, onClose, onNewTask, onNavigate }: { isOpen: boolean; 
                 </button>
               ))}
             </nav>
+            {/* Conversation History */}
+            {conversations && conversations.length > 0 && (
+              <div className="flex-1 overflow-y-auto px-3 pb-3">
+                <p className="px-4 py-2 text-xs font-semibold text-muted-foreground">{t(lang, "sidebar.chats")}</p>
+                <div className="space-y-0.5">
+                  {conversations.map((conv) => (
+                    <div key={conv.id} className="group flex items-center gap-1">
+                      <button
+                        onClick={() => { onSelectConversation?.(conv.id); onClose(); }}
+                        className="flex-1 truncate rounded-lg px-4 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors text-start"
+                      >
+                        <span className="truncate block">{conv.title}</span>
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onDeleteConversation?.(conv.id); }}
+                        className="opacity-0 group-hover:opacity-100 p-1.5 text-muted-foreground hover:text-destructive transition-all rounded-lg hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {!conversations || conversations.length === 0 ? <div className="flex-1" /> : null}
             <div className="border-t border-border p-4">
               <div className="flex items-center gap-3">
                 <SidebarUserInfo />
@@ -2883,17 +2908,19 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [chatMode, setChatMode] = useState("standard");
   const [isStreaming, setIsStreaming] = useState(false);
-  const [messages, setMessages] = useState<{ text: string; isUser: boolean; files?: File[]; steps?: TaskStep[]; isStreaming?: boolean }[]>(() => {
-    try {
-      const saved = localStorage.getItem("erfanai_messages");
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return [];
-  });
-
-  useEffect(() => {
-    localStorage.setItem("erfanai_messages", JSON.stringify(messages.map(m => ({ text: m.text, isUser: m.isUser }))));
-  }, [messages]);
+  const {
+    conversations: dbConversations,
+    currentConversationId,
+    messages,
+    setMessages,
+    loadMessages: loadConvMessages,
+    createConversation,
+    saveMessage,
+    startNewChat,
+    deleteConversation,
+    clearAllConversations,
+    updateTitle,
+  } = useConversations();
   const [isRecording, setIsRecording] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isDiscoverOpen, setIsDiscoverOpen] = useState(false);
@@ -3062,6 +3089,9 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
 
   const removeFile = (index: number) => setAttachedFiles(prev => prev.filter((_, i) => i !== index));
 
+  const conversationIdRef = useRef<string | null>(currentConversationId);
+  useEffect(() => { conversationIdRef.current = currentConversationId; }, [currentConversationId]);
+
   const handleSend = async () => {
     if (!inputValue.trim() && attachedFiles.length === 0) return;
     
@@ -3069,6 +3099,16 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     setMessages(prev => [...prev, { text: userMsg, isUser: true, files: attachedFiles.length > 0 ? [...attachedFiles] : undefined }]);
     setInputValue("");
     setAttachedFiles([]);
+
+    // Create or reuse conversation
+    let convId = conversationIdRef.current;
+    if (!convId) {
+      convId = await createConversation(currentModel, chatMode, userMsg);
+    }
+    // Save user message to DB
+    if (convId) {
+      saveMessage(convId, "user", userMsg);
+    }
     
     // Track credit usage
     consumeCredits(2);
@@ -3200,6 +3240,11 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       setMessages(prev => prev.map((m, i) => i === prev.length - 1 && !m.isUser ? { ...m, isStreaming: false } : m));
       setIsStreaming(false);
       setExecutionFinalMessage(assistantSoFar);
+
+      // Save assistant message to DB
+      if (convId && assistantSoFar.trim()) {
+        saveMessage(convId, "assistant", assistantSoFar);
+      }
 
     } catch (e: any) {
       console.error("AI chat error:", e);
@@ -3508,16 +3553,15 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       </div>
 
       {/* Overlays */}
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} onNewTask={() => { setInputValue(""); setMessages([]); setActiveChips([]); toast(t(lang, "new_task.created")); }} onNavigate={(page) => { 
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} onNewTask={() => { startNewChat(); setInputValue(""); setActiveChips([]); toast(t(lang, "new_task.created")); }} onNavigate={(page) => { 
         if (page === "search") { setIsSearchOpen(true); }
         else if (page === "discover") { setIsDiscoverOpen(true); }
-        else if (page === "chats") { toast(`${t(lang, "sidebar.chats")} - ${t(lang, "coming_soon")}`); }
         else if (page === "agents") { toast(`${t(lang, "sidebar.agents")} - ${t(lang, "coming_soon")}`); }
-      }} />
+      }} conversations={dbConversations} onSelectConversation={(id) => { loadConvMessages(id); }} onDeleteConversation={(id) => { deleteConversation(id); toast.success(t(lang, "settings.history_cleared")); }} />
       <ProfileDropdown isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} onLogout={onLogout} onOpenSettings={() => setIsSettingsOpen(true)} onOpenProfile={() => setIsProfilePanelOpen(true)} onOpenKnowledge={() => setIsKnowledgeOpen(true)} onUpgrade={() => setMorePanel("upgrade_pro")} onHome={onLogout} onHelp={() => setIsHelpOpen(true)} />
       <NotificationsPanel isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} onUpgrade={() => { setIsNotificationsOpen(false); setMorePanel("upgrade_pro"); }} />
       <ModelSelector isOpen={isModelSelectorOpen} onClose={() => setIsModelSelectorOpen(false)} currentModel={currentModel} onSelect={(m) => { setCurrentModel(m); toast(`${t(lang, "model.switched_to")} ${m}`); }} onUpgrade={() => setMorePanel("upgrade_pro")} />
-      <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} onChangeModel={(m) => setCurrentModel(m)} onClearHistory={() => { setMessages([]); setActiveChips([]); }} onLogout={onLogout} currentModel={currentModel} />
+      <SettingsPanel isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} onChangeModel={(m) => setCurrentModel(m)} onClearHistory={() => { clearAllConversations(); setActiveChips([]); }} onLogout={onLogout} currentModel={currentModel} />
       <ProfilePanel isOpen={isProfilePanelOpen} onClose={() => setIsProfilePanelOpen(false)} onLogout={onLogout} />
       <KnowledgePanel isOpen={isKnowledgeOpen} onClose={() => setIsKnowledgeOpen(false)} />
       <HelpPanel isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} onUpgrade={() => { setIsHelpOpen(false); setMorePanel("upgrade_pro"); }} />
