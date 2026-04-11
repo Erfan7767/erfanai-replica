@@ -3598,7 +3598,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         if (page === "search") { setIsSearchOpen(true); }
         else if (page === "discover") { setIsDiscoverOpen(true); }
         else if (page === "agents") { toast(`${t(lang, "sidebar.agents")} - ${t(lang, "coming_soon")}`); }
-      }} conversations={dbConversations} onSelectConversation={(id) => { loadConvMessages(id); }} onDeleteConversation={(id) => { deleteConversation(id); toast.success(t(lang, "settings.history_cleared")); }} />
+      }} conversations={dbConversations} onSelectConversation={(id) => { loadConvMessages(id); }} onDeleteConversation={(id) => { deleteConversation(id); toast.success(t(lang, "settings.history_cleared")); }} onRenameConversation={(id, title) => { updateTitle(id, title); }} />
       <ProfileDropdown isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} onLogout={onLogout} onOpenSettings={() => setIsSettingsOpen(true)} onOpenProfile={() => setIsProfilePanelOpen(true)} onOpenKnowledge={() => setIsKnowledgeOpen(true)} onUpgrade={() => setMorePanel("upgrade_pro")} onHome={onLogout} onHelp={() => setIsHelpOpen(true)} />
       <NotificationsPanel isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} onUpgrade={() => { setIsNotificationsOpen(false); setMorePanel("upgrade_pro"); }} />
       <ModelSelector isOpen={isModelSelectorOpen} onClose={() => setIsModelSelectorOpen(false)} currentModel={currentModel} onSelect={(m) => { setCurrentModel(m); toast(`${t(lang, "model.switched_to")} ${m}`); }} onUpgrade={() => setMorePanel("upgrade_pro")} />
