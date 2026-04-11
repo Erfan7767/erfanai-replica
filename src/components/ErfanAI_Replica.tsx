@@ -3553,12 +3553,11 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       </div>
 
       {/* Overlays */}
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} onNewTask={() => { setInputValue(""); setMessages([]); setActiveChips([]); toast(t(lang, "new_task.created")); }} onNavigate={(page) => { 
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} onNewTask={() => { startNewChat(); setInputValue(""); setActiveChips([]); toast(t(lang, "new_task.created")); }} onNavigate={(page) => { 
         if (page === "search") { setIsSearchOpen(true); }
         else if (page === "discover") { setIsDiscoverOpen(true); }
-        else if (page === "chats") { toast(`${t(lang, "sidebar.chats")} - ${t(lang, "coming_soon")}`); }
         else if (page === "agents") { toast(`${t(lang, "sidebar.agents")} - ${t(lang, "coming_soon")}`); }
-      }} />
+      }} conversations={dbConversations} onSelectConversation={(id) => { loadConvMessages(id); }} onDeleteConversation={(id) => { deleteConversation(id); toast.success(t(lang, "settings.history_cleared")); }} />
       <ProfileDropdown isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} onLogout={onLogout} onOpenSettings={() => setIsSettingsOpen(true)} onOpenProfile={() => setIsProfilePanelOpen(true)} onOpenKnowledge={() => setIsKnowledgeOpen(true)} onUpgrade={() => setMorePanel("upgrade_pro")} onHome={onLogout} onHelp={() => setIsHelpOpen(true)} />
       <NotificationsPanel isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} onUpgrade={() => { setIsNotificationsOpen(false); setMorePanel("upgrade_pro"); }} />
       <ModelSelector isOpen={isModelSelectorOpen} onClose={() => setIsModelSelectorOpen(false)} currentModel={currentModel} onSelect={(m) => { setCurrentModel(m); toast(`${t(lang, "model.switched_to")} ${m}`); }} onUpgrade={() => setMorePanel("upgrade_pro")} />
