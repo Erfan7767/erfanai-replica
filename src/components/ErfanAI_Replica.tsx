@@ -3089,6 +3089,9 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
 
   const removeFile = (index: number) => setAttachedFiles(prev => prev.filter((_, i) => i !== index));
 
+  const conversationIdRef = useRef<string | null>(currentConversationId);
+  useEffect(() => { conversationIdRef.current = currentConversationId; }, [currentConversationId]);
+
   const handleSend = async () => {
     if (!inputValue.trim() && attachedFiles.length === 0) return;
     
@@ -3096,6 +3099,16 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     setMessages(prev => [...prev, { text: userMsg, isUser: true, files: attachedFiles.length > 0 ? [...attachedFiles] : undefined }]);
     setInputValue("");
     setAttachedFiles([]);
+
+    // Create or reuse conversation
+    let convId = conversationIdRef.current;
+    if (!convId) {
+      convId = await createConversation(currentModel, chatMode, userMsg);
+    }
+    // Save user message to DB
+    if (convId) {
+      saveMessage(convId, "user", userMsg);
+    }
     
     // Track credit usage
     consumeCredits(2);
