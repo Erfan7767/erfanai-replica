@@ -3241,6 +3241,11 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       setIsStreaming(false);
       setExecutionFinalMessage(assistantSoFar);
 
+      // Save assistant message to DB
+      if (convId && assistantSoFar.trim()) {
+        saveMessage(convId, "assistant", assistantSoFar);
+      }
+
     } catch (e: any) {
       console.error("AI chat error:", e);
       const errorMsg = e.message || "حدث خطأ أثناء الاتصال بالذكاء الاصطناعي";
