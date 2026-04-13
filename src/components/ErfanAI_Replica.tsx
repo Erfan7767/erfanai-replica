@@ -2137,18 +2137,20 @@ const MorePanelWrapper = ({ isOpen, onClose, title, icon: Icon, children }: { is
 /* ═══════════════════════ SCHEDULE TASK PANEL ═══════════════════════ */
 const ScheduleTaskPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const { lang } = useLang();
-  const [tasks, setTasks] = useState<{ id: string; title: string; date: string; time: string; done: boolean }[]>(() => {
-    try { const s = localStorage.getItem("erfanai_scheduled_tasks"); if (s) return JSON.parse(s); } catch {} return [];
-  });
+  const { tasks, addTask, deleteTask, toggleTask } = useScheduledTasks();
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
 
-  const save = (t: typeof tasks) => { setTasks(t); localStorage.setItem("erfanai_scheduled_tasks", JSON.stringify(t)); };
-
-  const addTask = () => {
+  const handleAdd = () => {
     if (!title.trim() || !date) return;
-    save([{ id: Date.now().toString(), title: title.trim(), date, time, done: false }, ...tasks]);
+    addTask({
+      title: title.trim(),
+      description: date,
+      schedule_type: "once",
+      schedule_time: time || "09:00",
+      prompt: `${title.trim()} - ${date} ${time}`,
+    });
     setTitle(""); setDate(""); setTime("");
     toast.success(t(lang, "schedule.added"));
   };
@@ -2161,22 +2163,22 @@ const ScheduleTaskPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
           <input type="date" value={date} onChange={e => setDate(e.target.value)} className="flex-1 rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:border-accent" />
           <input type="time" value={time} onChange={e => setTime(e.target.value)} className="flex-1 rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:border-accent" />
         </div>
-        <button onClick={addTask} disabled={!title.trim() || !date} className="w-full rounded-xl bg-accent text-accent-foreground py-3 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-40">{t(lang, "schedule.add_btn")}</button>
+        <button onClick={handleAdd} disabled={!title.trim() || !date} className="w-full rounded-xl bg-accent text-accent-foreground py-3 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-40">{t(lang, "schedule.add_btn")}</button>
       </div>
       {tasks.length === 0 ? (
         <div className="text-center py-10"><CalendarCheck className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" /><p className="text-sm text-muted-foreground">{t(lang, "schedule.empty")}</p></div>
       ) : (
         <div className="space-y-2">
           {tasks.map(task => (
-            <div key={task.id} className={`flex items-center gap-3 rounded-xl border border-border p-3 ${task.done ? "opacity-50" : ""}`}>
-              <button onClick={() => save(tasks.map(tt => tt.id === task.id ? { ...tt, done: !tt.done } : tt))} className={`h-5 w-5 rounded-md border-2 flex items-center justify-center transition-colors ${task.done ? "bg-accent border-accent" : "border-muted-foreground"}`}>
-                {task.done && <span className="text-accent-foreground text-xs">✓</span>}
+            <div key={task.id} className={`flex items-center gap-3 rounded-xl border border-border p-3 ${!task.enabled ? "opacity-50" : ""}`}>
+              <button onClick={() => toggleTask(task.id)} className={`h-5 w-5 rounded-md border-2 flex items-center justify-center transition-colors ${!task.enabled ? "bg-accent border-accent" : "border-muted-foreground"}`}>
+                {!task.enabled && <span className="text-accent-foreground text-xs">✓</span>}
               </button>
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-medium text-foreground ${task.done ? "line-through" : ""}`}>{task.title}</p>
-                <p className="text-xs text-muted-foreground">{task.date} {task.time && `• ${task.time}`}</p>
+                <p className={`text-sm font-medium text-foreground ${!task.enabled ? "line-through" : ""}`}>{task.title}</p>
+                <p className="text-xs text-muted-foreground">{task.description} {task.schedule_time && `• ${task.schedule_time}`}</p>
               </div>
-              <button onClick={() => { save(tasks.filter(tt => tt.id !== task.id)); toast(t(lang, "schedule.deleted")); }} className="text-muted-foreground hover:text-red-500 transition-colors"><Trash2 className="h-4 w-4" /></button>
+              <button onClick={() => { deleteTask(task.id); toast(t(lang, "schedule.deleted")); }} className="text-muted-foreground hover:text-red-500 transition-colors"><Trash2 className="h-4 w-4" /></button>
             </div>
           ))}
         </div>
