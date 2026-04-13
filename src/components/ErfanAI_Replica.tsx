@@ -2926,6 +2926,8 @@ const CustomizeCarousel = ({ lang, dir }: { lang: Lang; dir: string }) => {
 const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const { lang } = useLang();
   const { usage, consumeCredits } = useCredits();
+  const { getEnabledContext } = useKnowledge();
+  const { meetings: dbMeetings, saveMeeting: dbSaveMeeting, updateMeeting: dbUpdateMeeting, deleteMeeting: dbDeleteMeeting, uploadAudio } = useMeetings();
   const dir = isRTL(lang) ? "rtl" : "ltr";
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -2936,7 +2938,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [isKnowledgeOpen, setIsKnowledgeOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isCreditsOpen, setIsCreditsOpen] = useState(false);
-  const [currentModel, setCurrentModel] = useState(() => loadSettings().defaultModel || "ErfanAI Lite");
+  const [currentModel, setCurrentModel] = useState("ErfanAI Lite");
   const [inputValue, setInputValue] = useState("");
   const [activeChips, setActiveChips] = useState<string[]>([]);
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
