@@ -18,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, model, chatMode } = await req.json();
+    const { messages, model, chatMode, knowledgeContext } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
@@ -26,9 +26,14 @@ serve(async (req) => {
 
     const aiModel = MODEL_MAP[model] || "google/gemini-3-flash-preview";
 
-    // Build system prompt based on chat mode
+    // Build system prompt based on chat mode + knowledge context
     let systemContent =
       "أنت ErfanAI، مساعد ذكاء اصطناعي متقدم ومتعدد المهام. أنت تساعد المستخدمين في البرمجة، التصميم، الكتابة، التحليل، وأي مهمة أخرى. أجب بلغة المستخدم. كن دقيقاً ومفيداً ومحترفاً. استخدم Markdown للتنسيق عند الحاجة.";
+
+    // Inject knowledge base context
+    if (knowledgeContext && typeof knowledgeContext === "string" && knowledgeContext.trim()) {
+      systemContent += `\n\nسياق من قاعدة معرفة المستخدم (استخدمه عند الحاجة):\n${knowledgeContext}`;
+    }
 
     switch (chatMode) {
       case "creative":
