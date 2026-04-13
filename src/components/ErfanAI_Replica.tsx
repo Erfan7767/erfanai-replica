@@ -3152,7 +3152,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     // Track credit usage
     consumeCredits(2);
 
-    // Build conversation history for AI
+    // Build conversation history for AI with knowledge context
+    const knowledgeContext = getEnabledContext();
     const conversationHistory = messages
       .filter(m => m.text)
       .map(m => ({ role: m.isUser ? "user" as const : "assistant" as const, content: m.text }));
@@ -3191,6 +3192,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
           messages: conversationHistory,
           model: currentModel,
           chatMode,
+          knowledgeContext: knowledgeContext || undefined,
         }),
       });
 
