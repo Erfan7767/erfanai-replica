@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef, createContext, useContext, useCallback } from "react";
 import { useConversations, type ChatMessage as DBChatMsg } from "@/hooks/useConversations";
 import { useCredits } from "@/hooks/useCredits";
+import { useKnowledge } from "@/hooks/useKnowledge";
+import { useMeetings } from "@/hooks/useMeetings";
+import { useScheduledTasks } from "@/hooks/useScheduledTasks";
+import { useSettings, type UserSettings } from "@/hooks/useSettings";
+import { useProjects } from "@/hooks/useProjects";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import ErfanAILogo from "@/components/ErfanAILogo";
@@ -1740,51 +1745,40 @@ const ChatMessage = ({ message, isUser, files, steps, isStreaming }: { message: 
 );
 
 /* ═══════════════════════ KNOWLEDGE PANEL ═══════════════════════ */
-const KNOWLEDGE_KEY = "erfanai_knowledge";
-interface KnowledgeItem { id: string; title: string; content: string; enabled: boolean; createdAt: number; updatedAt: number; }
-
 const KnowledgePanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const { lang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
-  const [items, setItems] = useState<KnowledgeItem[]>(() => {
-    try { const s = localStorage.getItem(KNOWLEDGE_KEY); if (s) return JSON.parse(s); } catch {} return [];
-  });
+  const { items, addItem, updateItem, deleteItem, toggleItem } = useKnowledge();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formTitle, setFormTitle] = useState("");
   const [formContent, setFormContent] = useState("");
 
-  const saveItems = (newItems: KnowledgeItem[]) => {
-    setItems(newItems);
-    localStorage.setItem(KNOWLEDGE_KEY, JSON.stringify(newItems));
-  };
-
   const handleAdd = () => {
     if (!formTitle.trim() || !formContent.trim()) return;
-    const newItem: KnowledgeItem = { id: Date.now().toString(), title: formTitle.trim(), content: formContent.trim(), enabled: true, createdAt: Date.now(), updatedAt: Date.now() };
-    saveItems([newItem, ...items]);
+    addItem(formTitle.trim(), formContent.trim());
     setFormTitle(""); setFormContent(""); setIsAdding(false);
     toast(t(lang, "knowledge.saved"));
   };
 
   const handleUpdate = () => {
     if (!editingId || !formTitle.trim() || !formContent.trim()) return;
-    saveItems(items.map(i => i.id === editingId ? { ...i, title: formTitle.trim(), content: formContent.trim(), updatedAt: Date.now() } : i));
+    updateItem(editingId, formTitle.trim(), formContent.trim());
     setFormTitle(""); setFormContent(""); setEditingId(null);
     toast(t(lang, "knowledge.updated"));
   };
 
   const handleDelete = (id: string) => {
-    saveItems(items.filter(i => i.id !== id));
+    deleteItem(id);
     toast(t(lang, "knowledge.deleted"));
   };
 
   const handleToggle = (id: string) => {
-    saveItems(items.map(i => i.id === id ? { ...i, enabled: !i.enabled } : i));
+    toggleItem(id);
   };
 
-  const startEdit = (item: KnowledgeItem) => {
+  const startEdit = (item: { id: string; title: string; content: string }) => {
     setEditingId(item.id); setFormTitle(item.title); setFormContent(item.content); setIsAdding(false);
   };
 
@@ -1876,7 +1870,7 @@ const KnowledgePanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
                         <h4 className="text-sm font-semibold text-foreground truncate">{item.title}</h4>
                         <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">{item.content}</p>
                         <p className="text-[10px] text-muted-foreground/60 mt-2">
-                          {new Date(item.updatedAt).toLocaleDateString(lang === "العربية" ? "ar-SA" : "en-US", { year: "numeric", month: "short", day: "numeric" })}
+                          {new Date(item.updated_at).toLocaleDateString(lang === "العربية" ? "ar-SA" : "en-US", { year: "numeric", month: "short", day: "numeric" })}
                         </p>
                       </div>
                       <button onClick={() => handleToggle(item.id)} className={`mt-1 h-5 w-9 rounded-full transition-colors shrink-0 relative ${item.enabled ? "bg-accent" : "bg-muted-foreground/30"}`}>
@@ -2143,18 +2137,20 @@ const MorePanelWrapper = ({ isOpen, onClose, title, icon: Icon, children }: { is
 /* ═══════════════════════ SCHEDULE TASK PANEL ═══════════════════════ */
 const ScheduleTaskPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const { lang } = useLang();
-  const [tasks, setTasks] = useState<{ id: string; title: string; date: string; time: string; done: boolean }[]>(() => {
-    try { const s = localStorage.getItem("erfanai_scheduled_tasks"); if (s) return JSON.parse(s); } catch {} return [];
-  });
+  const { tasks, addTask, deleteTask, toggleTask } = useScheduledTasks();
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
 
-  const save = (t: typeof tasks) => { setTasks(t); localStorage.setItem("erfanai_scheduled_tasks", JSON.stringify(t)); };
-
-  const addTask = () => {
+  const handleAdd = () => {
     if (!title.trim() || !date) return;
-    save([{ id: Date.now().toString(), title: title.trim(), date, time, done: false }, ...tasks]);
+    addTask({
+      title: title.trim(),
+      description: date,
+      schedule_type: "once",
+      schedule_time: time || "09:00",
+      prompt: `${title.trim()} - ${date} ${time}`,
+    });
     setTitle(""); setDate(""); setTime("");
     toast.success(t(lang, "schedule.added"));
   };
@@ -2167,22 +2163,22 @@ const ScheduleTaskPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =
           <input type="date" value={date} onChange={e => setDate(e.target.value)} className="flex-1 rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:border-accent" />
           <input type="time" value={time} onChange={e => setTime(e.target.value)} className="flex-1 rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:border-accent" />
         </div>
-        <button onClick={addTask} disabled={!title.trim() || !date} className="w-full rounded-xl bg-accent text-accent-foreground py-3 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-40">{t(lang, "schedule.add_btn")}</button>
+        <button onClick={handleAdd} disabled={!title.trim() || !date} className="w-full rounded-xl bg-accent text-accent-foreground py-3 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-40">{t(lang, "schedule.add_btn")}</button>
       </div>
       {tasks.length === 0 ? (
         <div className="text-center py-10"><CalendarCheck className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" /><p className="text-sm text-muted-foreground">{t(lang, "schedule.empty")}</p></div>
       ) : (
         <div className="space-y-2">
           {tasks.map(task => (
-            <div key={task.id} className={`flex items-center gap-3 rounded-xl border border-border p-3 ${task.done ? "opacity-50" : ""}`}>
-              <button onClick={() => save(tasks.map(tt => tt.id === task.id ? { ...tt, done: !tt.done } : tt))} className={`h-5 w-5 rounded-md border-2 flex items-center justify-center transition-colors ${task.done ? "bg-accent border-accent" : "border-muted-foreground"}`}>
-                {task.done && <span className="text-accent-foreground text-xs">✓</span>}
+            <div key={task.id} className={`flex items-center gap-3 rounded-xl border border-border p-3 ${!task.enabled ? "opacity-50" : ""}`}>
+              <button onClick={() => toggleTask(task.id)} className={`h-5 w-5 rounded-md border-2 flex items-center justify-center transition-colors ${!task.enabled ? "bg-accent border-accent" : "border-muted-foreground"}`}>
+                {!task.enabled && <span className="text-accent-foreground text-xs">✓</span>}
               </button>
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-medium text-foreground ${task.done ? "line-through" : ""}`}>{task.title}</p>
-                <p className="text-xs text-muted-foreground">{task.date} {task.time && `• ${task.time}`}</p>
+                <p className={`text-sm font-medium text-foreground ${!task.enabled ? "line-through" : ""}`}>{task.title}</p>
+                <p className="text-xs text-muted-foreground">{task.description} {task.schedule_time && `• ${task.schedule_time}`}</p>
               </div>
-              <button onClick={() => { save(tasks.filter(tt => tt.id !== task.id)); toast(t(lang, "schedule.deleted")); }} className="text-muted-foreground hover:text-red-500 transition-colors"><Trash2 className="h-4 w-4" /></button>
+              <button onClick={() => { deleteTask(task.id); toast(t(lang, "schedule.deleted")); }} className="text-muted-foreground hover:text-red-500 transition-colors"><Trash2 className="h-4 w-4" /></button>
             </div>
           ))}
         </div>
@@ -2930,6 +2926,8 @@ const CustomizeCarousel = ({ lang, dir }: { lang: Lang; dir: string }) => {
 const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const { lang } = useLang();
   const { usage, consumeCredits } = useCredits();
+  const { getEnabledContext } = useKnowledge();
+  const { meetings: dbMeetings, saveMeeting: dbSaveMeeting, updateMeeting: dbUpdateMeeting, deleteMeeting: dbDeleteMeeting, uploadAudio } = useMeetings();
   const dir = isRTL(lang) ? "rtl" : "ltr";
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -2940,7 +2938,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [isKnowledgeOpen, setIsKnowledgeOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isCreditsOpen, setIsCreditsOpen] = useState(false);
-  const [currentModel, setCurrentModel] = useState(() => loadSettings().defaultModel || "ErfanAI Lite");
+  const [currentModel, setCurrentModel] = useState("ErfanAI Lite");
   const [inputValue, setInputValue] = useState("");
   const [activeChips, setActiveChips] = useState<string[]>([]);
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
@@ -3154,7 +3152,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     // Track credit usage
     consumeCredits(2);
 
-    // Build conversation history for AI
+    // Build conversation history for AI with knowledge context
+    const knowledgeContext = getEnabledContext();
     const conversationHistory = messages
       .filter(m => m.text)
       .map(m => ({ role: m.isUser ? "user" as const : "assistant" as const, content: m.text }));
@@ -3193,6 +3192,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
           messages: conversationHistory,
           model: currentModel,
           chatMode,
+          knowledgeContext: knowledgeContext || undefined,
         }),
       });
 

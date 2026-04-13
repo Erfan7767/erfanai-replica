@@ -44,6 +44,75 @@ export type Database = {
         }
         Relationships: []
       }
+      knowledge_items: {
+        Row: {
+          content: string
+          created_at: string
+          enabled: boolean
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      meetings: {
+        Row: {
+          audio_path: string | null
+          created_at: string
+          duration: number
+          id: string
+          notes: string | null
+          summary: string | null
+          title: string
+          transcript: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          audio_path?: string | null
+          created_at?: string
+          duration?: number
+          id?: string
+          notes?: string | null
+          summary?: string | null
+          title?: string
+          transcript?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          audio_path?: string | null
+          created_at?: string
+          duration?: number
+          id?: string
+          notes?: string | null
+          summary?: string | null
+          title?: string
+          transcript?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -75,6 +144,129 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      projects: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          master_instructions: string | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          master_instructions?: string | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          master_instructions?: string | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      scheduled_tasks: {
+        Row: {
+          created_at: string
+          description: string | null
+          enabled: boolean
+          id: string
+          last_run_at: string | null
+          prompt: string | null
+          schedule_time: string
+          schedule_type: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          last_run_at?: string | null
+          prompt?: string | null
+          schedule_time?: string
+          schedule_type?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          last_run_at?: string | null
+          prompt?: string | null
+          schedule_time?: string
+          schedule_type?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          chat_bubble_style: string
+          created_at: string
+          default_model: string
+          font_size: string
+          id: string
+          language: string
+          notif_email: boolean
+          notif_messages: boolean
+          notif_sound: boolean
+          notif_updates: boolean
+          notif_vibration: boolean
+          theme: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chat_bubble_style?: string
+          created_at?: string
+          default_model?: string
+          font_size?: string
+          id?: string
+          language?: string
+          notif_email?: boolean
+          notif_messages?: boolean
+          notif_sound?: boolean
+          notif_updates?: boolean
+          notif_vibration?: boolean
+          theme?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chat_bubble_style?: string
+          created_at?: string
+          default_model?: string
+          font_size?: string
+          id?: string
+          language?: string
+          notif_email?: boolean
+          notif_messages?: boolean
+          notif_sound?: boolean
+          notif_updates?: boolean
+          notif_vibration?: boolean
+          theme?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_usage: {
         Row: {
