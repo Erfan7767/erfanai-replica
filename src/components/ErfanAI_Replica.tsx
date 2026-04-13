@@ -1745,51 +1745,40 @@ const ChatMessage = ({ message, isUser, files, steps, isStreaming }: { message: 
 );
 
 /* ═══════════════════════ KNOWLEDGE PANEL ═══════════════════════ */
-const KNOWLEDGE_KEY = "erfanai_knowledge";
-interface KnowledgeItem { id: string; title: string; content: string; enabled: boolean; createdAt: number; updatedAt: number; }
-
 const KnowledgePanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const { lang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
-  const [items, setItems] = useState<KnowledgeItem[]>(() => {
-    try { const s = localStorage.getItem(KNOWLEDGE_KEY); if (s) return JSON.parse(s); } catch {} return [];
-  });
+  const { items, addItem, updateItem, deleteItem, toggleItem } = useKnowledge();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formTitle, setFormTitle] = useState("");
   const [formContent, setFormContent] = useState("");
 
-  const saveItems = (newItems: KnowledgeItem[]) => {
-    setItems(newItems);
-    localStorage.setItem(KNOWLEDGE_KEY, JSON.stringify(newItems));
-  };
-
   const handleAdd = () => {
     if (!formTitle.trim() || !formContent.trim()) return;
-    const newItem: KnowledgeItem = { id: Date.now().toString(), title: formTitle.trim(), content: formContent.trim(), enabled: true, createdAt: Date.now(), updatedAt: Date.now() };
-    saveItems([newItem, ...items]);
+    addItem(formTitle.trim(), formContent.trim());
     setFormTitle(""); setFormContent(""); setIsAdding(false);
     toast(t(lang, "knowledge.saved"));
   };
 
   const handleUpdate = () => {
     if (!editingId || !formTitle.trim() || !formContent.trim()) return;
-    saveItems(items.map(i => i.id === editingId ? { ...i, title: formTitle.trim(), content: formContent.trim(), updatedAt: Date.now() } : i));
+    updateItem(editingId, formTitle.trim(), formContent.trim());
     setFormTitle(""); setFormContent(""); setEditingId(null);
     toast(t(lang, "knowledge.updated"));
   };
 
   const handleDelete = (id: string) => {
-    saveItems(items.filter(i => i.id !== id));
+    deleteItem(id);
     toast(t(lang, "knowledge.deleted"));
   };
 
   const handleToggle = (id: string) => {
-    saveItems(items.map(i => i.id === id ? { ...i, enabled: !i.enabled } : i));
+    toggleItem(id);
   };
 
-  const startEdit = (item: KnowledgeItem) => {
+  const startEdit = (item: { id: string; title: string; content: string }) => {
     setEditingId(item.id); setFormTitle(item.title); setFormContent(item.content); setIsAdding(false);
   };
 
