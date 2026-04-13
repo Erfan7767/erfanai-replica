@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef, createContext, useContext, useCallback } from "react";
 import { useConversations, type ChatMessage as DBChatMsg } from "@/hooks/useConversations";
 import { useCredits } from "@/hooks/useCredits";
+import { useKnowledge } from "@/hooks/useKnowledge";
+import { useMeetings } from "@/hooks/useMeetings";
+import { useScheduledTasks } from "@/hooks/useScheduledTasks";
+import { useSettings, type UserSettings } from "@/hooks/useSettings";
+import { useProjects } from "@/hooks/useProjects";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import ErfanAILogo from "@/components/ErfanAILogo";
