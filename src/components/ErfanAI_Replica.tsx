@@ -1870,7 +1870,7 @@ const KnowledgePanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
                         <h4 className="text-sm font-semibold text-foreground truncate">{item.title}</h4>
                         <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">{item.content}</p>
                         <p className="text-[10px] text-muted-foreground/60 mt-2">
-                          {new Date(item.updatedAt).toLocaleDateString(lang === "العربية" ? "ar-SA" : "en-US", { year: "numeric", month: "short", day: "numeric" })}
+                          {new Date(item.updated_at).toLocaleDateString(lang === "العربية" ? "ar-SA" : "en-US", { year: "numeric", month: "short", day: "numeric" })}
                         </p>
                       </div>
                       <button onClick={() => handleToggle(item.id)} className={`mt-1 h-5 w-9 rounded-full transition-colors shrink-0 relative ${item.enabled ? "bg-accent" : "bg-muted-foreground/30"}`}>
