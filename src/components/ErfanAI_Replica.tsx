@@ -4169,9 +4169,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                                 value={editingTitle}
                                 onChange={e => setEditingTitle(e.target.value)}
                                 onBlur={() => {
-                                  const updated = savedMeetings.map(m => m.id === meeting.id ? { ...m, title: editingTitle || m.title } : m);
-                                  setSavedMeetings(updated);
-                                  localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
+                                  dbUpdateMeeting(meeting.id, { title: editingTitle || meeting.title });
                                   setEditingMeetingId(null);
                                 }}
                                 onKeyDown={e => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
