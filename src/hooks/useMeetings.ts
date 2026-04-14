@@ -65,8 +65,11 @@ export const useMeetings = () => {
   const uploadAudio = useCallback(async (blob: Blob, meetingId: string): Promise<string | null> => {
     if (!user) return null;
     const path = `${user.id}/${meetingId}.webm`;
-    const { error } = await supabase.storage.from("user-files").upload(path, blob, { contentType: "audio/webm" });
+    const { error } = await supabase.storage.from("user-files").upload(path, blob, { contentType: "audio/webm", upsert: true });
     if (error) { console.error("Audio upload error:", error); return null; }
+    // Save audio_path to meeting record
+    await supabase.from("meetings").update({ audio_path: path }).eq("id", meetingId);
+    setMeetings(prev => prev.map(m => m.id === meetingId ? { ...m, audio_path: path } : m));
     return path;
   }, [user]);
 
