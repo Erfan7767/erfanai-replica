@@ -50,9 +50,11 @@ export const useMeetings = () => {
     return null;
   }, [user]);
 
-  const updateMeeting = useCallback(async (id: string, updates: Partial<Pick<Meeting, "title" | "notes" | "summary">>) => {
-    const { error } = await supabase.from("meetings").update(updates).eq("id", id);
-    if (!error) setMeetings(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+  const updateMeeting = useCallback(async (id: string, updates: Partial<Pick<Meeting, "title" | "notes" | "summary" | "audio_path">>) => {
+    const cleanUpdates = Object.fromEntries(Object.entries(updates).filter(([_, v]) => v !== undefined));
+    if (Object.keys(cleanUpdates).length === 0) return;
+    const { error } = await supabase.from("meetings").update(cleanUpdates).eq("id", id);
+    if (!error) setMeetings(prev => prev.map(m => m.id === id ? { ...m, ...cleanUpdates } : m));
   }, []);
 
   const deleteMeeting = useCallback(async (id: string) => {
@@ -63,8 +65,11 @@ export const useMeetings = () => {
   const uploadAudio = useCallback(async (blob: Blob, meetingId: string): Promise<string | null> => {
     if (!user) return null;
     const path = `${user.id}/${meetingId}.webm`;
-    const { error } = await supabase.storage.from("user-files").upload(path, blob, { contentType: "audio/webm" });
+    const { error } = await supabase.storage.from("user-files").upload(path, blob, { contentType: "audio/webm", upsert: true });
     if (error) { console.error("Audio upload error:", error); return null; }
+    // Save audio_path to meeting record
+    await supabase.from("meetings").update({ audio_path: path }).eq("id", meetingId);
+    setMeetings(prev => prev.map(m => m.id === meetingId ? { ...m, audio_path: path } : m));
     return path;
   }, [user]);
 

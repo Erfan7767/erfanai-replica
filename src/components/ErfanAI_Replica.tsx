@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, createContext, useContext, useCallback } from "react";
+import { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } from "react";
 import { useConversations, type ChatMessage as DBChatMsg } from "@/hooks/useConversations";
 import { useCredits } from "@/hooks/useCredits";
 import { useKnowledge } from "@/hooks/useKnowledge";
@@ -2927,7 +2927,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const { lang } = useLang();
   const { usage, consumeCredits } = useCredits();
   const { getEnabledContext } = useKnowledge();
-  const { meetings: dbMeetings, saveMeeting: dbSaveMeeting, updateMeeting: dbUpdateMeeting, deleteMeeting: dbDeleteMeeting, uploadAudio } = useMeetings();
+  const { meetings: savedMeetingsRaw, saveMeeting: dbSaveMeeting, updateMeeting: dbUpdateMeeting, deleteMeeting: dbDeleteMeeting, uploadAudio } = useMeetings();
   const dir = isRTL(lang) ? "rtl" : "ltr";
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -2978,14 +2978,18 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const audioChunksRef = useRef<Blob[]>([]);
   const [editingMeetingId, setEditingMeetingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
-  const [savedMeetings, setSavedMeetings] = useState<{ id: string; duration: number; date: string; title: string; notes?: string; summary?: string; audioUrl?: string }[]>(() => {
-    try { const s = localStorage.getItem("erfanai_meetings"); if (s) return JSON.parse(s); } catch {} return [];
-  });
-  const [playbackMeeting, setPlaybackMeeting] = useState<{ id: string; duration: number; date: string; title: string; notes?: string; summary?: string; audioUrl?: string } | null>(null);
+  type MeetingView = { id: string; duration: number; date: string; title: string; notes?: string; summary?: string; audioUrl?: string; audio_path?: string | null; transcript?: string | null };
+  const savedMeetings: MeetingView[] = useMemo(() => savedMeetingsRaw.map(m => ({
+    id: m.id, duration: m.duration, title: m.title,
+    date: new Date(m.created_at).toLocaleString(),
+    notes: m.notes ?? undefined, summary: m.summary ?? undefined,
+    audio_path: m.audio_path, transcript: m.transcript ?? undefined,
+  })), [savedMeetingsRaw]);
+  const [playbackMeeting, setPlaybackMeeting] = useState<MeetingView | null>(null);
   const [playbackSeconds, setPlaybackSeconds] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const playbackTimerRef = useRef<any>(null);
-  const [viewingMeeting, setViewingMeeting] = useState<{ id: string; duration: number; date: string; title: string; notes?: string; summary?: string; audioUrl?: string } | null>(null);
+  const [viewingMeeting, setViewingMeeting] = useState<MeetingView | null>(null);
   const [exportMenuId, setExportMenuId] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
   const lastTranscriptRef = useRef<string>("");
@@ -3054,10 +3058,17 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     toast.success(t(lang, "meeting.exported"));
   };
 
-  const exportMeetingAudio = (meeting: typeof savedMeetings[0]) => {
-    if (meeting.audioUrl) {
-      const a = document.createElement("a"); a.href = meeting.audioUrl; a.download = `${meeting.title}.webm`; a.click();
-      toast.success(t(lang, "meeting.exported"));
+  const exportMeetingAudio = async (meeting: MeetingView) => {
+    if (meeting.audio_path) {
+      const { data } = await supabase.storage.from("user-files").download(meeting.audio_path);
+      if (data) {
+        const url = URL.createObjectURL(data);
+        const a = document.createElement("a"); a.href = url; a.download = `${meeting.title}.webm`; a.click();
+        URL.revokeObjectURL(url);
+        toast.success(t(lang, "meeting.exported"));
+      } else {
+        toast.error(t(lang, "meeting.no_audio"));
+      }
     } else {
       toast.error(t(lang, "meeting.no_audio"));
     }
@@ -3855,31 +3866,33 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                         </button>
                         {/* Stop button */}
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             setMeetingState("stopped");
                             if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
                             if (waveformIntervalRef.current) clearInterval(waveformIntervalRef.current);
                             if (meetingAudioRef.current) { meetingAudioRef.current.getTracks().forEach(t => t.stop()); meetingAudioRef.current = null; }
                             stopSpeechRecognition();
                             const fullTranscript = committedTranscript + liveTranscript;
-                            // Stop MediaRecorder & save audio
-                            let audioUrl: string | undefined;
+                            // Stop MediaRecorder & save to DB
+                            let audioBlob: Blob | null = null;
                             if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-                              mediaRecorderRef.current.onstop = () => {
-                                const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-                                audioUrl = URL.createObjectURL(blob);
-                                setSavedMeetings(prev => { const u = prev.map((m, i) => i === 0 ? { ...m, audioUrl } : m); localStorage.setItem("erfanai_meetings", JSON.stringify(u)); return u; });
-                              };
-                              mediaRecorderRef.current.stop();
+                              const recorder = mediaRecorderRef.current;
+                              const stopPromise = new Promise<Blob>((resolve) => {
+                                recorder.onstop = () => {
+                                  resolve(new Blob(audioChunksRef.current, { type: "audio/webm" }));
+                                };
+                              });
+                              recorder.stop();
+                              audioBlob = await stopPromise;
                             }
                             const mins = Math.floor(meetingSeconds / 60);
                             const summaryText = t(lang, "meeting.auto_summary").replace("{mins}", String(mins || 1));
                             setMeetingSummary(summaryText);
                             if (fullTranscript.trim()) setMeetingNotes(fullTranscript.trim());
-                            const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, notes: fullTranscript.trim(), summary: summaryText, audioUrl };
-                            const updated = [newMeeting, ...savedMeetings];
-                            setSavedMeetings(updated);
-                            localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
+                            const saved = await dbSaveMeeting({ title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, duration: meetingSeconds, notes: fullTranscript.trim() || undefined, summary: summaryText, transcript: fullTranscript.trim() || undefined });
+                            if (saved && audioBlob) {
+                              await uploadAudio(audioBlob, saved.id);
+                            }
                             toast.success(t(lang, "meeting.saved"));
                           }}
                           className="flex items-center gap-2 rounded-xl bg-destructive text-destructive-foreground px-4 py-2.5 text-sm font-semibold hover:bg-destructive/90 transition-colors"
@@ -3921,30 +3934,32 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                         </button>
                         {/* Stop button */}
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             setMeetingState("stopped");
                             if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
                             if (waveformIntervalRef.current) clearInterval(waveformIntervalRef.current);
                             if (meetingAudioRef.current) { meetingAudioRef.current.getTracks().forEach(t => t.stop()); meetingAudioRef.current = null; }
                             stopSpeechRecognition();
                             const fullTranscript2 = committedTranscript + liveTranscript;
-                            let audioUrl2: string | undefined;
+                            let audioBlob2: Blob | null = null;
                             if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-                              mediaRecorderRef.current.onstop = () => {
-                                const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-                                audioUrl2 = URL.createObjectURL(blob);
-                                setSavedMeetings(prev => { const u = prev.map((m, i) => i === 0 ? { ...m, audioUrl: audioUrl2 } : m); localStorage.setItem("erfanai_meetings", JSON.stringify(u)); return u; });
-                              };
-                              mediaRecorderRef.current.stop();
+                              const recorder = mediaRecorderRef.current;
+                              const stopPromise = new Promise<Blob>((resolve) => {
+                                recorder.onstop = () => {
+                                  resolve(new Blob(audioChunksRef.current, { type: "audio/webm" }));
+                                };
+                              });
+                              recorder.stop();
+                              audioBlob2 = await stopPromise;
                             }
                             const mins = Math.floor(meetingSeconds / 60);
                             const summaryText = t(lang, "meeting.auto_summary").replace("{mins}", String(mins || 1));
                             setMeetingSummary(summaryText);
                             if (fullTranscript2.trim()) setMeetingNotes(fullTranscript2.trim());
-                            const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, notes: fullTranscript2.trim(), summary: summaryText, audioUrl: audioUrl2 };
-                            const updated = [newMeeting, ...savedMeetings];
-                            setSavedMeetings(updated);
-                            localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
+                            const saved = await dbSaveMeeting({ title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, duration: meetingSeconds, notes: fullTranscript2.trim() || undefined, summary: summaryText, transcript: fullTranscript2.trim() || undefined });
+                            if (saved && audioBlob2) {
+                              await uploadAudio(audioBlob2, saved.id);
+                            }
                             toast.success(t(lang, "meeting.saved"));
                           }}
                           className="flex items-center gap-2 rounded-xl bg-destructive text-destructive-foreground px-4 py-2.5 text-sm font-semibold hover:bg-destructive/90 transition-colors"
@@ -4160,9 +4175,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                                 value={editingTitle}
                                 onChange={e => setEditingTitle(e.target.value)}
                                 onBlur={() => {
-                                  const updated = savedMeetings.map(m => m.id === meeting.id ? { ...m, title: editingTitle || m.title } : m);
-                                  setSavedMeetings(updated);
-                                  localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
+                                  dbUpdateMeeting(meeting.id, { title: editingTitle || meeting.title });
                                   setEditingMeetingId(null);
                                 }}
                                 onKeyDown={e => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
@@ -4233,9 +4246,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              const updated = savedMeetings.filter(m => m.id !== meeting.id);
-                              setSavedMeetings(updated);
-                              localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
+                              dbDeleteMeeting(meeting.id);
                               if (playbackMeeting?.id === meeting.id) { setPlaybackMeeting(null); setIsPlaying(false); if (playbackTimerRef.current) clearInterval(playbackTimerRef.current); }
                               if (viewingMeeting?.id === meeting.id) setViewingMeeting(null);
                               toast(t(lang, "meeting.deleted"));
@@ -4268,11 +4279,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                     <button
                       onClick={() => {
                         if (!meetingNotes.trim()) return;
-                        // Save notes to latest meeting
                         if (savedMeetings.length > 0) {
-                          const updated = savedMeetings.map((m, i) => i === 0 ? { ...m, notes: meetingNotes } : m);
-                          setSavedMeetings(updated);
-                          localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
+                          dbUpdateMeeting(savedMeetings[0].id, { notes: meetingNotes });
                         }
                         toast.success(t(lang, "meeting.notes_saved"));
                       }}
