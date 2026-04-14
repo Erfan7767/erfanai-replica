@@ -3859,7 +3859,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                         </button>
                         {/* Stop button */}
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             setMeetingState("stopped");
                             if (meetingTimerRef.current) clearInterval(meetingTimerRef.current);
                             if (waveformIntervalRef.current) clearInterval(waveformIntervalRef.current);
