@@ -50,9 +50,11 @@ export const useMeetings = () => {
     return null;
   }, [user]);
 
-  const updateMeeting = useCallback(async (id: string, updates: Partial<Pick<Meeting, "title" | "notes" | "summary">>) => {
-    const { error } = await supabase.from("meetings").update(updates).eq("id", id);
-    if (!error) setMeetings(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+  const updateMeeting = useCallback(async (id: string, updates: Partial<Pick<Meeting, "title" | "notes" | "summary" | "audio_path">>) => {
+    const cleanUpdates = Object.fromEntries(Object.entries(updates).filter(([_, v]) => v !== undefined));
+    if (Object.keys(cleanUpdates).length === 0) return;
+    const { error } = await supabase.from("meetings").update(cleanUpdates).eq("id", id);
+    if (!error) setMeetings(prev => prev.map(m => m.id === id ? { ...m, ...cleanUpdates } : m));
   }, []);
 
   const deleteMeeting = useCallback(async (id: string) => {
