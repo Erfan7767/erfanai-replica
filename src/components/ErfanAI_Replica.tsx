@@ -3058,10 +3058,17 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     toast.success(t(lang, "meeting.exported"));
   };
 
-  const exportMeetingAudio = (meeting: typeof savedMeetings[0]) => {
-    if (meeting.audioUrl) {
-      const a = document.createElement("a"); a.href = meeting.audioUrl; a.download = `${meeting.title}.webm`; a.click();
-      toast.success(t(lang, "meeting.exported"));
+  const exportMeetingAudio = async (meeting: MeetingView) => {
+    if (meeting.audio_path) {
+      const { data } = await supabase.storage.from("user-files").download(meeting.audio_path);
+      if (data) {
+        const url = URL.createObjectURL(data);
+        const a = document.createElement("a"); a.href = url; a.download = `${meeting.title}.webm`; a.click();
+        URL.revokeObjectURL(url);
+        toast.success(t(lang, "meeting.exported"));
+      } else {
+        toast.error(t(lang, "meeting.no_audio"));
+      }
     } else {
       toast.error(t(lang, "meeting.no_audio"));
     }
