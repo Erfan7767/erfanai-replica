@@ -2978,14 +2978,18 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const audioChunksRef = useRef<Blob[]>([]);
   const [editingMeetingId, setEditingMeetingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
-  const [savedMeetings, setSavedMeetings] = useState<{ id: string; duration: number; date: string; title: string; notes?: string; summary?: string; audioUrl?: string }[]>(() => {
-    try { const s = localStorage.getItem("erfanai_meetings"); if (s) return JSON.parse(s); } catch {} return [];
-  });
-  const [playbackMeeting, setPlaybackMeeting] = useState<{ id: string; duration: number; date: string; title: string; notes?: string; summary?: string; audioUrl?: string } | null>(null);
+  type MeetingView = { id: string; duration: number; date: string; title: string; notes?: string; summary?: string; audioUrl?: string; audio_path?: string | null; transcript?: string | null };
+  const savedMeetings: MeetingView[] = useMemo(() => savedMeetingsRaw.map(m => ({
+    id: m.id, duration: m.duration, title: m.title,
+    date: new Date(m.created_at).toLocaleString(),
+    notes: m.notes ?? undefined, summary: m.summary ?? undefined,
+    audio_path: m.audio_path, transcript: m.transcript ?? undefined,
+  })), [savedMeetingsRaw]);
+  const [playbackMeeting, setPlaybackMeeting] = useState<MeetingView | null>(null);
   const [playbackSeconds, setPlaybackSeconds] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const playbackTimerRef = useRef<any>(null);
-  const [viewingMeeting, setViewingMeeting] = useState<{ id: string; duration: number; date: string; title: string; notes?: string; summary?: string; audioUrl?: string } | null>(null);
+  const [viewingMeeting, setViewingMeeting] = useState<MeetingView | null>(null);
   const [exportMenuId, setExportMenuId] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
   const lastTranscriptRef = useRef<string>("");
