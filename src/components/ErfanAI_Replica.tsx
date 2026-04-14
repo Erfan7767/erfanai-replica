@@ -4240,9 +4240,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              const updated = savedMeetings.filter(m => m.id !== meeting.id);
-                              setSavedMeetings(updated);
-                              localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
+                              dbDeleteMeeting(meeting.id);
                               if (playbackMeeting?.id === meeting.id) { setPlaybackMeeting(null); setIsPlaying(false); if (playbackTimerRef.current) clearInterval(playbackTimerRef.current); }
                               if (viewingMeeting?.id === meeting.id) setViewingMeeting(null);
                               toast(t(lang, "meeting.deleted"));
