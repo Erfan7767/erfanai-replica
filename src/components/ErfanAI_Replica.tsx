@@ -3884,8 +3884,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                             if (fullTranscript.trim()) setMeetingNotes(fullTranscript.trim());
                             const saved = await dbSaveMeeting({ title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, duration: meetingSeconds, notes: fullTranscript.trim() || undefined, summary: summaryText, transcript: fullTranscript.trim() || undefined });
                             if (saved && audioBlob) {
-                              const path = await uploadAudio(audioBlob, saved.id);
-                              if (path) await dbUpdateMeeting(saved.id, {} as any);
+                              await uploadAudio(audioBlob, saved.id);
                             }
                             toast.success(t(lang, "meeting.saved"));
                           }}
