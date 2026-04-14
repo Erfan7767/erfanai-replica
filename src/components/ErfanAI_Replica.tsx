@@ -3866,24 +3866,27 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                             if (meetingAudioRef.current) { meetingAudioRef.current.getTracks().forEach(t => t.stop()); meetingAudioRef.current = null; }
                             stopSpeechRecognition();
                             const fullTranscript = committedTranscript + liveTranscript;
-                            // Stop MediaRecorder & save audio
-                            let audioUrl: string | undefined;
+                            // Stop MediaRecorder & save to DB
+                            let audioBlob: Blob | null = null;
                             if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-                              mediaRecorderRef.current.onstop = () => {
-                                const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-                                audioUrl = URL.createObjectURL(blob);
-                                setSavedMeetings(prev => { const u = prev.map((m, i) => i === 0 ? { ...m, audioUrl } : m); localStorage.setItem("erfanai_meetings", JSON.stringify(u)); return u; });
-                              };
-                              mediaRecorderRef.current.stop();
+                              const recorder = mediaRecorderRef.current;
+                              const stopPromise = new Promise<Blob>((resolve) => {
+                                recorder.onstop = () => {
+                                  resolve(new Blob(audioChunksRef.current, { type: "audio/webm" }));
+                                };
+                              });
+                              recorder.stop();
+                              audioBlob = await stopPromise;
                             }
                             const mins = Math.floor(meetingSeconds / 60);
                             const summaryText = t(lang, "meeting.auto_summary").replace("{mins}", String(mins || 1));
                             setMeetingSummary(summaryText);
                             if (fullTranscript.trim()) setMeetingNotes(fullTranscript.trim());
-                            const newMeeting = { id: Date.now().toString(), duration: meetingSeconds, date: new Date().toLocaleString(), title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, notes: fullTranscript.trim(), summary: summaryText, audioUrl };
-                            const updated = [newMeeting, ...savedMeetings];
-                            setSavedMeetings(updated);
-                            localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
+                            const saved = await dbSaveMeeting({ title: `${t(lang, "meeting.meeting_num")} #${savedMeetings.length + 1}`, duration: meetingSeconds, notes: fullTranscript.trim() || undefined, summary: summaryText, transcript: fullTranscript.trim() || undefined });
+                            if (saved && audioBlob) {
+                              const path = await uploadAudio(audioBlob, saved.id);
+                              if (path) await dbUpdateMeeting(saved.id, {} as any);
+                            }
                             toast.success(t(lang, "meeting.saved"));
                           }}
                           className="flex items-center gap-2 rounded-xl bg-destructive text-destructive-foreground px-4 py-2.5 text-sm font-semibold hover:bg-destructive/90 transition-colors"
