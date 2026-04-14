@@ -4273,11 +4273,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                     <button
                       onClick={() => {
                         if (!meetingNotes.trim()) return;
-                        // Save notes to latest meeting
                         if (savedMeetings.length > 0) {
-                          const updated = savedMeetings.map((m, i) => i === 0 ? { ...m, notes: meetingNotes } : m);
-                          setSavedMeetings(updated);
-                          localStorage.setItem("erfanai_meetings", JSON.stringify(updated));
+                          dbUpdateMeeting(savedMeetings[0].id, { notes: meetingNotes });
                         }
                         toast.success(t(lang, "meeting.notes_saved"));
                       }}
