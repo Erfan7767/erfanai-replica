@@ -1267,6 +1267,11 @@ const ProfileDropdown = ({ isOpen, onClose, onLogout, onOpenSettings, onOpenProf
                 <span>{t(lang, "settings.title")}</span>
                 {isRTL(lang) && <Settings className="h-5 w-5 text-muted-foreground" />}
               </button>
+              <button onClick={() => { window.location.assign("/analytics"); onClose(); }} className={`flex w-full items-center ${isRTL(lang) ? "justify-end" : "justify-start"} gap-3 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-secondary transition-colors`}>
+                {!isRTL(lang) && <BarChart3 className="h-5 w-5 text-muted-foreground" />}
+                <span>{isRTL(lang) ? "تحليلات المشروع" : "Project Analytics"}</span>
+                {isRTL(lang) && <BarChart3 className="h-5 w-5 text-muted-foreground" />}
+              </button>
               <div className="mx-3 border-t border-border" />
               <button onClick={() => { onHome(); onClose(); }} className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-sm text-foreground hover:bg-secondary transition-colors">
                 <ExternalLink className="h-4 w-4 text-muted-foreground" />
@@ -3162,6 +3167,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     
     // Track credit usage
     consumeCredits(2);
+    // Track analytics event
+    import("@/hooks/useAnalyticsTracker").then(m => m.trackEvent("message", "message_sent", { model: currentModel, mode: chatMode, length: userMsg.length }));
 
     // Build conversation history for AI with knowledge context
     const knowledgeContext = getEnabledContext();
