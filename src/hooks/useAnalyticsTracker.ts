@@ -53,7 +53,7 @@ export async function trackEvent(
       user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
       source: typeof document !== "undefined" ? detectSource(document.referrer) : "direct",
       metadata,
-    });
+    }]);
   } catch (e) {
     console.error("analytics track error", e);
   }
