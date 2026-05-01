@@ -3167,6 +3167,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     
     // Track credit usage
     consumeCredits(2);
+    // Track analytics event
+    import("@/hooks/useAnalyticsTracker").then(m => m.trackEvent("message", "message_sent", { model: currentModel, mode: chatMode, length: userMsg.length }));
 
     // Build conversation history for AI with knowledge context
     const knowledgeContext = getEnabledContext();
