@@ -1269,7 +1269,7 @@ const ProfileDropdown = ({ isOpen, onClose, onLogout, onOpenSettings, onOpenProf
               </button>
               <button onClick={() => { window.location.assign("/analytics"); onClose(); }} className={`flex w-full items-center ${isRTL(lang) ? "justify-end" : "justify-start"} gap-3 rounded-lg px-3 py-3 text-sm text-foreground hover:bg-secondary transition-colors`}>
                 {!isRTL(lang) && <BarChart3 className="h-5 w-5 text-muted-foreground" />}
-                <span>{lang === "ar" ? "تحليلات المشروع" : "Project Analytics"}</span>
+                <span>{isRTL(lang) ? "تحليلات المشروع" : "Project Analytics"}</span>
                 {isRTL(lang) && <BarChart3 className="h-5 w-5 text-muted-foreground" />}
               </button>
               <div className="mx-3 border-t border-border" />
