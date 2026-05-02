@@ -2944,6 +2944,7 @@ const CustomizeCarousel = ({ lang, dir }: { lang: Lang; dir: string }) => {
 const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const { lang } = useLang();
   const { usage, consumeCredits } = useCredits();
+  const { plan } = usePlan();
   const { getEnabledContext } = useKnowledge();
   const { meetings: savedMeetingsRaw, saveMeeting: dbSaveMeeting, updateMeeting: dbUpdateMeeting, deleteMeeting: dbDeleteMeeting, uploadAudio } = useMeetings();
   const dir = isRTL(lang) ? "rtl" : "ltr";
