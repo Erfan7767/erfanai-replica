@@ -346,6 +346,7 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
 const SidebarUserInfo = () => {
   const { lang } = useLang();
   const { user } = useAuth();
+  const { plan } = usePlan();
   const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
   const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
   return (
@@ -357,7 +358,7 @@ const SidebarUserInfo = () => {
       )}
       <div>
         <p className="text-sm font-semibold text-foreground">{displayName}</p>
-        <p className="text-xs text-muted-foreground">{t(lang, "sidebar.free_plan")}</p>
+        <p className="text-xs text-muted-foreground">{planLabel(plan.tier, lang)}</p>
       </div>
     </>
   );
