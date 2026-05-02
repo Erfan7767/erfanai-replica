@@ -1133,11 +1133,11 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
                       <button onClick={() => { onClose(); window.dispatchEvent(new CustomEvent("open-upgrade")); }} className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-foreground hover:brightness-110 transition-all">{t(lang, "profile.upgrade")}</button>
                       <div className={isRTL(lang) ? "text-right" : "text-left"}>
                         <p className="text-sm font-medium text-foreground">{t(lang, "settings.current_plan")}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{t(lang, "sidebar.free_plan")}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{planLabel(plan.tier, lang)}</p>
                       </div>
                     </div>
                     <div className="border-t border-border px-4 py-3 flex items-center justify-between">
-                      <span className="text-sm font-semibold text-foreground">300</span>
+                      <span className="text-sm font-semibold text-foreground">{usage.remaining}</span>
                       <span className="text-xs text-muted-foreground flex items-center gap-1.5">
                         <Sparkles className="h-3.5 w-3.5" />
                         {t(lang, "settings.remaining_credits")}
