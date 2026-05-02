@@ -6,6 +6,8 @@ interface UsageData {
   credits_used: number;
   total_daily_credits: number;
   remaining: number;
+  tier?: string;
+  over_limit?: boolean;
 }
 
 export const useCredits = () => {
@@ -14,6 +16,7 @@ export const useCredits = () => {
     credits_used: 0,
     total_daily_credits: 300,
     remaining: 300,
+    tier: "free",
   });
   const [loading, setLoading] = useState(true);
 
