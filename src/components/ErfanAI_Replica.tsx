@@ -1,6 +1,16 @@
 import { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } from "react";
 import { useConversations, type ChatMessage as DBChatMsg } from "@/hooks/useConversations";
 import { useCredits } from "@/hooks/useCredits";
+import { usePlan, type PlanTier } from "@/hooks/usePlan";
+
+const PLAN_LABELS: Record<PlanTier, { ar: string; en: string }> = {
+  free: { ar: "الخطة المجانية", en: "Free Plan" },
+  pro: { ar: "خطة Pro", en: "Pro Plan" },
+  plus: { ar: "خطة Plus", en: "Plus Plan" },
+  max: { ar: "خطة Max", en: "Max Plan" },
+};
+const planLabel = (tier: PlanTier, lang: string) =>
+  isRTL(lang) ? PLAN_LABELS[tier].ar : PLAN_LABELS[tier].en;
 import { useKnowledge } from "@/hooks/useKnowledge";
 import { useMeetings } from "@/hooks/useMeetings";
 import { useScheduledTasks } from "@/hooks/useScheduledTasks";
