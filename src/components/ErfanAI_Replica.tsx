@@ -911,6 +911,8 @@ interface SettingsPanelProps {
 const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogout, currentModel }: SettingsPanelProps) => {
   const { lang, setLang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
+  const { plan } = usePlan();
+  const { usage } = useCredits();
   const { user: settingsUser } = useAuth();
   const settingsDisplayName = settingsUser?.user_metadata?.full_name || settingsUser?.user_metadata?.name || settingsUser?.email?.split("@")[0] || "User";
   const settingsEmail = settingsUser?.email || "";
