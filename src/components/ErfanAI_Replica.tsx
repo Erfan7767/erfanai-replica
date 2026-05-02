@@ -1,6 +1,16 @@
 import { useState, useEffect, useRef, createContext, useContext, useCallback, useMemo } from "react";
 import { useConversations, type ChatMessage as DBChatMsg } from "@/hooks/useConversations";
 import { useCredits } from "@/hooks/useCredits";
+import { usePlan, type PlanTier } from "@/hooks/usePlan";
+
+const PLAN_LABELS: Record<PlanTier, { ar: string; en: string }> = {
+  free: { ar: "الخطة المجانية", en: "Free Plan" },
+  pro: { ar: "خطة Pro", en: "Pro Plan" },
+  plus: { ar: "خطة Plus", en: "Plus Plan" },
+  max: { ar: "خطة Max", en: "Max Plan" },
+};
+const planLabel = (tier: PlanTier, lang: any) =>
+  isRTL(lang) ? PLAN_LABELS[tier].ar : PLAN_LABELS[tier].en;
 import { useKnowledge } from "@/hooks/useKnowledge";
 import { useMeetings } from "@/hooks/useMeetings";
 import { useScheduledTasks } from "@/hooks/useScheduledTasks";
@@ -336,6 +346,7 @@ const LoginScreen = ({ onLogin }: { onLogin: () => void }) => {
 const SidebarUserInfo = () => {
   const { lang } = useLang();
   const { user } = useAuth();
+  const { plan } = usePlan();
   const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
   const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
   return (
@@ -347,7 +358,7 @@ const SidebarUserInfo = () => {
       )}
       <div>
         <p className="text-sm font-semibold text-foreground">{displayName}</p>
-        <p className="text-xs text-muted-foreground">{t(lang, "sidebar.free_plan")}</p>
+        <p className="text-xs text-muted-foreground">{planLabel(plan.tier, lang)}</p>
       </div>
     </>
   );
@@ -900,6 +911,8 @@ interface SettingsPanelProps {
 const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogout, currentModel }: SettingsPanelProps) => {
   const { lang, setLang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
+  const { plan } = usePlan();
+  const { usage } = useCredits();
   const { user: settingsUser } = useAuth();
   const settingsDisplayName = settingsUser?.user_metadata?.full_name || settingsUser?.user_metadata?.name || settingsUser?.email?.split("@")[0] || "User";
   const settingsEmail = settingsUser?.email || "";
@@ -1120,11 +1133,11 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
                       <button onClick={() => { onClose(); window.dispatchEvent(new CustomEvent("open-upgrade")); }} className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-foreground hover:brightness-110 transition-all">{t(lang, "profile.upgrade")}</button>
                       <div className={isRTL(lang) ? "text-right" : "text-left"}>
                         <p className="text-sm font-medium text-foreground">{t(lang, "settings.current_plan")}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{t(lang, "sidebar.free_plan")}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{planLabel(plan.tier, lang)}</p>
                       </div>
                     </div>
                     <div className="border-t border-border px-4 py-3 flex items-center justify-between">
-                      <span className="text-sm font-semibold text-foreground">300</span>
+                      <span className="text-sm font-semibold text-foreground">{usage.remaining}</span>
                       <span className="text-xs text-muted-foreground flex items-center gap-1.5">
                         <Sparkles className="h-3.5 w-3.5" />
                         {t(lang, "settings.remaining_credits")}
@@ -2458,6 +2471,7 @@ const pricingPlans = [
     ],
   },
   {
+    id: "pro",
     priceMonthly: 15,
     priceYearly: 12,
     descKey: "pricing.standard_desc",
@@ -2521,6 +2535,7 @@ const UpgradeProPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
   const dir = isRTL(lang) ? "rtl" : "ltr";
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
   const [selectedCredits, setSelectedCredits] = useState(8000);
+  const { plan: userPlan } = usePlan();
 
   return (
     <AnimatePresence>
@@ -2562,15 +2577,23 @@ const UpgradeProPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
                     <p className="text-sm text-muted-foreground mb-4">{t(lang, plan.descKey)}</p>
 
                     {/* Button */}
-                    {(plan as any).isFree ? (
-                      <button disabled className="w-full rounded-full py-3 text-sm font-bold mb-4 bg-secondary text-muted-foreground cursor-default">
-                        {t(lang, "pricing.current_plan")}
-                      </button>
-                    ) : (
-                      <button onClick={() => { toast.success(t(lang, "pro.subscribe")); onClose(); }} className={`w-full rounded-full py-3 text-sm font-bold transition-opacity hover:opacity-90 active:scale-[0.98] mb-4 ${plan.highlighted ? "bg-accent text-accent-foreground" : "bg-foreground text-background"}`}>
-                        {t(lang, "pricing.upgrade")}
-                      </button>
-                    )}
+                    {(() => {
+                      const isFree = (plan as any).isFree;
+                      const planId = (plan as any).id as string | undefined;
+                      const isCurrent = isFree ? userPlan.tier === "free" : planId === userPlan.tier;
+                      if (isCurrent) {
+                        return (
+                          <button disabled className="w-full rounded-full py-3 text-sm font-bold mb-4 bg-secondary text-muted-foreground cursor-default">
+                            {t(lang, "pricing.current_plan")}
+                          </button>
+                        );
+                      }
+                      return (
+                        <button onClick={() => { toast.success(t(lang, "pro.subscribe")); onClose(); }} className={`w-full rounded-full py-3 text-sm font-bold transition-opacity hover:opacity-90 active:scale-[0.98] mb-4 ${plan.highlighted ? "bg-accent text-accent-foreground" : "bg-foreground text-background"}`}>
+                          {t(lang, "pricing.upgrade")}
+                        </button>
+                      );
+                    })()}
 
                     {/* Credits selector for plus plan */}
                     {plan.creditOptions && (
@@ -2931,6 +2954,7 @@ const CustomizeCarousel = ({ lang, dir }: { lang: Lang; dir: string }) => {
 const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const { lang } = useLang();
   const { usage, consumeCredits } = useCredits();
+  const { plan } = usePlan();
   const { getEnabledContext } = useKnowledge();
   const { meetings: savedMeetingsRaw, saveMeeting: dbSaveMeeting, updateMeeting: dbUpdateMeeting, deleteMeeting: dbDeleteMeeting, uploadAudio } = useMeetings();
   const dir = isRTL(lang) ? "rtl" : "ltr";
@@ -3456,9 +3480,13 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       <div className="flex-1 overflow-y-auto px-4 pb-6">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-4 flex items-center justify-center">
           <div className="flex items-center gap-4 rounded-full border border-border bg-card px-5 py-2.5">
-            <span className="text-sm text-muted-foreground">{t(lang, "app.free_plan")}</span>
-            <span className="text-muted-foreground/30">|</span>
-            <button onClick={() => setMorePanel("upgrade_pro")} className="text-sm font-semibold text-accent transition-all hover:brightness-110 active:scale-95">{t(lang, "app.upgrade_to_pro")}</button>
+            <span className="text-sm text-muted-foreground">{planLabel(plan.tier, lang)}</span>
+            {plan.tier === "free" && (
+              <>
+                <span className="text-muted-foreground/30">|</span>
+                <button onClick={() => setMorePanel("upgrade_pro")} className="text-sm font-semibold text-accent transition-all hover:brightness-110 active:scale-95">{t(lang, "app.upgrade_to_pro")}</button>
+              </>
+            )}
           </div>
         </motion.div>
 
