@@ -2534,6 +2534,7 @@ const UpgradeProPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
   const dir = isRTL(lang) ? "rtl" : "ltr";
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
   const [selectedCredits, setSelectedCredits] = useState(8000);
+  const { plan } = usePlan();
 
   return (
     <AnimatePresence>
