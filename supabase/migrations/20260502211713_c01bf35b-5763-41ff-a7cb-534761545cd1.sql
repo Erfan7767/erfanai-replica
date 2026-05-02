@@ -1,0 +1,2 @@
+
+REVOKE EXECUTE ON FUNCTION public.set_user_plan(UUID, TEXT, INTEGER, TEXT, TEXT, TIMESTAMPTZ, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
