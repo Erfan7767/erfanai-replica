@@ -2471,6 +2471,7 @@ const pricingPlans = [
     ],
   },
   {
+    id: "pro",
     priceMonthly: 15,
     priceYearly: 12,
     descKey: "pricing.standard_desc",
