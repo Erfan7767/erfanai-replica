@@ -3470,9 +3470,13 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       <div className="flex-1 overflow-y-auto px-4 pb-6">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-4 flex items-center justify-center">
           <div className="flex items-center gap-4 rounded-full border border-border bg-card px-5 py-2.5">
-            <span className="text-sm text-muted-foreground">{t(lang, "app.free_plan")}</span>
-            <span className="text-muted-foreground/30">|</span>
-            <button onClick={() => setMorePanel("upgrade_pro")} className="text-sm font-semibold text-accent transition-all hover:brightness-110 active:scale-95">{t(lang, "app.upgrade_to_pro")}</button>
+            <span className="text-sm text-muted-foreground">{planLabel(plan.tier, lang)}</span>
+            {plan.tier === "free" && (
+              <>
+                <span className="text-muted-foreground/30">|</span>
+                <button onClick={() => setMorePanel("upgrade_pro")} className="text-sm font-semibold text-accent transition-all hover:brightness-110 active:scale-95">{t(lang, "app.upgrade_to_pro")}</button>
+              </>
+            )}
           </div>
         </motion.div>
 
