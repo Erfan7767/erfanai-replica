@@ -2576,15 +2576,23 @@ const UpgradeProPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
                     <p className="text-sm text-muted-foreground mb-4">{t(lang, plan.descKey)}</p>
 
                     {/* Button */}
-                    {(plan as any).isFree ? (
-                      <button disabled className="w-full rounded-full py-3 text-sm font-bold mb-4 bg-secondary text-muted-foreground cursor-default">
-                        {t(lang, "pricing.current_plan")}
-                      </button>
-                    ) : (
-                      <button onClick={() => { toast.success(t(lang, "pro.subscribe")); onClose(); }} className={`w-full rounded-full py-3 text-sm font-bold transition-opacity hover:opacity-90 active:scale-[0.98] mb-4 ${plan.highlighted ? "bg-accent text-accent-foreground" : "bg-foreground text-background"}`}>
-                        {t(lang, "pricing.upgrade")}
-                      </button>
-                    )}
+                    {(() => {
+                      const isFree = (plan as any).isFree;
+                      const planId = (plan as any).id as string | undefined;
+                      const isCurrent = isFree ? userPlan.tier === "free" : planId === userPlan.tier;
+                      if (isCurrent) {
+                        return (
+                          <button disabled className="w-full rounded-full py-3 text-sm font-bold mb-4 bg-secondary text-muted-foreground cursor-default">
+                            {t(lang, "pricing.current_plan")}
+                          </button>
+                        );
+                      }
+                      return (
+                        <button onClick={() => { toast.success(t(lang, "pro.subscribe")); onClose(); }} className={`w-full rounded-full py-3 text-sm font-bold transition-opacity hover:opacity-90 active:scale-[0.98] mb-4 ${plan.highlighted ? "bg-accent text-accent-foreground" : "bg-foreground text-background"}`}>
+                          {t(lang, "pricing.upgrade")}
+                        </button>
+                      );
+                    })()}
 
                     {/* Credits selector for plus plan */}
                     {plan.creditOptions && (
