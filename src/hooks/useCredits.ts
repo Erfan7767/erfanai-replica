@@ -99,7 +99,11 @@ export const useCredits = () => {
           const overBy = Math.max(0, next.credits_used - next.total_daily_credits);
           toast.warning(`تجاوزت سقف خطة ${tierLabel} بمقدار ${overBy} رصيد (${next.credits_used}/${next.total_daily_credits})`, {
             description: tierUpgradeHint(next.tier),
-            duration: 6000,
+            duration: 8000,
+            action: next.tier !== "max" ? {
+              label: `ترقية إلى ${SUGGESTED[next.tier || "free"].plan}`,
+              onClick: () => openUpgrade(),
+            } : undefined,
           });
         } else if (next.remaining > 0 && next.remaining <= Math.max(10, Math.floor(next.total_daily_credits * 0.1))) {
           toast(`تنبيه: تبقّى ${next.remaining} رصيد فقط من أصل ${next.total_daily_credits} لسقفك اليومي`, { duration: 4000 });
