@@ -3173,6 +3173,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
 
   const handleSend = async () => {
     if (!inputValue.trim() && attachedFiles.length === 0) return;
+    if (!canConsume(2)) return;
     
     const userMsg = inputValue.trim();
     setMessages(prev => [...prev, { text: userMsg, isUser: true, files: attachedFiles.length > 0 ? [...attachedFiles] : undefined }]);
