@@ -18,13 +18,20 @@ const TIER_LABEL: Record<string, string> = {
   max: "Max",
 };
 
+const SUGGESTED: Record<string, { plan: string; reason: string }> = {
+  free: { plan: "Pro", reason: "للحصول على ~4,000 رصيد شهرياً وسقف يومي أعلى بكثير" },
+  pro:  { plan: "Plus", reason: "لمضاعفة الرصيد إلى ~8,000 شهرياً وأولوية أعلى" },
+  plus: { plan: "Max",  reason: "للحصول على ~40,000 رصيد شهرياً ومميزات احترافية" },
+  max:  { plan: "Max",  reason: "أنت على أعلى خطة، سيُجدَّد رصيدك تلقائياً غداً" },
+};
+
 const tierUpgradeHint = (tier?: string) => {
-  switch (tier) {
-    case "pro": return "يمكنك الترقية إلى Plus أو Max لزيادة السقف.";
-    case "plus": return "يمكنك الترقية إلى Max للحصول على سقف أعلى.";
-    case "max": return "لقد بلغت الحد الأقصى لخطة Max، سيتم التجديد غداً.";
-    default: return "قم بالترقية إلى Pro/Plus/Max للحصول على سقف يومي أعلى.";
-  }
+  const s = SUGGESTED[tier || "free"];
+  return `الخطة المقترحة: ${s.plan} — ${s.reason}.`;
+};
+
+const openUpgrade = () => {
+  window.dispatchEvent(new CustomEvent("erfan:open-upgrade"));
 };
 
 export const useCredits = () => {
