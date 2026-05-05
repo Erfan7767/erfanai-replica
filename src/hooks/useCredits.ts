@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface UsageData {
   credits_used: number;
@@ -9,6 +10,22 @@ interface UsageData {
   tier?: string;
   over_limit?: boolean;
 }
+
+const TIER_LABEL: Record<string, string> = {
+  free: "المجانية",
+  pro: "Pro",
+  plus: "Plus",
+  max: "Max",
+};
+
+const tierUpgradeHint = (tier?: string) => {
+  switch (tier) {
+    case "pro": return "يمكنك الترقية إلى Plus أو Max لزيادة السقف.";
+    case "plus": return "يمكنك الترقية إلى Max للحصول على سقف أعلى.";
+    case "max": return "لقد بلغت الحد الأقصى لخطة Max، سيتم التجديد غداً.";
+    default: return "قم بالترقية إلى Pro/Plus/Max للحصول على سقف يومي أعلى.";
+  }
+};
 
 export const useCredits = () => {
   const { user } = useAuth();
@@ -38,17 +55,45 @@ export const useCredits = () => {
     fetchUsage();
   }, [fetchUsage]);
 
+  const canConsume = useCallback(
+    (cost: number = 2) => {
+      if (!user) return true;
+      if (usage.remaining <= 0 || (usage.remaining - cost) < 0) {
+        const tierLabel = TIER_LABEL[usage.tier || "free"] || "المجانية";
+        toast.error(`تجاوزت السقف اليومي لخطة ${tierLabel} (${usage.credits_used}/${usage.total_daily_credits})`, {
+          description: tierUpgradeHint(usage.tier),
+          duration: 5000,
+        });
+        return false;
+      }
+      return true;
+    },
+    [user, usage]
+  );
+
   const consumeCredits = useCallback(async (cost: number = 2) => {
-    if (!user) return;
+    if (!user) return null;
     try {
       const { data, error } = await supabase.rpc('increment_credits', { p_cost: cost });
       if (!error && data) {
-        setUsage(data as unknown as UsageData);
+        const next = data as unknown as UsageData;
+        setUsage(next);
+        if (next.over_limit) {
+          const tierLabel = TIER_LABEL[next.tier || "free"] || "المجانية";
+          toast.warning(`وصلت إلى الحد اليومي لخطة ${tierLabel}`, {
+            description: tierUpgradeHint(next.tier),
+            duration: 5000,
+          });
+        } else if (next.remaining > 0 && next.remaining <= Math.max(10, Math.floor(next.total_daily_credits * 0.1))) {
+          toast(`تنبيه: تبقّى ${next.remaining} رصيد فقط من سقفك اليومي`, { duration: 4000 });
+        }
+        return next;
       }
     } catch (e) {
       console.error('Failed to consume credits:', e);
     }
+    return null;
   }, [user]);
 
-  return { usage, loading, consumeCredits, refetchUsage: fetchUsage };
+  return { usage, loading, consumeCredits, canConsume, refetchUsage: fetchUsage };
 };
