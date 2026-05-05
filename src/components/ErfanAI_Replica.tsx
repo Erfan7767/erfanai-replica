@@ -3150,7 +3150,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     const upgradeHandler = () => setMorePanel("upgrade_pro");
     window.addEventListener("open-credits", creditsHandler);
     window.addEventListener("open-upgrade", upgradeHandler);
-    return () => { window.removeEventListener("open-credits", creditsHandler); window.removeEventListener("open-upgrade", upgradeHandler); };
+    window.addEventListener("erfan:open-upgrade", upgradeHandler);
+    return () => { window.removeEventListener("open-credits", creditsHandler); window.removeEventListener("open-upgrade", upgradeHandler); window.removeEventListener("erfan:open-upgrade", upgradeHandler); };
   }, []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);

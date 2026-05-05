@@ -18,13 +18,20 @@ const TIER_LABEL: Record<string, string> = {
   max: "Max",
 };
 
+const SUGGESTED: Record<string, { plan: string; reason: string }> = {
+  free: { plan: "Pro", reason: "للحصول على ~4,000 رصيد شهرياً وسقف يومي أعلى بكثير" },
+  pro:  { plan: "Plus", reason: "لمضاعفة الرصيد إلى ~8,000 شهرياً وأولوية أعلى" },
+  plus: { plan: "Max",  reason: "للحصول على ~40,000 رصيد شهرياً ومميزات احترافية" },
+  max:  { plan: "Max",  reason: "أنت على أعلى خطة، سيُجدَّد رصيدك تلقائياً غداً" },
+};
+
 const tierUpgradeHint = (tier?: string) => {
-  switch (tier) {
-    case "pro": return "يمكنك الترقية إلى Plus أو Max لزيادة السقف.";
-    case "plus": return "يمكنك الترقية إلى Max للحصول على سقف أعلى.";
-    case "max": return "لقد بلغت الحد الأقصى لخطة Max، سيتم التجديد غداً.";
-    default: return "قم بالترقية إلى Pro/Plus/Max للحصول على سقف يومي أعلى.";
-  }
+  const s = SUGGESTED[tier || "free"];
+  return `الخطة المقترحة: ${s.plan} — ${s.reason}.`;
+};
+
+const openUpgrade = () => {
+  window.dispatchEvent(new CustomEvent("erfan:open-upgrade"));
 };
 
 export const useCredits = () => {
@@ -67,7 +74,11 @@ export const useCredits = () => {
           : `لا يمكن إرسال هذه الرسالة — ستتجاوز سقفك اليومي بمقدار ${overBy} رصيد`;
         toast.error(title, {
           description: `الخطة الحالية: ${tierLabel} • تكلفة الرسالة: ${cost} • المتبقي: ${usage.remaining} من ${usage.total_daily_credits}. ${tierUpgradeHint(usage.tier)}`,
-          duration: 6000,
+          duration: 8000,
+          action: usage.tier !== "max" ? {
+            label: `ترقية إلى ${SUGGESTED[usage.tier || "free"].plan}`,
+            onClick: () => openUpgrade(),
+          } : undefined,
         });
         return false;
       }
@@ -88,7 +99,11 @@ export const useCredits = () => {
           const overBy = Math.max(0, next.credits_used - next.total_daily_credits);
           toast.warning(`تجاوزت سقف خطة ${tierLabel} بمقدار ${overBy} رصيد (${next.credits_used}/${next.total_daily_credits})`, {
             description: tierUpgradeHint(next.tier),
-            duration: 6000,
+            duration: 8000,
+            action: next.tier !== "max" ? {
+              label: `ترقية إلى ${SUGGESTED[next.tier || "free"].plan}`,
+              onClick: () => openUpgrade(),
+            } : undefined,
           });
         } else if (next.remaining > 0 && next.remaining <= Math.max(10, Math.floor(next.total_daily_credits * 0.1))) {
           toast(`تنبيه: تبقّى ${next.remaining} رصيد فقط من أصل ${next.total_daily_credits} لسقفك اليومي`, { duration: 4000 });
