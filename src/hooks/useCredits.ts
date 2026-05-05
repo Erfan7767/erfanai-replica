@@ -74,7 +74,11 @@ export const useCredits = () => {
           : `لا يمكن إرسال هذه الرسالة — ستتجاوز سقفك اليومي بمقدار ${overBy} رصيد`;
         toast.error(title, {
           description: `الخطة الحالية: ${tierLabel} • تكلفة الرسالة: ${cost} • المتبقي: ${usage.remaining} من ${usage.total_daily_credits}. ${tierUpgradeHint(usage.tier)}`,
-          duration: 6000,
+          duration: 8000,
+          action: usage.tier !== "max" ? {
+            label: `ترقية إلى ${SUGGESTED[usage.tier || "free"].plan}`,
+            onClick: () => openUpgrade(),
+          } : undefined,
         });
         return false;
       }
