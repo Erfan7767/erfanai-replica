@@ -58,11 +58,16 @@ export const useCredits = () => {
   const canConsume = useCallback(
     (cost: number = 2) => {
       if (!user) return true;
-      if (usage.remaining <= 0 || (usage.remaining - cost) < 0) {
+      const projected = usage.credits_used + cost;
+      if (usage.remaining <= 0 || projected > usage.total_daily_credits) {
         const tierLabel = TIER_LABEL[usage.tier || "free"] || "المجانية";
-        toast.error(`تجاوزت السقف اليومي لخطة ${tierLabel} (${usage.credits_used}/${usage.total_daily_credits})`, {
-          description: tierUpgradeHint(usage.tier),
-          duration: 5000,
+        const overBy = Math.max(0, projected - usage.total_daily_credits);
+        const title = usage.remaining <= 0
+          ? `تم استنفاد سقفك اليومي بالكامل (${usage.credits_used}/${usage.total_daily_credits} رصيد)`
+          : `لا يمكن إرسال هذه الرسالة — ستتجاوز سقفك اليومي بمقدار ${overBy} رصيد`;
+        toast.error(title, {
+          description: `الخطة الحالية: ${tierLabel} • تكلفة الرسالة: ${cost} • المتبقي: ${usage.remaining} من ${usage.total_daily_credits}. ${tierUpgradeHint(usage.tier)}`,
+          duration: 6000,
         });
         return false;
       }
@@ -80,12 +85,13 @@ export const useCredits = () => {
         setUsage(next);
         if (next.over_limit) {
           const tierLabel = TIER_LABEL[next.tier || "free"] || "المجانية";
-          toast.warning(`وصلت إلى الحد اليومي لخطة ${tierLabel}`, {
+          const overBy = Math.max(0, next.credits_used - next.total_daily_credits);
+          toast.warning(`تجاوزت سقف خطة ${tierLabel} بمقدار ${overBy} رصيد (${next.credits_used}/${next.total_daily_credits})`, {
             description: tierUpgradeHint(next.tier),
-            duration: 5000,
+            duration: 6000,
           });
         } else if (next.remaining > 0 && next.remaining <= Math.max(10, Math.floor(next.total_daily_credits * 0.1))) {
-          toast(`تنبيه: تبقّى ${next.remaining} رصيد فقط من سقفك اليومي`, { duration: 4000 });
+          toast(`تنبيه: تبقّى ${next.remaining} رصيد فقط من أصل ${next.total_daily_credits} لسقفك اليومي`, { duration: 4000 });
         }
         return next;
       }
