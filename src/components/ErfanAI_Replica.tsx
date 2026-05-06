@@ -3157,11 +3157,15 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
 
   useEffect(() => {
     const creditsHandler = () => setIsCreditsOpen(true);
-    const upgradeHandler = () => setMorePanel("upgrade_pro");
+    const upgradeHandler = (e?: Event) => {
+      const detail = (e as CustomEvent | undefined)?.detail as { plan?: string } | undefined;
+      setUpgradeHighlight(detail?.plan ?? null);
+      setMorePanel("upgrade_pro");
+    };
     window.addEventListener("open-credits", creditsHandler);
-    window.addEventListener("open-upgrade", upgradeHandler);
-    window.addEventListener("erfan:open-upgrade", upgradeHandler);
-    return () => { window.removeEventListener("open-credits", creditsHandler); window.removeEventListener("open-upgrade", upgradeHandler); window.removeEventListener("erfan:open-upgrade", upgradeHandler); };
+    window.addEventListener("open-upgrade", upgradeHandler as EventListener);
+    window.addEventListener("erfan:open-upgrade", upgradeHandler as EventListener);
+    return () => { window.removeEventListener("open-credits", creditsHandler); window.removeEventListener("open-upgrade", upgradeHandler as EventListener); window.removeEventListener("erfan:open-upgrade", upgradeHandler as EventListener); };
   }, []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
