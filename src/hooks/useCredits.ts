@@ -103,7 +103,7 @@ export const useCredits = () => {
             duration: 8000,
             action: next.tier !== "max" ? {
               label: `ترقية إلى ${SUGGESTED[next.tier || "free"].plan}`,
-              onClick: () => openUpgrade(),
+              onClick: () => openUpgrade(next.tier),
             } : undefined,
           });
         } else if (next.remaining > 0 && next.remaining <= Math.max(10, Math.floor(next.total_daily_credits * 0.1))) {
