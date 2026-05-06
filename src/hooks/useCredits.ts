@@ -78,7 +78,7 @@ export const useCredits = () => {
           duration: 8000,
           action: usage.tier !== "max" ? {
             label: `ترقية إلى ${SUGGESTED[usage.tier || "free"].plan}`,
-            onClick: () => openUpgrade(),
+            onClick: () => openUpgrade(usage.tier),
           } : undefined,
         });
         return false;
