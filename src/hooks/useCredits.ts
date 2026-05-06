@@ -30,8 +30,9 @@ const tierUpgradeHint = (tier?: string) => {
   return `الخطة المقترحة: ${s.plan} — ${s.reason}.`;
 };
 
-const openUpgrade = () => {
-  window.dispatchEvent(new CustomEvent("erfan:open-upgrade"));
+const openUpgrade = (tier?: string) => {
+  const plan = (SUGGESTED[tier || "free"]?.plan || "Pro").toLowerCase();
+  window.dispatchEvent(new CustomEvent("erfan:open-upgrade", { detail: { plan } }));
 };
 
 export const useCredits = () => {
