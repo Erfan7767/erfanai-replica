@@ -2982,6 +2982,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [morePanel, setMorePanel] = useState<string | null>(null);
+  const [upgradeHighlight, setUpgradeHighlight] = useState<string | null>(null);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [chatMode, setChatMode] = useState("standard");
   const [isStreaming, setIsStreaming] = useState(false);
