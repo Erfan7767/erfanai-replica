@@ -2530,12 +2530,21 @@ const pricingPlans = [
   },
 ];
 
-const UpgradeProPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+const UpgradeProPanel = ({ isOpen, onClose, highlightPlan }: { isOpen: boolean; onClose: () => void; highlightPlan?: string | null }) => {
   const { lang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
   const [selectedCredits, setSelectedCredits] = useState(8000);
   const { plan: userPlan } = usePlan();
+
+  useEffect(() => {
+    if (!isOpen || !highlightPlan) return;
+    const t = setTimeout(() => {
+      const el = document.querySelector(`[data-plan-id="${highlightPlan}"]`);
+      if (el) (el as HTMLElement).scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 250);
+    return () => clearTimeout(t);
+  }, [isOpen, highlightPlan]);
 
   return (
     <AnimatePresence>
