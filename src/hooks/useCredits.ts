@@ -30,8 +30,9 @@ const tierUpgradeHint = (tier?: string) => {
   return `الخطة المقترحة: ${s.plan} — ${s.reason}.`;
 };
 
-const openUpgrade = () => {
-  window.dispatchEvent(new CustomEvent("erfan:open-upgrade"));
+const openUpgrade = (tier?: string) => {
+  const plan = (SUGGESTED[tier || "free"]?.plan || "Pro").toLowerCase();
+  window.dispatchEvent(new CustomEvent("erfan:open-upgrade", { detail: { plan } }));
 };
 
 export const useCredits = () => {
@@ -77,7 +78,7 @@ export const useCredits = () => {
           duration: 8000,
           action: usage.tier !== "max" ? {
             label: `ترقية إلى ${SUGGESTED[usage.tier || "free"].plan}`,
-            onClick: () => openUpgrade(),
+            onClick: () => openUpgrade(usage.tier),
           } : undefined,
         });
         return false;
@@ -102,7 +103,7 @@ export const useCredits = () => {
             duration: 8000,
             action: next.tier !== "max" ? {
               label: `ترقية إلى ${SUGGESTED[next.tier || "free"].plan}`,
-              onClick: () => openUpgrade(),
+              onClick: () => openUpgrade(next.tier),
             } : undefined,
           });
         } else if (next.remaining > 0 && next.remaining <= Math.max(10, Math.floor(next.total_daily_credits * 0.1))) {

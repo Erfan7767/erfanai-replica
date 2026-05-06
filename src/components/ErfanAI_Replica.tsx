@@ -2530,12 +2530,21 @@ const pricingPlans = [
   },
 ];
 
-const UpgradeProPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+const UpgradeProPanel = ({ isOpen, onClose, highlightPlan }: { isOpen: boolean; onClose: () => void; highlightPlan?: string | null }) => {
   const { lang } = useLang();
   const dir = isRTL(lang) ? "rtl" : "ltr";
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
   const [selectedCredits, setSelectedCredits] = useState(8000);
   const { plan: userPlan } = usePlan();
+
+  useEffect(() => {
+    if (!isOpen || !highlightPlan) return;
+    const t = setTimeout(() => {
+      const el = document.querySelector(`[data-plan-id="${highlightPlan}"]`);
+      if (el) (el as HTMLElement).scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 250);
+    return () => clearTimeout(t);
+  }, [isOpen, highlightPlan]);
 
   return (
     <AnimatePresence>
@@ -2562,7 +2571,7 @@ const UpgradeProPanel = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
               {pricingPlans.map((plan) => {
                 const price = billing === "monthly" ? plan.priceMonthly : plan.priceYearly;
                 return (
-                  <div key={plan.id} className={`rounded-2xl border p-5 ${plan.highlighted ? "border-accent shadow-lg shadow-accent/10" : "border-border"}`} style={plan.highlighted ? { borderWidth: 2 } : {}}>
+                  <div key={plan.id} data-plan-id={(plan as any).id || ((plan as any).isFree ? "free" : "")} className={`rounded-2xl border p-5 transition-all ${plan.highlighted ? "border-accent shadow-lg shadow-accent/10" : "border-border"} ${highlightPlan && ((plan as any).id === highlightPlan) ? "ring-2 ring-accent shadow-xl shadow-accent/20" : ""}`} style={plan.highlighted ? { borderWidth: 2 } : {}}>
                     {/* Price */}
                     <div className="mb-1">
                       {(plan as any).isFree ? (
@@ -2973,6 +2982,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [isPlusMenuOpen, setIsPlusMenuOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [morePanel, setMorePanel] = useState<string | null>(null);
+  const [upgradeHighlight, setUpgradeHighlight] = useState<string | null>(null);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [chatMode, setChatMode] = useState("standard");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -3147,11 +3157,15 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
 
   useEffect(() => {
     const creditsHandler = () => setIsCreditsOpen(true);
-    const upgradeHandler = () => setMorePanel("upgrade_pro");
+    const upgradeHandler = (e?: Event) => {
+      const detail = (e as CustomEvent | undefined)?.detail as { plan?: string } | undefined;
+      setUpgradeHighlight(detail?.plan ?? null);
+      setMorePanel("upgrade_pro");
+    };
     window.addEventListener("open-credits", creditsHandler);
-    window.addEventListener("open-upgrade", upgradeHandler);
-    window.addEventListener("erfan:open-upgrade", upgradeHandler);
-    return () => { window.removeEventListener("open-credits", creditsHandler); window.removeEventListener("open-upgrade", upgradeHandler); window.removeEventListener("erfan:open-upgrade", upgradeHandler); };
+    window.addEventListener("open-upgrade", upgradeHandler as EventListener);
+    window.addEventListener("erfan:open-upgrade", upgradeHandler as EventListener);
+    return () => { window.removeEventListener("open-credits", creditsHandler); window.removeEventListener("open-upgrade", upgradeHandler as EventListener); window.removeEventListener("erfan:open-upgrade", upgradeHandler as EventListener); };
   }, []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -3665,7 +3679,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       <AudioPanel isOpen={morePanel === "audio"} onClose={() => setMorePanel(null)} onSubmit={(p) => setInputValue(p)} />
       <ChatModePanel isOpen={morePanel === "chat_mode"} onClose={() => setMorePanel(null)} onSelect={(m) => { setChatMode(m); }} />
       <PlaybookPanel isOpen={morePanel === "playbook"} onClose={() => setMorePanel(null)} onUse={(p) => setInputValue(p)} />
-      <UpgradeProPanel isOpen={morePanel === "upgrade_pro"} onClose={() => setMorePanel(null)} />
+      <UpgradeProPanel isOpen={morePanel === "upgrade_pro"} onClose={() => { setMorePanel(null); setUpgradeHighlight(null); }} highlightPlan={upgradeHighlight} />
 
       {/* Recording in Progress Dialog */}
       <AnimatePresence>
