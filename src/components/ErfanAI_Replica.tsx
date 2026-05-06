@@ -2571,7 +2571,7 @@ const UpgradeProPanel = ({ isOpen, onClose, highlightPlan }: { isOpen: boolean; 
               {pricingPlans.map((plan) => {
                 const price = billing === "monthly" ? plan.priceMonthly : plan.priceYearly;
                 return (
-                  <div key={plan.id} className={`rounded-2xl border p-5 ${plan.highlighted ? "border-accent shadow-lg shadow-accent/10" : "border-border"}`} style={plan.highlighted ? { borderWidth: 2 } : {}}>
+                  <div key={plan.id} data-plan-id={(plan as any).id || ((plan as any).isFree ? "free" : "")} className={`rounded-2xl border p-5 transition-all ${plan.highlighted ? "border-accent shadow-lg shadow-accent/10" : "border-border"} ${highlightPlan && ((plan as any).id === highlightPlan) ? "ring-2 ring-accent shadow-xl shadow-accent/20" : ""}`} style={plan.highlighted ? { borderWidth: 2 } : {}}>
                     {/* Price */}
                     <div className="mb-1">
                       {(plan as any).isFree ? (
