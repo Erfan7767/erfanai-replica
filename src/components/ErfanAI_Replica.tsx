@@ -3679,7 +3679,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       <AudioPanel isOpen={morePanel === "audio"} onClose={() => setMorePanel(null)} onSubmit={(p) => setInputValue(p)} />
       <ChatModePanel isOpen={morePanel === "chat_mode"} onClose={() => setMorePanel(null)} onSelect={(m) => { setChatMode(m); }} />
       <PlaybookPanel isOpen={morePanel === "playbook"} onClose={() => setMorePanel(null)} onUse={(p) => setInputValue(p)} />
-      <UpgradeProPanel isOpen={morePanel === "upgrade_pro"} onClose={() => setMorePanel(null)} />
+      <UpgradeProPanel isOpen={morePanel === "upgrade_pro"} onClose={() => { setMorePanel(null); setUpgradeHighlight(null); }} highlightPlan={upgradeHighlight} />
 
       {/* Recording in Progress Dialog */}
       <AnimatePresence>
