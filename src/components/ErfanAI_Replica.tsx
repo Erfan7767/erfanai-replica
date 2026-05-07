@@ -3238,6 +3238,23 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     ];
     setExecutionGroups(thinkingGroups);
 
+    // ── Initialize Manus Computer Panel ──
+    setManusOpen(true);
+    setManusTaskTitle(userMsg.slice(0, 80));
+    setManusEvents([]);
+    setManusAgent("planner");
+    const baseTodos: ManusTodo[] = [
+      { id: "t1", title: "تحليل طلب المستخدم وفهم النية", status: "running" },
+      { id: "t2", title: "البحث في قاعدة المعرفة والسياق", status: "pending" },
+      { id: "t3", title: "صياغة خطة التنفيذ متعددة الخطوات", status: "pending" },
+      { id: "t4", title: "توليد الإجابة عبر النموذج المختار", status: "pending" },
+      { id: "t5", title: "مراجعة وتدقيق المخرجات النهائية", status: "pending" },
+    ];
+    setManusTodos(baseTodos);
+    pushManusEvent({ type: "terminal", line: `بدء جلسة Sandbox للنموذج: ${currentModel}`, ts: Date.now() });
+    pushManusEvent({ type: "terminal", line: `chat_mode=${chatMode}  context_messages=${conversationHistory.length}`, ts: Date.now() });
+    if (knowledgeContext) pushManusEvent({ type: "file", path: "knowledge/context.md", action: "read", ts: Date.now() });
+
     if (executionTimerRef.current) clearInterval(executionTimerRef.current);
     executionTimerRef.current = setInterval(() => {
       setExecutionElapsed(prev => prev + 1);
