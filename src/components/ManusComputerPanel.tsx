@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Monitor, FolderTree, Globe, TerminalSquare, FileCode2, X, Minimize2,
@@ -335,8 +335,8 @@ function BrowserView({ event, history }:{
   );
 }
 
-const TerminalView = (function () {
-  const C = ({ lines, isRunning }: { lines: Extract<ManusEvent,{type:"terminal"}>[]; isRunning: boolean }, ref: any) => (
+const TerminalView = forwardRef<HTMLDivElement, { lines: Extract<ManusEvent,{type:"terminal"}>[]; isRunning: boolean }>(
+  ({ lines, isRunning }, ref) => (
     <div ref={ref} className="flex-1 overflow-y-auto bg-black/80 p-3 font-mono text-[11px] text-emerald-300">
       {lines.length === 0 && <div className="text-white/30">$ الطرفية فارغة…</div>}
       {lines.map((l, i) => (
@@ -348,10 +348,9 @@ const TerminalView = (function () {
       ))}
       {isRunning && <span className="inline-block w-2 h-3.5 bg-emerald-400 animate-pulse align-middle" />}
     </div>
-  );
-  // forwardRef
-  return (require("react") as typeof import("react")).forwardRef(C as any);
-})();
+  )
+);
+TerminalView.displayName = "TerminalView";
 
 function EditorView({ event, history }:{
   event?: Extract<ManusEvent,{type:"code"}>;
