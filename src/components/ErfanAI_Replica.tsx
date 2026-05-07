@@ -3294,6 +3294,17 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         isExpanded: i === 1,
       })));
 
+      // Manus: advance todos & switch agent to executor
+      setManusTodos(prev => prev.map(t =>
+        t.id === "t1" ? { ...t, status: "done" } :
+        t.id === "t2" ? { ...t, status: "done" } :
+        t.id === "t3" ? { ...t, status: "done" } :
+        t.id === "t4" ? { ...t, status: "running" } : t
+      ));
+      setManusAgent("executor");
+      pushManusEvent({ type: "terminal", line: `استدعاء النموذج: ${currentModel} ✓ متصل`, ts: Date.now() });
+      pushManusEvent({ type: "browser", url: `https://ai.gateway.lovable.dev/v1/chat/completions`, title: "Lovable AI Gateway", ts: Date.now() });
+
       // Stream response token by token
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
@@ -3365,6 +3376,15 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       setMessages(prev => prev.map((m, i) => i === prev.length - 1 && !m.isUser ? { ...m, isStreaming: false } : m));
       setIsStreaming(false);
       setExecutionFinalMessage(assistantSoFar);
+
+      // Manus: complete todos
+      setManusAgent("verifier");
+      pushManusEvent({ type: "terminal", line: `اكتمل البث — ${assistantSoFar.length} حرف`, ts: Date.now() });
+      pushManusEvent({ type: "code", path: "output/response.md", preview: assistantSoFar.slice(0, 600), ts: Date.now() });
+      setManusTodos(prev => prev.map(t =>
+        t.id === "t4" ? { ...t, status: "done" } :
+        t.id === "t5" ? { ...t, status: "done" } : t
+      ));
 
       // Save assistant message to DB
       if (convId && assistantSoFar.trim()) {
