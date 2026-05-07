@@ -19,6 +19,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import ErfanAILogo from "@/components/ErfanAILogo";
+import ManusComputerPanel, { type ManusTodo, type ManusEvent, type ManusAgent } from "@/components/ManusComputerPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { type Lang, t, isRTL } from "@/lib/translations";
@@ -3044,6 +3045,14 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [executionFinalMessage, setExecutionFinalMessage] = useState("");
   const [executionElapsed, setExecutionElapsed] = useState(0);
   const executionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // ── Manus Computer Panel State ──
+  const [manusOpen, setManusOpen] = useState(false);
+  const [manusTodos, setManusTodos] = useState<ManusTodo[]>([]);
+  const [manusEvents, setManusEvents] = useState<ManusEvent[]>([]);
+  const [manusAgent, setManusAgent] = useState<ManusAgent>("planner");
+  const [manusTaskTitle, setManusTaskTitle] = useState("");
+  const pushManusEvent = useCallback((e: ManusEvent) => setManusEvents(prev => [...prev, e]), []);
 
   // ── Speech-to-Text helpers ──
   const startSpeechRecognition = () => {
