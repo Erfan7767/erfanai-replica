@@ -19,6 +19,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import ErfanAILogo from "@/components/ErfanAILogo";
+import ManusComputerPanel, { type ManusTodo, type ManusEvent, type ManusAgent } from "@/components/ManusComputerPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { type Lang, t, isRTL } from "@/lib/translations";
@@ -3045,6 +3046,14 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [executionElapsed, setExecutionElapsed] = useState(0);
   const executionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // ── Manus Computer Panel State ──
+  const [manusOpen, setManusOpen] = useState(false);
+  const [manusTodos, setManusTodos] = useState<ManusTodo[]>([]);
+  const [manusEvents, setManusEvents] = useState<ManusEvent[]>([]);
+  const [manusAgent, setManusAgent] = useState<ManusAgent>("planner");
+  const [manusTaskTitle, setManusTaskTitle] = useState("");
+  const pushManusEvent = useCallback((e: ManusEvent) => setManusEvents(prev => [...prev, e]), []);
+
   // ── Speech-to-Text helpers ──
   const startSpeechRecognition = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -3229,6 +3238,23 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     ];
     setExecutionGroups(thinkingGroups);
 
+    // ── Initialize Manus Computer Panel ──
+    setManusOpen(true);
+    setManusTaskTitle(userMsg.slice(0, 80));
+    setManusEvents([]);
+    setManusAgent("planner");
+    const baseTodos: ManusTodo[] = [
+      { id: "t1", title: "تحليل طلب المستخدم وفهم النية", status: "running" },
+      { id: "t2", title: "البحث في قاعدة المعرفة والسياق", status: "pending" },
+      { id: "t3", title: "صياغة خطة التنفيذ متعددة الخطوات", status: "pending" },
+      { id: "t4", title: "توليد الإجابة عبر النموذج المختار", status: "pending" },
+      { id: "t5", title: "مراجعة وتدقيق المخرجات النهائية", status: "pending" },
+    ];
+    setManusTodos(baseTodos);
+    pushManusEvent({ type: "terminal", line: `بدء جلسة Sandbox للنموذج: ${currentModel}`, ts: Date.now() });
+    pushManusEvent({ type: "terminal", line: `chat_mode=${chatMode}  context_messages=${conversationHistory.length}`, ts: Date.now() });
+    if (knowledgeContext) pushManusEvent({ type: "file", path: "knowledge/context.md", action: "read", ts: Date.now() });
+
     if (executionTimerRef.current) clearInterval(executionTimerRef.current);
     executionTimerRef.current = setInterval(() => {
       setExecutionElapsed(prev => prev + 1);
@@ -3267,6 +3293,17 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         status: i === 0 ? "done" : "running",
         isExpanded: i === 1,
       })));
+
+      // Manus: advance todos & switch agent to executor
+      setManusTodos(prev => prev.map(t =>
+        t.id === "t1" ? { ...t, status: "done" } :
+        t.id === "t2" ? { ...t, status: "done" } :
+        t.id === "t3" ? { ...t, status: "done" } :
+        t.id === "t4" ? { ...t, status: "running" } : t
+      ));
+      setManusAgent("executor");
+      pushManusEvent({ type: "terminal", line: `استدعاء النموذج: ${currentModel} ✓ متصل`, ts: Date.now() });
+      pushManusEvent({ type: "browser", url: `https://ai.gateway.lovable.dev/v1/chat/completions`, title: "Lovable AI Gateway", ts: Date.now() });
 
       // Stream response token by token
       const reader = resp.body.getReader();
@@ -3339,6 +3376,15 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       setMessages(prev => prev.map((m, i) => i === prev.length - 1 && !m.isUser ? { ...m, isStreaming: false } : m));
       setIsStreaming(false);
       setExecutionFinalMessage(assistantSoFar);
+
+      // Manus: complete todos
+      setManusAgent("verifier");
+      pushManusEvent({ type: "terminal", line: `اكتمل البث — ${assistantSoFar.length} حرف`, ts: Date.now() });
+      pushManusEvent({ type: "code", path: "output/response.md", preview: assistantSoFar.slice(0, 600), ts: Date.now() });
+      setManusTodos(prev => prev.map(t =>
+        t.id === "t4" ? { ...t, status: "done" } :
+        t.id === "t5" ? { ...t, status: "done" } : t
+      ));
 
       // Save assistant message to DB
       if (convId && assistantSoFar.trim()) {
@@ -3537,6 +3583,21 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
               }}
             />
           )}
+        </AnimatePresence>
+
+        {/* Manus Computer Panel — Sandbox + Multi-Agent live view */}
+        <ManusComputerPanel
+          open={manusOpen}
+          onClose={() => setManusOpen(false)}
+          taskTitle={manusTaskTitle}
+          elapsedSec={executionElapsed}
+          todos={manusTodos}
+          events={manusEvents}
+          activeAgent={manusAgent}
+          isRunning={isExecuting}
+        />
+        {/* sentinel */}
+        <AnimatePresence>
         </AnimatePresence>
 
         {/* Input Card */}
