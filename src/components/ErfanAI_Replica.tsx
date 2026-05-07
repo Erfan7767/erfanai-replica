@@ -3585,6 +3585,21 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
           )}
         </AnimatePresence>
 
+        {/* Manus Computer Panel — Sandbox + Multi-Agent live view */}
+        <ManusComputerPanel
+          open={manusOpen}
+          onClose={() => setManusOpen(false)}
+          taskTitle={manusTaskTitle}
+          elapsedSec={executionElapsed}
+          todos={manusTodos}
+          events={manusEvents}
+          activeAgent={manusAgent}
+          isRunning={isExecuting}
+        />
+        {/* sentinel */}
+        <AnimatePresence>
+        </AnimatePresence>
+
         {/* Input Card */}
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-6 card-gold-border rounded-2xl bg-card p-4">
           {activeChips.length > 0 && (
