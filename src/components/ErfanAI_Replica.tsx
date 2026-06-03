@@ -686,34 +686,47 @@ const formatTimeAgo = (timestamp: number, lang: Lang): string => {
   return `${days} ${t(lang, "notif.days_ago")}`;
 };
 
+// Categorize a notification into Manus-style tabs
+const notifCategory = (n: Notification): "updates" | "messages" => {
+  if (n.type === "update" || n.type === "promo" || n.type === "tip") return "updates";
+  return "messages";
+};
+
+// Hero gradient per notification type (mimics Manus "image" header card)
+const notifHeroGradient: Record<string, string> = {
+  welcome: "from-sky-200 via-rose-100 to-orange-200",
+  update: "from-sky-200 via-rose-100 to-orange-200",
+  tip: "from-amber-100 via-yellow-100 to-orange-200",
+  promo: "from-fuchsia-200 via-pink-200 to-orange-200",
+  security: "from-emerald-100 via-teal-100 to-sky-200",
+};
+
+const formatDateGroup = (timestamp: number, lang: Lang): string => {
+  const d = new Date(timestamp);
+  const locale = isRTL(lang) ? "ar-EG" : "en-US";
+  return d.toLocaleDateString(locale, { month: "long", day: "numeric", year: "numeric" });
+};
+
 const NotificationsPanel = ({ isOpen, onClose, onUpgrade }: { isOpen: boolean; onClose: () => void; onUpgrade: () => void }) => {
   const { lang } = useLang();
-  const dir = isRTL(lang) ? "rtl" : "ltr";
+  const rtl = isRTL(lang);
+  const dir = rtl ? "rtl" : "ltr";
   const [notifications, setNotifications] = useState<Notification[]>(() => loadNotifications());
+  const [tab, setTab] = useState<"all" | "updates" | "messages">("all");
 
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  const markAllRead = () => {
-    const updated = notifications.map(n => ({ ...n, read: true }));
-    setNotifications(updated);
-    saveNotifications(updated);
-    toast.success(t(lang, "notif.marked_read"));
+  // Localized labels (inline to avoid touching translations file)
+  const L = {
+    title: rtl ? "الإشعارات" : "Notifications",
+    all: rtl ? "الكل" : "All",
+    updates: rtl ? "التحديثات" : "Updates",
+    messages: rtl ? "الرسائل" : "Messages",
+    empty: rtl ? "لا توجد إشعارات" : "No notifications",
+    updatesGroup: rtl ? "تحديثات" : "Updates",
+    messagesGroup: rtl ? "رسائل" : "Messages",
   };
 
   const markRead = (id: string) => {
     const updated = notifications.map(n => n.id === id ? { ...n, read: true } : n);
-    setNotifications(updated);
-    saveNotifications(updated);
-  };
-
-  const clearAll = () => {
-    setNotifications([]);
-    saveNotifications([]);
-    toast.success(t(lang, "notif.cleared"));
-  };
-
-  const deleteOne = (id: string) => {
-    const updated = notifications.filter(n => n.id !== id);
     setNotifications(updated);
     saveNotifications(updated);
   };
@@ -723,78 +736,134 @@ const NotificationsPanel = ({ isOpen, onClose, onUpgrade }: { isOpen: boolean; o
     if (notif.type === "promo") { onUpgrade(); onClose(); }
   };
 
+  // Filter by tab
+  const filtered = notifications.filter(n => {
+    if (tab === "all") return true;
+    return notifCategory(n) === tab;
+  });
+
+  // Group consecutive notifications by date
+  const groups: { key: string; category: "updates" | "messages"; date: string; items: Notification[] }[] = [];
+  filtered.forEach((n) => {
+    const cat = notifCategory(n);
+    const date = formatDateGroup(n.timestamp, lang);
+    const key = `${cat}-${date}`;
+    const last = groups[groups.length - 1];
+    if (last && last.key === key) last.items.push(n);
+    else groups.push({ key, category: cat, date, items: [n] });
+  });
+
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40" />
-          <motion.div initial={{ opacity: 0, y: -10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.95 }} transition={{ duration: 0.2 }} className="absolute left-3 right-3 top-[60px] z-50 max-h-[75vh] rounded-2xl border border-border bg-card shadow-2xl overflow-hidden flex flex-col" dir={dir}>
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-              <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors"><X className="h-4 w-4" /></button>
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-foreground">{t(lang, "notif.title")}</h3>
-                {unreadCount > 0 && (
-                  <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-accent px-1.5 text-[10px] font-bold text-accent-foreground">{unreadCount}</span>
-                )}
-              </div>
-            </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-[100] bg-background flex flex-col"
+          dir={dir}
+        >
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 z-10 p-2 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" />
+          </button>
 
-            {/* Actions */}
-            {notifications.length > 0 && (
-              <div className="flex items-center justify-between px-4 py-2 border-b border-border/50 shrink-0">
-                <button onClick={clearAll} className="text-xs text-destructive hover:underline transition-colors">{t(lang, "notif.clear_all")}</button>
-                {unreadCount > 0 && (
-                  <button onClick={markAllRead} className="text-xs text-accent hover:underline transition-colors">{t(lang, "notif.mark_all_read")}</button>
-                )}
+          {/* Title */}
+          <div className="pt-8 pb-4 px-6">
+            <h1 className="text-2xl font-bold text-center text-foreground">{L.title}</h1>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex items-center justify-center gap-1 px-6 pb-2 shrink-0">
+            {([
+              { id: "all", label: L.all },
+              { id: "updates", label: L.updates },
+              { id: "messages", label: L.messages },
+            ] as const).map((tb) => (
+              <button
+                key={tb.id}
+                onClick={() => setTab(tb.id)}
+                className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
+                  tab === tb.id
+                    ? "bg-secondary text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {tb.label}
+              </button>
+            ))}
+          </div>
+
+          {/* List */}
+          <div className="flex-1 overflow-y-auto px-6 pb-10">
+            {groups.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center py-20">
+                <Bell className="h-12 w-12 text-muted-foreground/20 mb-3" />
+                <p className="text-sm text-muted-foreground">{L.empty}</p>
+              </div>
+            ) : (
+              <div className="max-w-2xl mx-auto pt-6 space-y-10">
+                {groups.map((g) => (
+                  <section key={g.key}>
+                    <header className="mb-4">
+                      <div className="text-base font-bold text-foreground">
+                        {g.category === "updates" ? L.updatesGroup : L.messagesGroup}
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-0.5">{g.date}</div>
+                    </header>
+                    <div className="divide-y divide-border/60">
+                      {g.items.map((notif, i) => {
+                        const IconComp = notifIconMap[notif.icon] || Bell;
+                        const gradient = notifHeroGradient[notif.type] || notifHeroGradient.update;
+                        return (
+                          <motion.button
+                            key={notif.id}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.04 }}
+                            onClick={() => handleNotifClick(notif)}
+                            className="block w-full text-start py-5 group"
+                          >
+                            {/* Hero card */}
+                            <div className={`relative w-full aspect-[16/9] rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden`}>
+                              <div className="flex items-center gap-4">
+                                <div className="h-14 w-14 rounded-2xl bg-white shadow-md flex items-center justify-center">
+                                  <Sparkles className="h-7 w-7 text-foreground/80" />
+                                </div>
+                                <div className="h-12 w-12 rounded-full bg-foreground/30 backdrop-blur flex items-center justify-center">
+                                  <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                                </div>
+                                <div className="h-14 w-14 rounded-2xl bg-white shadow-md flex items-center justify-center">
+                                  <IconComp className="h-7 w-7 text-primary" />
+                                </div>
+                              </div>
+                              {!notif.read && (
+                                <span className="absolute top-3 end-3 h-2.5 w-2.5 rounded-full bg-accent shadow" />
+                              )}
+                            </div>
+                            {/* Title */}
+                            <h3 className="mt-4 text-lg font-bold text-foreground leading-snug">
+                              {t(lang, notif.titleKey)}
+                            </h3>
+                            {/* Body */}
+                            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                              {t(lang, notif.bodyKey)}
+                            </p>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ))}
               </div>
             )}
-
-            {/* List */}
-            <div className="flex-1 overflow-y-auto">
-              {notifications.length === 0 ? (
-                <div className="p-8 text-center">
-                  <Bell className="mx-auto h-10 w-10 text-muted-foreground/20 mb-3" />
-                  <p className="text-sm text-muted-foreground">{t(lang, "notif.empty")}</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-border/50">
-                  {notifications.map((notif, i) => {
-                    const IconComp = notifIconMap[notif.icon] || Bell;
-                    const colorClass = notifColorMap[notif.type] || "bg-secondary text-muted-foreground";
-                    return (
-                      <motion.div
-                        key={notif.id}
-                        initial={{ opacity: 0, x: isRTL(lang) ? 20 : -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        onClick={() => handleNotifClick(notif)}
-                        className={`flex gap-3 px-4 py-3.5 cursor-pointer transition-colors hover:bg-secondary/50 ${!notif.read ? "bg-accent/5" : ""}`}
-                      >
-                        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${colorClass}`}>
-                          <IconComp className="h-4 w-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <p className={`text-xs font-semibold leading-snug ${!notif.read ? "text-foreground" : "text-muted-foreground"}`}>{t(lang, notif.titleKey)}</p>
-                            <button onClick={(e) => { e.stopPropagation(); deleteOne(notif.id); }} className="shrink-0 text-muted-foreground/40 hover:text-destructive transition-colors mt-0.5">
-                              <X className="h-3 w-3" />
-                            </button>
-                          </div>
-                          <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">{t(lang, notif.bodyKey)}</p>
-                          <div className="flex items-center gap-2 mt-1.5">
-                            <span className="text-[10px] text-muted-foreground/60">{formatTimeAgo(notif.timestamp, lang)}</span>
-                            {!notif.read && <div className="h-1.5 w-1.5 rounded-full bg-accent" />}
-                          </div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </motion.div>
-        </>
+          </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
