@@ -33,6 +33,7 @@ import {
   ArrowRight, Upload as UploadIcon, Camera, Image, FileText, Copy,
   Share2, Trash2, Volume2, VolumeX, Download, Check, Loader2, Terminal, Pencil,
   CalendarCheck, Target, Table, BarChart3, Play, AudioLines, MessageCircle, BookCopy, Clock, Pause, RotateCcw, Save,
+  Moon, Sun, Monitor, Plug, ChevronsUpDown, ArrowUpRight, AlignJustify,
 } from "lucide-react";
 
 /* ═══════════════════════ LANGUAGE CONTEXT ═══════════════════════ */
