@@ -979,303 +979,461 @@ interface SettingsPanelProps {
   currentModel: string;
 }
 
+type ManusTab =
+  | "account" | "general" | "billing" | "personalization" | "mail"
+  | "data" | "computer" | "browser" | "plugins" | "integrations" | "help";
+
 const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogout, currentModel }: SettingsPanelProps) => {
   const { lang, setLang } = useLang();
-  const dir = isRTL(lang) ? "rtl" : "ltr";
+  const rtl = isRTL(lang);
+  const dir = rtl ? "rtl" : "ltr";
   const { plan } = usePlan();
   const { usage } = useCredits();
   const { user: settingsUser } = useAuth();
   const settingsDisplayName = settingsUser?.user_metadata?.full_name || settingsUser?.user_metadata?.name || settingsUser?.email?.split("@")[0] || "User";
   const settingsEmail = settingsUser?.email || "";
   const settingsAvatar = settingsUser?.user_metadata?.avatar_url || settingsUser?.user_metadata?.picture || null;
-  const [activeTab, setActiveTab] = useState<"general" | "appearance" | "notifications" | "account">("general");
+  const settingsInitial = settingsDisplayName.trim().charAt(0).toUpperCase() || "U";
+  const userId = settingsUser?.id || "";
+
+  const [activeTab, setActiveTab] = useState<ManusTab>("account");
   const [settings, setSettingsState] = useState<AppSettings>(loadSettings);
-  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [fullName, setFullName] = useState(settingsDisplayName);
+  const [computerSub, setComputerSub] = useState<"cloud" | "local">("cloud");
+  const [pluginSub, setPluginSub] = useState<"connectors" | "skills" | "data">("connectors");
+  const [browserNotif, setBrowserNotif] = useState<boolean>(false);
+  const [persistLogin, setPersistLogin] = useState<boolean>(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  useEffect(() => { setFullName(settingsDisplayName); }, [settingsDisplayName, isOpen]);
+  useEffect(() => { if (isOpen) setMoreOpen(false); }, [isOpen]);
 
   const updateSetting = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
-    setSettingsState(prev => {
-      const next = { ...prev, [key]: value };
-      saveSettings(next);
-      return next;
-    });
+    setSettingsState(prev => { const next = { ...prev, [key]: value }; saveSettings(next); return next; });
   };
 
-  const tabs = [
-    { id: "general" as const, labelKey: "settings.tab_general", icon: Settings },
-    { id: "appearance" as const, labelKey: "settings.tab_appearance", icon: Palette },
-    { id: "notifications" as const, labelKey: "settings.tab_notifications", icon: Bell },
-    { id: "account" as const, labelKey: "settings.tab_account", icon: User },
+  const L = rtl ? {
+    title: "الإعدادات", personal: "شخصي", fullName: "الاسم الكامل", free: "مجاني",
+    upgrade: "ترقية", credits: "النقاط", freeCredits: "نقاط مجانية",
+    dailyRefresh: "نقاط التحديث اليومي", refreshAt: "تتجدد إلى 300 في الساعة 03:06 يوميًا",
+    email: "البريد الإلكتروني", userId: "معرّف المستخدم", copy: "نسخ", copied: "تم النسخ",
+    appearance: "المظهر", language: "اللغة", theme: "السمة",
+    light: "فاتح", dark: "داكن", auto: "تلقائي",
+    commPrefs: "تفضيلات التواصل", browserNotif: "إشعارات المتصفح",
+    browserNotifDesc: "تلقّى إشعارات في متصفحك عند تحقق تقدم جديد أو اكتمال مهمة.",
+    cloudComp: "كمبيوتر سحابي", localComp: "كمبيوتر محلي",
+    persistentTitle: "مساحة عمل سحابية دائمة، متاحة على مدار الساعة.",
+    persistentDesc: "كمبيوتر سحابي دائم التشغيل مع تخزين دائم — يعمل ويبني في أي وقت.",
+    createNow: "إنشاء الآن",
+    persistLogin: "الاحتفاظ بحالة تسجيل الدخول عبر المهام",
+    learnMore: "اعرف المزيد", cookies: "ملفات تعريف الارتباط وبيانات الموقع الأخرى",
+    manage: "إدارة", searchPlugins: "البحث في الموصلات والمهارات ومصادر البيانات",
+    connectors: "الموصلات", skills: "المهارات", dataSources: "مصادر البيانات", add: "إضافة",
+    pluginsEmpty: "اربط Erfan مع تطبيقاتك اليومية وواجهات API و MCPs",
+    addConnectors: "إضافة موصلات",
+    buildApi: "البناء باستخدام Erfan API", buildApiDesc: "استخدم Erfan API لبناء تكاملات مخصصة",
+    useZapier: "استخدام Erfan في Zapier", useZapierDesc: "اربط Erfan بآلاف التطبيقات عبر Zapier",
+    useSlack: "استخدام Erfan في Slack", useSlackDesc: "استخدم @Erfan في Slack لتفويض المهام إلى Erfan",
+    telegram: "Telegram", telegramDesc: "راسل مهمتك واحصل على النتائج فورًا",
+    tabs: {
+      account: "الحساب", general: "عام", billing: "الاستخدام والفوترة",
+      personalization: "التخصيص", mail: "بريد Erfan", data: "ضوابط البيانات",
+      computer: "جهازي", browser: "متصفح سحابي", plugins: "إضافاتي",
+      integrations: "التكاملات", help: "الحصول على مساعدة",
+    },
+    placeholder: "قريبًا...", emptyPersonalization: "لا توجد تخصيصات بعد.",
+    emptyMail: "بريد Erfan غير مفعّل في حسابك.",
+    emptyData: "إدارة بياناتك وسجلاتك من هنا (قريبًا).",
+    emptyBilling: "تفاصيل الاستخدام والفوترة.",
+    plan: "الخطة", remaining: "النقاط المتبقية",
+  } : {
+    title: "Settings", personal: "Personal", fullName: "Full name", free: "Free",
+    upgrade: "Upgrade", credits: "Credits", freeCredits: "Free credits",
+    dailyRefresh: "Daily refresh credits", refreshAt: "Refresh to 300 at 03:06 every day",
+    email: "Email", userId: "User ID", copy: "Copy", copied: "Copied",
+    appearance: "Appearance", language: "Language", theme: "Theme",
+    light: "Light", dark: "Dark", auto: "Auto",
+    commPrefs: "Communication preferences", browserNotif: "Browser notifications",
+    browserNotifDesc: "Get notified in your browser when there's new progress or a task is completed.",
+    cloudComp: "Cloud computer", localComp: "Local computer",
+    persistentTitle: "Persistent cloud workspace, available 24/7.",
+    persistentDesc: "Always-on cloud computer with persistent storage — run and build anytime.",
+    createNow: "Create now",
+    persistLogin: "Persist login state across tasks",
+    learnMore: "Learn more", cookies: "Cookies and other website data",
+    manage: "Manage", searchPlugins: "Search connectors, skills, data sources",
+    connectors: "Connectors", skills: "Skills", dataSources: "Data sources", add: "Add",
+    pluginsEmpty: "Connect Erfan with your everyday apps, APIs and MCPs",
+    addConnectors: "Add connectors",
+    buildApi: "Build with Erfan API", buildApiDesc: "Use Erfan API to build custom integrations",
+    useZapier: "Use Erfan in Zapier", useZapierDesc: "Connect Erfan to thousands of apps with Zapier",
+    useSlack: "Use Erfan in Slack", useSlackDesc: "Use @Erfan in Slack to assign tasks to Erfan",
+    telegram: "Telegram", telegramDesc: "Message your task, get results delivered instantly",
+    tabs: {
+      account: "Account", general: "General", billing: "Usage & Billing",
+      personalization: "Personalization", mail: "Mail Erfan", data: "Data controls",
+      computer: "My Computer", browser: "Cloud browser", plugins: "My plugins",
+      integrations: "Integrations", help: "Get help",
+    },
+    placeholder: "Coming soon...", emptyPersonalization: "No personalization yet.",
+    emptyMail: "Mail Erfan is not enabled for your account.",
+    emptyData: "Manage your data and history here (coming soon).",
+    emptyBilling: "Usage and billing details.",
+    plan: "Plan", remaining: "Remaining credits",
+  };
+
+  const tabs: { id: ManusTab; label: string }[] = [
+    { id: "account", label: L.tabs.account },
+    { id: "general", label: L.tabs.general },
+    { id: "billing", label: L.tabs.billing },
+    { id: "personalization", label: L.tabs.personalization },
+    { id: "mail", label: L.tabs.mail },
+    { id: "data", label: L.tabs.data },
+    { id: "computer", label: L.tabs.computer },
+    { id: "browser", label: L.tabs.browser },
+    { id: "plugins", label: L.tabs.plugins },
+    { id: "integrations", label: L.tabs.integrations },
+    { id: "help", label: L.tabs.help },
   ];
 
-  const languages: Lang[] = ["العربية", "English", "Français", "Español", "Deutsch", "Türkçe"];
-  const themeOptions = [
-    { id: "dark", labelKey: "theme.dark" },
-    { id: "light", labelKey: "theme.light" },
-    { id: "auto", labelKey: "theme.auto" },
-  ];
-  const fontSizeOptions = [
-    { id: "small", labelKey: "font.small" },
-    { id: "medium", labelKey: "font.medium" },
-    { id: "large", labelKey: "font.large" },
-  ];
-  const bubbleOptions = [
-    { id: "modern", labelKey: "bubble.modern" },
-    { id: "classic", labelKey: "bubble.classic" },
-    { id: "bubbles", labelKey: "bubble.bubbles" },
-  ];
+  const Toggle = ({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) => (
+    <button onClick={() => onChange(!value)} className={`relative h-6 w-11 rounded-full transition-colors ${value ? "bg-accent" : "bg-muted-foreground/30"}`}>
+      <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${value ? "translate-x-[22px]" : "translate-x-0.5"}`} />
+    </button>
+  );
+
+  const SectionCard: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = "" }) => (
+    <div className={`rounded-2xl border border-border/60 bg-secondary/40 ${className}`}>{children}</div>
+  );
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40" style={{ background: "hsl(0 0% 0% / 0.7)" }} />
-          <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className="fixed inset-x-3 top-10 bottom-10 z-50 flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden" dir={dir}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40 bg-black/70" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97, y: 12 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97, y: 12 }}
+            transition={{ type: "spring", damping: 26, stiffness: 320 }}
+            className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-[min(100vw-1.5rem,640px)] max-h-[90vh] flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden"
+            dir={dir}
+          >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-              <button onClick={onClose} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"><X className="h-5 w-5" /></button>
-              <h3 className="text-lg font-bold text-foreground">{t(lang, "settings.title")}</h3>
-              <div className="w-8" />
+            <div className="flex items-center justify-between px-5 pt-5 pb-3">
+              <h2 className="text-xl font-bold text-foreground">{L.title}</h2>
+              <button onClick={onClose} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
-            {/* Tabs */}
-            <div className="flex border-b border-border px-2 overflow-x-auto scrollbar-hide">
-              {tabs.map((tab) => (
-                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap border-b-2 ${activeTab === tab.id ? "border-accent text-accent" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
-                  <tab.icon className="h-4 w-4" />
-                  {t(lang, tab.labelKey)}
-                </button>
-              ))}
+            {/* Account switcher row */}
+            <div className="px-5 pb-3">
+              <button className="flex w-full items-center gap-3 rounded-lg p-2 hover:bg-secondary/60 transition-colors">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-base font-bold text-primary-foreground overflow-hidden shrink-0">
+                  {settingsAvatar ? <img src={settingsAvatar} alt={settingsDisplayName} className="h-full w-full object-cover" /> : settingsInitial}
+                </div>
+                <div className="flex-1 min-w-0 text-start">
+                  <div className="text-sm font-semibold text-foreground truncate">{settingsDisplayName}</div>
+                  <div className="text-xs text-muted-foreground truncate">{L.personal}</div>
+                </div>
+                <ChevronsUpDown className="h-4 w-4 text-muted-foreground shrink-0" />
+              </button>
+            </div>
+
+            {/* Tabs (horizontal scroll) + more menu */}
+            <div className="relative border-b border-border/60">
+              <div className="flex items-stretch gap-5 px-5 overflow-x-auto scrollbar-hide whitespace-nowrap pr-12">
+                {tabs.map(tab => {
+                  const active = activeTab === tab.id;
+                  return (
+                    <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                      className={`relative py-3 text-sm font-medium transition-colors flex items-center gap-1 ${active ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+                      {tab.id === "help" && <ArrowUpRight className="h-3.5 w-3.5" />}
+                      <span>{tab.label}</span>
+                      {active && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-foreground rounded-full" />}
+                    </button>
+                  );
+                })}
+              </div>
+              <button onClick={() => setMoreOpen(v => !v)} className={`absolute top-1/2 -translate-y-1/2 ${rtl ? "left-2" : "right-2"} p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary`}>
+                <AlignJustify className="h-4 w-4" />
+              </button>
+              {moreOpen && (
+                <div className={`absolute z-10 top-full mt-1 ${rtl ? "left-2" : "right-2"} w-52 rounded-xl border border-border bg-popover shadow-xl py-1`}>
+                  {tabs.map(tab => (
+                    <button key={tab.id} onClick={() => { setActiveTab(tab.id); setMoreOpen(false); }}
+                      className={`w-full px-4 py-2 text-sm text-start hover:bg-secondary transition-colors ${activeTab === tab.id ? "text-foreground font-semibold" : "text-foreground/80"}`}>
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-5">
-              {/* ── General Tab ── */}
-              {activeTab === "general" && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
-                  {/* Language */}
-                  <div>
-                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                      <Globe className="h-4 w-4 text-accent" />
-                      {t(lang, "settings.language")}
-                    </h4>
-                    <div className="grid grid-cols-2 gap-2">
-                      {languages.map((l) => (
-                        <button key={l} onClick={() => {
-                          updateSetting("language", l);
-                          setLang(l);
-                          document.documentElement.dir = isRTL(l) ? "rtl" : "ltr";
-                          toast(`${t(l, "settings.language_changed")} ${l}`);
-                        }} className={`rounded-xl px-4 py-3 text-sm font-medium transition-all ${settings.language === l ? "bg-accent text-accent-foreground shadow-md" : "bg-secondary text-foreground hover:bg-secondary/80"}`}>
-                          {l}
-                        </button>
-                      ))}
+            <div className="flex-1 overflow-y-auto px-5 py-5">
+              {activeTab === "account" && (
+                <div className="space-y-6">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-2xl font-bold text-primary-foreground overflow-hidden shrink-0">
+                      {settingsAvatar ? <img src={settingsAvatar} alt={settingsDisplayName} className="h-full w-full object-cover" /> : settingsInitial}
                     </div>
-                  </div>
-
-                  {/* Default Model */}
-                  <div>
-                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                      <Zap className="h-4 w-4 text-accent" />
-                      {t(lang, "settings.default_model")}
-                    </h4>
-                    <div className="space-y-2">
-                      {modelData.map((model) => (
-                        <button key={model.id} onClick={() => { updateSetting("defaultModel", model.id); onChangeModel(model.id); toast(`${t(lang, "settings.model_set")}: ${model.label}`); }} className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-sm transition-colors ${settings.defaultModel === model.id ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground hover:bg-secondary/80"}`}>
-                          {settings.defaultModel === model.id ? (
-                            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                          ) : (
-                            <Sparkles className="h-4 w-4 text-muted-foreground" />
-                          )}
-                          <span>{model.label}</span>
-                        </button>
-                      ))}
+                    <div className="flex-1 min-w-0">
+                      <label className="block text-xs text-muted-foreground mb-1.5">{L.fullName}</label>
+                      <input value={fullName} onChange={e => setFullName(e.target.value)}
+                        onBlur={async () => {
+                          if (fullName && fullName !== settingsDisplayName) {
+                            try { await supabase.auth.updateUser({ data: { full_name: fullName } }); toast.success("✓"); } catch {}
+                          }
+                        }}
+                        className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2.5 text-sm text-foreground outline-none focus:border-foreground/40" />
                     </div>
-                  </div>
-
-                  {/* Clear History */}
-                  <div>
-                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                      <Trash2 className="h-4 w-4 text-accent" />
-                      {t(lang, "settings.data")}
-                    </h4>
-                    <button onClick={() => { onClearHistory(); toast.success(t(lang, "settings.history_cleared")); }} className="w-full rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors">
-                      {t(lang, "settings.clear_history")}
+                    <button onClick={() => { onLogout(); onClose(); }} title="Logout"
+                      className="mt-6 rounded-lg border border-border p-2.5 text-foreground hover:bg-secondary transition-colors">
+                      <LogOut className="h-4 w-4" />
                     </button>
                   </div>
-                </motion.div>
-              )}
 
-              {/* ── Appearance Tab ── */}
-              {activeTab === "appearance" && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
-                  <div>
-                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                      <Palette className="h-4 w-4 text-accent" />
-                      {t(lang, "settings.theme")}
-                    </h4>
-                    <div className="grid grid-cols-3 gap-2">
-                      {themeOptions.map((th) => (
-                        <button key={th.id} onClick={() => { updateSetting("theme", th.id); applyTheme(th.id); toast(`${t(lang, "settings.theme_changed")} ${t(lang, th.labelKey)}`); }} className={`rounded-xl px-3 py-3 text-sm font-medium transition-all ${settings.theme === th.id ? "bg-accent text-accent-foreground shadow-md" : "bg-secondary text-foreground hover:bg-secondary/80"}`}>
-                          {t(lang, th.labelKey)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                      <AlignJustify className="h-4 w-4 text-accent" />
-                      {t(lang, "settings.font_size")}
-                    </h4>
-                    <div className="grid grid-cols-3 gap-2">
-                      {fontSizeOptions.map((fs) => (
-                        <button key={fs.id} onClick={() => { updateSetting("fontSize", fs.id); applyFontSize(fs.id); toast(`${t(lang, "settings.font_changed")} ${t(lang, fs.labelKey)}`); }} className={`rounded-xl px-3 py-3 text-sm font-medium transition-all ${settings.fontSize === fs.id ? "bg-accent text-accent-foreground shadow-md" : "bg-secondary text-foreground hover:bg-secondary/80"}`}>
-                          {t(lang, fs.labelKey)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4 text-accent" />
-                      {t(lang, "settings.bubble_style")}
-                    </h4>
-                    <div className="grid grid-cols-3 gap-2">
-                      {bubbleOptions.map((bs) => (
-                        <button key={bs.id} onClick={() => { updateSetting("chatBubbleStyle", bs.id); toast(`${t(lang, "settings.bubble_changed")} ${t(lang, bs.labelKey)}`); }} className={`rounded-xl px-3 py-3 text-sm font-medium transition-all ${settings.chatBubbleStyle === bs.id ? "bg-accent text-accent-foreground shadow-md" : "bg-secondary text-foreground hover:bg-secondary/80"}`}>
-                          {t(lang, bs.labelKey)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* ── Notifications Tab ── */}
-              {activeTab === "notifications" && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-                  {([
-                    { key: "notifMessages" as const, labelKey: "settings.notif_messages", descKey: "settings.notif_messages_desc" },
-                    { key: "notifUpdates" as const, labelKey: "settings.notif_updates", descKey: "settings.notif_updates_desc" },
-                    { key: "notifSound" as const, labelKey: "settings.notif_sound", descKey: "settings.notif_sound_desc" },
-                    { key: "notifVibration" as const, labelKey: "settings.notif_vibration", descKey: "settings.notif_vibration_desc" },
-                    { key: "notifEmail" as const, labelKey: "settings.notif_email", descKey: "settings.notif_email_desc" },
-                  ]).map((item) => (
-                    <div key={item.key} className="flex items-center justify-between rounded-xl bg-secondary p-4">
-                      <button onClick={() => {
-                        const newVal = !settings[item.key];
-                        updateSetting(item.key, newVal);
-                        toast(`${t(lang, item.labelKey)}: ${newVal ? t(lang, "settings.enabled") : t(lang, "settings.disabled")}`);
-                        if (item.key === "notifVibration" && newVal && navigator.vibrate) navigator.vibrate(200);
-                      }} className={`relative h-7 w-12 rounded-full transition-colors ${settings[item.key] ? "bg-accent" : "bg-muted-foreground/30"}`}>
-                        <div className={`absolute top-0.5 h-6 w-6 rounded-full bg-foreground shadow-md transition-transform ${settings[item.key] ? (isRTL(lang) ? "right-0.5" : "left-[calc(100%-1.625rem)]") : (isRTL(lang) ? "right-[calc(100%-1.625rem)]" : "left-0.5")}`} />
+                  <SectionCard className="p-5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-serif font-semibold text-foreground">{L.free}</span>
+                      <button onClick={() => { onClose(); window.dispatchEvent(new CustomEvent("open-upgrade")); }}
+                        className="rounded-lg bg-foreground px-4 py-2 text-sm font-semibold text-background hover:opacity-90 transition-opacity">
+                        {L.upgrade}
                       </button>
-                      <div className={isRTL(lang) ? "text-right" : "text-left"}>
-                        <p className="text-sm font-medium text-foreground">{t(lang, item.labelKey)}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{t(lang, item.descKey)}</p>
-                      </div>
                     </div>
-                  ))}
-                </motion.div>
+                    <div className="my-4 border-t border-dashed border-border/70" />
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                          <Sparkles className="h-4 w-4" /> {L.credits}
+                          <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                        </div>
+                        <span className="text-sm font-semibold text-foreground">{usage.remaining}</span>
+                      </div>
+                      <div className="flex items-center justify-between -mt-3">
+                        <span className="text-xs text-muted-foreground">{L.freeCredits}</span>
+                        <span className="text-xs text-muted-foreground">{usage.remaining}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                          <CalendarCheck className="h-4 w-4" /> {L.dailyRefresh}
+                          <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                        </div>
+                        <span className="text-sm font-semibold text-foreground">0</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground -mt-3">{L.refreshAt}</p>
+                    </div>
+                  </SectionCard>
+
+                  <div className="space-y-1.5">
+                    <p className="text-sm font-semibold text-foreground">{L.email}</p>
+                    <p className="text-sm text-muted-foreground break-all">{settingsEmail}</p>
+                  </div>
+                  <div className="flex items-end justify-between gap-3">
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                      <p className="text-sm font-semibold text-foreground">{L.userId}</p>
+                      <p className="text-sm text-muted-foreground break-all">{userId}</p>
+                    </div>
+                    <button onClick={() => { navigator.clipboard.writeText(userId); toast.success(L.copied); }}
+                      className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary transition-colors">
+                      {L.copy}
+                    </button>
+                  </div>
+                </div>
               )}
 
-              {/* ── Account Tab ── */}
-              {activeTab === "account" && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
-                  <div className="flex items-center gap-4 rounded-xl bg-secondary p-4">
-                    <div className={`${isRTL(lang) ? "text-right" : "text-left"} flex-1`}>
-                      <p className="text-sm font-bold text-foreground">{settingsDisplayName}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{settingsEmail}</p>
-                    </div>
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground overflow-hidden">
-                      {settingsAvatar ? (
-                        <img src={settingsAvatar} alt={settingsDisplayName} className="h-full w-full object-cover" />
-                      ) : (
-                        settingsDisplayName.charAt(0).toUpperCase()
-                      )}
+              {activeTab === "general" && (
+                <div className="space-y-6">
+                  <h3 className="text-base font-semibold text-foreground">{L.appearance}</h3>
+                  <div>
+                    <label className="block text-sm text-foreground mb-2">{L.language}</label>
+                    <div className="relative">
+                      <select value={lang} onChange={e => { const v = e.target.value as Lang; setLang(v); updateSetting("language", v); document.documentElement.dir = isRTL(v) ? "rtl" : "ltr"; }}
+                        className="w-full appearance-none rounded-lg border border-border bg-secondary/50 px-3 py-2.5 pr-9 text-sm text-foreground outline-none focus:border-foreground/40">
+                        {(["العربية","English","Français","Español","Deutsch","Türkçe"] as Lang[]).map(l => <option key={l} value={l}>{l}</option>)}
+                      </select>
+                      <ChevronDown className={`pointer-events-none absolute top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground ${rtl ? "left-3" : "right-3"}`} />
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-border overflow-hidden">
-                    <div className="flex items-center justify-between p-4">
-                      <button onClick={() => { onClose(); window.dispatchEvent(new CustomEvent("open-upgrade")); }} className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-accent-foreground hover:brightness-110 transition-all">{t(lang, "profile.upgrade")}</button>
-                      <div className={isRTL(lang) ? "text-right" : "text-left"}>
-                        <p className="text-sm font-medium text-foreground">{t(lang, "settings.current_plan")}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{planLabel(plan.tier, lang)}</p>
+                  <div>
+                    <label className="block text-sm text-foreground mb-2">{L.theme}</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { id: "light", label: L.light, Icon: Sun },
+                        { id: "dark", label: L.dark, Icon: Moon },
+                        { id: "auto", label: L.auto, Icon: Monitor },
+                      ].map(opt => {
+                        const active = settings.theme === opt.id;
+                        return (
+                          <button key={opt.id} onClick={() => { updateSetting("theme", opt.id); applyTheme(opt.id); }}
+                            className={`flex flex-col items-center gap-2 rounded-xl border py-4 transition-all ${active ? "border-foreground bg-secondary/40" : "border-border/60 hover:bg-secondary/40"}`}>
+                            <opt.Icon className="h-5 w-5 text-foreground" />
+                            <span className="text-sm text-foreground">{opt.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-border/60">
+                    <h3 className="text-base font-semibold text-foreground mb-4">{L.commPrefs}</h3>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-foreground">{L.browserNotif}</p>
+                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{L.browserNotifDesc}</p>
                       </div>
-                    </div>
-                    <div className="border-t border-border px-4 py-3 flex items-center justify-between">
-                      <span className="text-sm font-semibold text-foreground">{usage.remaining}</span>
-                      <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                        <Sparkles className="h-3.5 w-3.5" />
-                        {t(lang, "settings.remaining_credits")}
-                      </span>
+                      <Toggle value={browserNotif} onChange={async v => {
+                        setBrowserNotif(v);
+                        if (v && typeof Notification !== "undefined" && Notification.permission !== "granted") {
+                          try { await Notification.requestPermission(); } catch {}
+                        }
+                      }} />
                     </div>
                   </div>
+                </div>
+              )}
 
-                  <div className="space-y-2">
-                    <button onClick={() => setShowPasswordDialog(true)} className={`w-full rounded-xl bg-secondary px-4 py-3 text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors ${isRTL(lang) ? "text-right" : "text-left"}`}>{t(lang, "settings.change_password")}</button>
-                    <button onClick={() => {
-                      const data = { settings: loadSettings(), exportDate: new Date().toISOString(), messages: "exported" };
-                      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement("a"); a.href = url; a.download = `erfanai-data-${new Date().toISOString().slice(0, 10)}.json`; a.click(); URL.revokeObjectURL(url);
-                      toast.success(t(lang, "settings.export_success"));
-                    }} className={`w-full rounded-xl bg-secondary px-4 py-3 text-sm font-medium text-foreground hover:bg-secondary/80 transition-colors ${isRTL(lang) ? "text-right" : "text-left"}`}>{t(lang, "settings.export_data")}</button>
-                    <button onClick={() => setShowDeleteConfirm(true)} className={`w-full rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors ${isRTL(lang) ? "text-right" : "text-left"}`}>{t(lang, "settings.delete_account")}</button>
+              {activeTab === "billing" && (
+                <div className="space-y-4">
+                  <SectionCard className="p-5 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">{L.plan}</p>
+                      <p className="text-lg font-semibold text-foreground">{planLabel(plan.tier, lang)}</p>
+                    </div>
+                    <button onClick={() => { onClose(); window.dispatchEvent(new CustomEvent("open-upgrade")); }}
+                      className="rounded-lg bg-foreground px-4 py-2 text-sm font-semibold text-background">{L.upgrade}</button>
+                  </SectionCard>
+                  <SectionCard className="p-5 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-foreground"><Sparkles className="h-4 w-4" />{L.remaining}</div>
+                    <span className="text-base font-bold text-foreground">{usage.remaining}</span>
+                  </SectionCard>
+                  <p className="text-xs text-muted-foreground text-center pt-2">{L.emptyBilling}</p>
+                </div>
+              )}
+
+              {activeTab === "personalization" && (
+                <div className="py-16 text-center text-sm text-muted-foreground">{L.emptyPersonalization}</div>
+              )}
+
+              {activeTab === "mail" && (
+                <div className="py-16 text-center text-sm text-muted-foreground flex flex-col items-center gap-3">
+                  <Mail className="h-10 w-10 text-muted-foreground/60" />
+                  {L.emptyMail}
+                </div>
+              )}
+
+              {activeTab === "data" && (
+                <div className="space-y-3">
+                  <button onClick={() => { onClearHistory(); toast.success("✓"); }}
+                    className="w-full rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors text-start">
+                    {t(lang, "settings.clear_history")}
+                  </button>
+                  <p className="text-xs text-muted-foreground">{L.emptyData}</p>
+                </div>
+              )}
+
+              {activeTab === "computer" && (
+                <div className="space-y-5">
+                  <div className="flex items-center gap-6 border-b border-border/60">
+                    {[
+                      { id: "cloud" as const, label: L.cloudComp },
+                      { id: "local" as const, label: L.localComp },
+                    ].map(s => (
+                      <button key={s.id} onClick={() => setComputerSub(s.id)}
+                        className={`relative pb-3 text-sm font-semibold transition-colors ${computerSub === s.id ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+                        {s.label}
+                        {computerSub === s.id && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-foreground rounded-full" />}
+                      </button>
+                    ))}
                   </div>
+                  <SectionCard className="p-5">
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-secondary shrink-0">
+                        <Monitor className="h-7 w-7 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-foreground leading-snug">{L.persistentTitle}</p>
+                        <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{L.persistentDesc}</p>
+                      </div>
+                      <button className="mt-1 rounded-lg bg-foreground px-4 py-2 text-sm font-semibold text-background hover:opacity-90 transition-opacity flex items-center gap-1.5 whitespace-nowrap">
+                        <Plus className="h-4 w-4" /> {L.createNow}
+                      </button>
+                    </div>
+                  </SectionCard>
+                </div>
+              )}
 
-                  {/* Password Dialog */}
-                  <AnimatePresence>
-                    {showPasswordDialog && (
-                      <>
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] bg-background/80" onClick={() => setShowPasswordDialog(false)} />
-                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-x-6 top-1/2 -translate-y-1/2 z-[70] rounded-2xl border border-border bg-card p-5 shadow-2xl space-y-4" dir={dir}>
-                          <h3 className="text-base font-bold text-foreground text-center">{t(lang, "settings.change_password")}</h3>
-                          <input type="password" placeholder={t(lang, "settings.current_password")} value={oldPassword} onChange={e => setOldPassword(e.target.value)} className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none" />
-                          <input type="password" placeholder={t(lang, "settings.new_password")} value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none" />
-                          <input type="password" placeholder={t(lang, "settings.confirm_password")} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none" />
-                          <div className="flex gap-2">
-                            <button onClick={() => setShowPasswordDialog(false)} className="flex-1 rounded-xl bg-secondary py-3 text-sm font-medium text-foreground">{t(lang, "settings.cancel")}</button>
-                            <button onClick={() => {
-                              if (!oldPassword || !newPassword || !confirmPassword) { toast.error(t(lang, "settings.fill_all_fields")); return; }
-                              if (newPassword !== confirmPassword) { toast.error(t(lang, "settings.password_mismatch")); return; }
-                              if (newPassword.length < 6) { toast.error(t(lang, "settings.password_min")); return; }
-                              (async () => {
-                                try {
-                                  const { error } = await supabase.auth.updateUser({ password: newPassword });
-                                  if (error) { toast.error(error.message); return; }
-                                  toast.success(t(lang, "settings.password_changed"));
-                                  setOldPassword(""); setNewPassword(""); setConfirmPassword(""); setShowPasswordDialog(false);
-                                } catch (e: any) { toast.error(e.message || "Error"); }
-                              })();
-                            }} className="flex-1 rounded-xl bg-accent py-3 text-sm font-bold text-accent-foreground">{t(lang, "settings.save")}</button>
-                          </div>
-                        </motion.div>
-                      </>
-                    )}
-                  </AnimatePresence>
+              {activeTab === "browser" && (
+                <div className="space-y-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{L.persistLogin}</p>
+                      <a href="#" onClick={e => e.preventDefault()} className="text-xs text-muted-foreground underline">{L.learnMore}</a>
+                    </div>
+                    <Toggle value={persistLogin} onChange={setPersistLogin} />
+                  </div>
+                  <div className="border-t border-border/60 pt-5 flex items-center justify-between gap-4">
+                    <p className="text-sm font-semibold text-foreground">{L.cookies}</p>
+                    <button className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary transition-colors">{L.manage}</button>
+                  </div>
+                </div>
+              )}
 
-                  {/* Delete Confirm Dialog */}
-                  <AnimatePresence>
-                    {showDeleteConfirm && (
-                      <>
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[60] bg-background/80" onClick={() => setShowDeleteConfirm(false)} />
-                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-x-6 top-1/2 -translate-y-1/2 z-[70] rounded-2xl border border-border bg-card p-5 shadow-2xl space-y-4" dir={dir}>
-                          <h3 className="text-base font-bold text-destructive text-center">{t(lang, "settings.delete_account")}</h3>
-                          <p className="text-sm text-muted-foreground text-center leading-relaxed">{t(lang, "settings.delete_confirm")}</p>
-                          <div className="flex gap-2">
-                            <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl bg-secondary py-3 text-sm font-medium text-foreground">{t(lang, "settings.cancel")}</button>
-                            <button onClick={() => { localStorage.clear(); toast.success(t(lang, "settings.delete_success")); setShowDeleteConfirm(false); onClose(); onLogout(); }} className="flex-1 rounded-xl bg-destructive py-3 text-sm font-bold text-destructive-foreground">{t(lang, "settings.delete_permanent")}</button>
-                          </div>
-                        </motion.div>
-                      </>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
+              {activeTab === "plugins" && (
+                <div className="space-y-4">
+                  <div className="relative">
+                    <Search className={`absolute top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground ${rtl ? "right-3" : "left-3"}`} />
+                    <input placeholder={L.searchPlugins}
+                      className={`w-full rounded-lg border border-border bg-secondary/50 py-2.5 text-sm text-foreground outline-none focus:border-foreground/40 ${rtl ? "pr-9 pl-3" : "pl-9 pr-3"}`} />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {[
+                      { id: "connectors" as const, label: L.connectors },
+                      { id: "skills" as const, label: L.skills },
+                      { id: "data" as const, label: L.dataSources },
+                    ].map(s => (
+                      <button key={s.id} onClick={() => setPluginSub(s.id)}
+                        className={`rounded-full px-4 py-1.5 text-sm transition-colors ${pluginSub === s.id ? "border border-border bg-secondary text-foreground font-semibold" : "text-muted-foreground hover:text-foreground"}`}>
+                        {s.label}
+                      </button>
+                    ))}
+                    <button className="ms-auto rounded-lg border border-border px-4 py-1.5 text-sm font-medium text-foreground hover:bg-secondary transition-colors">{L.add}</button>
+                  </div>
+                  <div className="py-14 flex flex-col items-center gap-4 text-center">
+                    <Plug className="h-10 w-10 text-muted-foreground/60" />
+                    <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">{L.pluginsEmpty}</p>
+                    <button className="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary transition-colors">
+                      <Plus className="h-4 w-4" /> {L.addConnectors}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "integrations" && (
+                <div className="space-y-3">
+                  {[
+                    { title: L.buildApi, desc: L.buildApiDesc, Icon: () => <Plug className="h-5 w-5 text-foreground" />, bg: "bg-secondary" },
+                    { title: L.useZapier, desc: L.useZapierDesc, Icon: () => <span className="text-xs font-bold text-white">zap</span>, bg: "bg-orange-600" },
+                    { title: L.useSlack, desc: L.useSlackDesc, Icon: () => <MessageSquare className="h-5 w-5 text-white" />, bg: "bg-rose-500" },
+                    { title: L.telegram, desc: L.telegramDesc, Icon: () => <Send className="h-5 w-5 text-white" />, bg: "bg-sky-500" },
+                  ].map((it, i) => (
+                    <SectionCard key={i} className="p-4 flex items-center gap-4 hover:bg-secondary/60 cursor-pointer transition-colors">
+                      <div className={`flex h-11 w-11 items-center justify-center rounded-xl shrink-0 ${it.bg}`}><it.Icon /></div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground">{it.title}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{it.desc}</p>
+                      </div>
+                    </SectionCard>
+                  ))}
+                </div>
+              )}
+
+              {activeTab === "help" && (
+                <div className="py-16 text-center flex flex-col items-center gap-3">
+                  <HelpCircle className="h-10 w-10 text-muted-foreground/60" />
+                  <a href="mailto:support@erfan.ai" className="text-sm text-foreground underline">support@erfan.ai</a>
+                </div>
               )}
             </div>
           </motion.div>
