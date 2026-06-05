@@ -1438,6 +1438,7 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
               )}
             </div>
           </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
