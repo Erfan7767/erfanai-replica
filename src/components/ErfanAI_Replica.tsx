@@ -1111,10 +1111,11 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
       {isOpen && (
         <>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40 bg-black/70" />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <motion.div
             initial={{ opacity: 0, scale: 0.97, y: 12 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97, y: 12 }}
             transition={{ type: "spring", damping: 26, stiffness: 320 }}
-            className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-[min(100vw-1rem,560px)] h-[min(85vh,820px)] flex flex-col rounded-3xl border border-border bg-card shadow-2xl overflow-hidden"
+            className="pointer-events-auto w-[90%] max-w-[500px] max-h-[90vh] flex flex-col rounded-3xl border border-border bg-card shadow-2xl overflow-y-auto"
             dir={dir}
           >
             {/* Header */}
@@ -1437,6 +1438,7 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
               )}
             </div>
           </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
