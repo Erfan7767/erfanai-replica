@@ -5,15 +5,15 @@ import {
   CheckCircle2, Circle, Loader2, Brain, Search, Wrench, ShieldCheck, ChevronLeft, ChevronRight, Play, Pause
 } from "lucide-react";
 
-export type ManusTodo = {
+export type AgentTodo = {
   id: string;
   title: string;
   status: "pending" | "running" | "done" | "failed";
 };
 
-export type ManusAgent = "planner" | "researcher" | "executor" | "verifier";
+export type AgentRole = "planner" | "researcher" | "executor" | "verifier";
 
-export type ManusEvent =
+export type AgentEvent =
   | { type: "terminal"; line: string; ts: number }
   | { type: "file"; path: string; action: "create" | "edit" | "read"; ts: number }
   | { type: "browser"; url: string; title?: string; ts: number }
@@ -26,20 +26,20 @@ interface Props {
   onClose: () => void;
   taskTitle: string;
   elapsedSec: number;
-  todos: ManusTodo[];
-  events: ManusEvent[];
-  activeAgent: ManusAgent;
+  todos: AgentTodo[];
+  events: AgentEvent[];
+  activeAgent: AgentRole;
   isRunning: boolean;
 }
 
-const agentMeta: Record<ManusAgent, { label: string; icon: any; color: string }> = {
+const agentMeta: Record<AgentRole, { label: string; icon: any; color: string }> = {
   planner:    { label: "المخطِّط",   icon: Brain,       color: "text-amber-400" },
   researcher: { label: "الباحث",     icon: Search,      color: "text-sky-400" },
   executor:   { label: "المنفِّذ",   icon: Wrench,      color: "text-emerald-400" },
   verifier:   { label: "المُدقِّق",  icon: ShieldCheck, color: "text-fuchsia-400" },
 };
 
-export default function ManusComputerPanel({
+export default function AgentWorkPanel({
   open, onClose, taskTitle, elapsedSec, todos, events, activeAgent, isRunning,
 }: Props) {
   const [tab, setTab] = useState<Tab>("computer");
@@ -61,10 +61,10 @@ export default function ManusComputerPanel({
     if (termRef.current) termRef.current.scrollTop = termRef.current.scrollHeight;
   }, [visibleEvents.length]);
 
-  const terminalLines = visibleEvents.filter(e => e.type === "terminal") as Extract<ManusEvent,{type:"terminal"}>[];
-  const fileEvents    = visibleEvents.filter(e => e.type === "file")     as Extract<ManusEvent,{type:"file"}>[];
-  const browserEvents = visibleEvents.filter(e => e.type === "browser")  as Extract<ManusEvent,{type:"browser"}>[];
-  const codeEvents    = visibleEvents.filter(e => e.type === "code")     as Extract<ManusEvent,{type:"code"}>[];
+  const terminalLines = visibleEvents.filter(e => e.type === "terminal") as Extract<AgentEvent,{type:"terminal"}>[];
+  const fileEvents    = visibleEvents.filter(e => e.type === "file")     as Extract<AgentEvent,{type:"file"}>[];
+  const browserEvents = visibleEvents.filter(e => e.type === "browser")  as Extract<AgentEvent,{type:"browser"}>[];
+  const codeEvents    = visibleEvents.filter(e => e.type === "code")     as Extract<AgentEvent,{type:"code"}>[];
 
   const lastBrowser = browserEvents[browserEvents.length - 1];
   const lastCode    = codeEvents[codeEvents.length - 1];
@@ -129,7 +129,7 @@ export default function ManusComputerPanel({
 
               {/* Agent strip */}
               <div className="flex items-center gap-1 px-2 py-1.5 border-b border-border/60 bg-background/30">
-                {(Object.keys(agentMeta) as ManusAgent[]).map(a => {
+                {(Object.keys(agentMeta) as AgentRole[]).map(a => {
                   const M = agentMeta[a];
                   const Icon = M.icon;
                   const active = a === activeAgent;
@@ -220,8 +220,8 @@ export default function ManusComputerPanel({
 /* ───────── Sub Views ───────── */
 
 function ComputerView({ terminalLines, todos, progress }:{
-  terminalLines: Extract<ManusEvent,{type:"terminal"}>[];
-  todos: ManusTodo[]; progress: number;
+  terminalLines: Extract<AgentEvent,{type:"terminal"}>[];
+  todos: AgentTodo[]; progress: number;
 }) {
   return (
     <div className="flex-1 overflow-y-auto p-3 space-y-3">
@@ -275,7 +275,7 @@ function ComputerView({ terminalLines, todos, progress }:{
   );
 }
 
-function FilesView({ events }:{ events: Extract<ManusEvent,{type:"file"}>[] }) {
+function FilesView({ events }:{ events: Extract<AgentEvent,{type:"file"}>[] }) {
   return (
     <div className="flex-1 overflow-y-auto p-3">
       <div className="text-[11px] text-muted-foreground mb-2">العمليات على الملفات</div>
@@ -300,8 +300,8 @@ function FilesView({ events }:{ events: Extract<ManusEvent,{type:"file"}>[] }) {
 }
 
 function BrowserView({ event, history }:{
-  event?: Extract<ManusEvent,{type:"browser"}>;
-  history: Extract<ManusEvent,{type:"browser"}>[];
+  event?: Extract<AgentEvent,{type:"browser"}>;
+  history: Extract<AgentEvent,{type:"browser"}>[];
 }) {
   return (
     <div className="flex-1 overflow-hidden flex flex-col">
@@ -335,7 +335,7 @@ function BrowserView({ event, history }:{
   );
 }
 
-const TerminalView = forwardRef<HTMLDivElement, { lines: Extract<ManusEvent,{type:"terminal"}>[]; isRunning: boolean }>(
+const TerminalView = forwardRef<HTMLDivElement, { lines: Extract<AgentEvent,{type:"terminal"}>[]; isRunning: boolean }>(
   ({ lines, isRunning }, ref) => (
     <div ref={ref} className="flex-1 overflow-y-auto bg-black/80 p-3 font-mono text-[11px] text-emerald-300">
       {lines.length === 0 && <div className="text-white/30">$ الطرفية فارغة…</div>}
@@ -353,8 +353,8 @@ const TerminalView = forwardRef<HTMLDivElement, { lines: Extract<ManusEvent,{typ
 TerminalView.displayName = "TerminalView";
 
 function EditorView({ event, history }:{
-  event?: Extract<ManusEvent,{type:"code"}>;
-  history: Extract<ManusEvent,{type:"code"}>[];
+  event?: Extract<AgentEvent,{type:"code"}>;
+  history: Extract<AgentEvent,{type:"code"}>[];
 }) {
   return (
     <div className="flex-1 overflow-hidden flex">
