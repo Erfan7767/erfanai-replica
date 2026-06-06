@@ -687,7 +687,7 @@ const formatTimeAgo = (timestamp: number, lang: Lang): string => {
   return `${days} ${t(lang, "notif.days_ago")}`;
 };
 
-// Categorize a notification into Manus-style tabs
+// Categorize a notification into tabs
 const notifCategory = (n: Notification): "updates" | "messages" => {
   if (n.type === "update" || n.type === "promo" || n.type === "tip") return "updates";
   return "messages";
@@ -3524,7 +3524,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         isExpanded: i === 1,
       })));
 
-      // Manus: advance todos & switch agent to executor
+      // advance todos & switch agent to executor
       setAgentTodos(prev => prev.map(t =>
         t.id === "t1" ? { ...t, status: "done" } :
         t.id === "t2" ? { ...t, status: "done" } :
@@ -3607,7 +3607,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       setIsStreaming(false);
       setExecutionFinalMessage(assistantSoFar);
 
-      // Manus: complete todos
+      // complete todos
       setAgentRole("verifier");
       pushAgentEvent({ type: "terminal", line: `اكتمل البث — ${assistantSoFar.length} حرف`, ts: Date.now() });
       pushAgentEvent({ type: "code", path: "output/response.md", preview: assistantSoFar.slice(0, 600), ts: Date.now() });
@@ -3792,7 +3792,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
           <motion.h1 initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-8 text-center text-2xl font-bold text-accent leading-relaxed">{t(lang, "landing.how_can_i_help")}</motion.h1>
         )}
 
-        {/* Execution Panel (Manus-style) - Appears above input when executing */}
+        {/* Execution Panel - Appears above input when executing */}
         <AnimatePresence>
           {isExecuting && (
             <ExecutionPanel
@@ -3815,7 +3815,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
           )}
         </AnimatePresence>
 
-        {/* Manus Computer Panel — Sandbox + Multi-Agent live view */}
+        {/* Agent Work Panel — Sandbox + Multi-Agent live view */}
         <AgentWorkPanel
           open={agentPanelOpen}
           onClose={() => setAgentPanelOpen(false)}
