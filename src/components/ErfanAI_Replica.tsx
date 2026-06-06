@@ -19,7 +19,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import ErfanAILogo from "@/components/ErfanAILogo";
-import ManusComputerPanel, { type ManusTodo, type ManusEvent, type ManusAgent } from "@/components/ManusComputerPanel";
+import AgentWorkPanel, { type AgentTodo, type AgentEvent, type AgentRole } from "@/components/AgentWorkPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { type Lang, t, isRTL } from "@/lib/translations";
@@ -693,7 +693,7 @@ const notifCategory = (n: Notification): "updates" | "messages" => {
   return "messages";
 };
 
-// Hero gradient per notification type (mimics Manus "image" header card)
+// Hero gradient per notification type (mimics hero header card)
 const notifHeroGradient: Record<string, string> = {
   welcome: "from-sky-200 via-rose-100 to-orange-200",
   update: "from-sky-200 via-rose-100 to-orange-200",
@@ -979,7 +979,7 @@ interface SettingsPanelProps {
   currentModel: string;
 }
 
-type ManusTab =
+type SettingsTab =
   | "account" | "general" | "billing" | "personalization" | "mail"
   | "data" | "computer" | "browser" | "plugins" | "integrations" | "help";
 
@@ -996,7 +996,7 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
   const settingsInitial = settingsDisplayName.trim().charAt(0).toUpperCase() || "U";
   const userId = settingsUser?.id || "";
 
-  const [activeTab, setActiveTab] = useState<ManusTab>("account");
+  const [activeTab, setActiveTab] = useState<SettingsTab>("account");
   const [settings, setSettingsState] = useState<AppSettings>(loadSettings);
   const [fullName, setFullName] = useState(settingsDisplayName);
   const [computerSub, setComputerSub] = useState<"cloud" | "local">("cloud");
@@ -1082,7 +1082,7 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
     plan: "Plan", remaining: "Remaining credits",
   };
 
-  const tabs: { id: ManusTab; label: string }[] = [
+  const tabs: { id: SettingsTab; label: string }[] = [
     { id: "account", label: L.tabs.account },
     { id: "general", label: L.tabs.general },
     { id: "billing", label: L.tabs.billing },
@@ -1578,7 +1578,7 @@ const stepStatusColors = {
   error: "bg-destructive/15 text-destructive border border-destructive/30",
 };
 
-/* ═══════════════════════ EXECUTION PANEL (Manus-style) ═══════════════════════ */
+/* ═══════════════════════ EXECUTION PANEL ═══════════════════════ */
 const ExecutionPanel = ({ 
   taskGroups,
   isVisible, 
@@ -3276,13 +3276,13 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [executionElapsed, setExecutionElapsed] = useState(0);
   const executionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // ── Manus Computer Panel State ──
-  const [manusOpen, setManusOpen] = useState(false);
-  const [manusTodos, setManusTodos] = useState<ManusTodo[]>([]);
-  const [manusEvents, setManusEvents] = useState<ManusEvent[]>([]);
-  const [manusAgent, setManusAgent] = useState<ManusAgent>("planner");
-  const [manusTaskTitle, setManusTaskTitle] = useState("");
-  const pushManusEvent = useCallback((e: ManusEvent) => setManusEvents(prev => [...prev, e]), []);
+  // ── Agent Work Panel State ──
+  const [agentPanelOpen, setAgentPanelOpen] = useState(false);
+  const [agentTodos, setAgentTodos] = useState<AgentTodo[]>([]);
+  const [agentEvents, setAgentEvents] = useState<AgentEvent[]>([]);
+  const [agentRole, setAgentRole] = useState<AgentRole>("planner");
+  const [agentTaskTitle, setAgentTaskTitle] = useState("");
+  const pushAgentEvent = useCallback((e: AgentEvent) => setAgentEvents(prev => [...prev, e]), []);
 
   // ── Speech-to-Text helpers ──
   const startSpeechRecognition = () => {
@@ -3468,22 +3468,22 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     ];
     setExecutionGroups(thinkingGroups);
 
-    // ── Initialize Manus Computer Panel ──
-    setManusOpen(true);
-    setManusTaskTitle(userMsg.slice(0, 80));
-    setManusEvents([]);
-    setManusAgent("planner");
-    const baseTodos: ManusTodo[] = [
+    // ── Initialize Agent Work Panel ──
+    setAgentPanelOpen(true);
+    setAgentTaskTitle(userMsg.slice(0, 80));
+    setAgentEvents([]);
+    setAgentRole("planner");
+    const baseTodos: AgentTodo[] = [
       { id: "t1", title: "تحليل طلب المستخدم وفهم النية", status: "running" },
       { id: "t2", title: "البحث في قاعدة المعرفة والسياق", status: "pending" },
       { id: "t3", title: "صياغة خطة التنفيذ متعددة الخطوات", status: "pending" },
       { id: "t4", title: "توليد الإجابة عبر النموذج المختار", status: "pending" },
       { id: "t5", title: "مراجعة وتدقيق المخرجات النهائية", status: "pending" },
     ];
-    setManusTodos(baseTodos);
-    pushManusEvent({ type: "terminal", line: `بدء جلسة Sandbox للنموذج: ${currentModel}`, ts: Date.now() });
-    pushManusEvent({ type: "terminal", line: `chat_mode=${chatMode}  context_messages=${conversationHistory.length}`, ts: Date.now() });
-    if (knowledgeContext) pushManusEvent({ type: "file", path: "knowledge/context.md", action: "read", ts: Date.now() });
+    setAgentTodos(baseTodos);
+    pushAgentEvent({ type: "terminal", line: `بدء جلسة Sandbox للنموذج: ${currentModel}`, ts: Date.now() });
+    pushAgentEvent({ type: "terminal", line: `chat_mode=${chatMode}  context_messages=${conversationHistory.length}`, ts: Date.now() });
+    if (knowledgeContext) pushAgentEvent({ type: "file", path: "knowledge/context.md", action: "read", ts: Date.now() });
 
     if (executionTimerRef.current) clearInterval(executionTimerRef.current);
     executionTimerRef.current = setInterval(() => {
@@ -3525,15 +3525,15 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       })));
 
       // Manus: advance todos & switch agent to executor
-      setManusTodos(prev => prev.map(t =>
+      setAgentTodos(prev => prev.map(t =>
         t.id === "t1" ? { ...t, status: "done" } :
         t.id === "t2" ? { ...t, status: "done" } :
         t.id === "t3" ? { ...t, status: "done" } :
         t.id === "t4" ? { ...t, status: "running" } : t
       ));
-      setManusAgent("executor");
-      pushManusEvent({ type: "terminal", line: `استدعاء النموذج: ${currentModel} ✓ متصل`, ts: Date.now() });
-      pushManusEvent({ type: "browser", url: `https://ai.gateway.lovable.dev/v1/chat/completions`, title: "Lovable AI Gateway", ts: Date.now() });
+      setAgentRole("executor");
+      pushAgentEvent({ type: "terminal", line: `استدعاء النموذج: ${currentModel} ✓ متصل`, ts: Date.now() });
+      pushAgentEvent({ type: "browser", url: `https://ai.gateway.lovable.dev/v1/chat/completions`, title: "Lovable AI Gateway", ts: Date.now() });
 
       // Stream response token by token
       const reader = resp.body.getReader();
@@ -3608,10 +3608,10 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
       setExecutionFinalMessage(assistantSoFar);
 
       // Manus: complete todos
-      setManusAgent("verifier");
-      pushManusEvent({ type: "terminal", line: `اكتمل البث — ${assistantSoFar.length} حرف`, ts: Date.now() });
-      pushManusEvent({ type: "code", path: "output/response.md", preview: assistantSoFar.slice(0, 600), ts: Date.now() });
-      setManusTodos(prev => prev.map(t =>
+      setAgentRole("verifier");
+      pushAgentEvent({ type: "terminal", line: `اكتمل البث — ${assistantSoFar.length} حرف`, ts: Date.now() });
+      pushAgentEvent({ type: "code", path: "output/response.md", preview: assistantSoFar.slice(0, 600), ts: Date.now() });
+      setAgentTodos(prev => prev.map(t =>
         t.id === "t4" ? { ...t, status: "done" } :
         t.id === "t5" ? { ...t, status: "done" } : t
       ));
@@ -3816,14 +3816,14 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         </AnimatePresence>
 
         {/* Manus Computer Panel — Sandbox + Multi-Agent live view */}
-        <ManusComputerPanel
-          open={manusOpen}
-          onClose={() => setManusOpen(false)}
-          taskTitle={manusTaskTitle}
+        <AgentWorkPanel
+          open={agentPanelOpen}
+          onClose={() => setAgentPanelOpen(false)}
+          taskTitle={agentTaskTitle}
           elapsedSec={executionElapsed}
-          todos={manusTodos}
-          events={manusEvents}
-          activeAgent={manusAgent}
+          todos={agentTodos}
+          events={agentEvents}
+          activeAgent={agentRole}
           isRunning={isExecuting}
         />
         {/* sentinel */}
