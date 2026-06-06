@@ -394,31 +394,61 @@ const Sidebar = ({ isOpen, onClose, onNewTask, onNavigate, conversations, onSele
       {isOpen && (
         <>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40" style={{ background: "hsl(0 0% 0% / 0.7)" }} />
-          <motion.div initial={{ x: isRTL(lang) ? "100%" : "-100%" }} animate={{ x: 0 }} exit={{ x: isRTL(lang) ? "100%" : "-100%" }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className={`fixed ${isRTL(lang) ? "right-0" : "left-0"} top-0 z-50 flex h-full w-72 flex-col bg-background ${isRTL(lang) ? "border-l" : "border-r"} border-border`} dir={dir}>
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <h2 className="text-lg font-bold text-accent">ErfanAI</h2>
-              <button onClick={onClose} className="rounded-lg p-2 text-muted-foreground hover:bg-secondary transition-colors"><X className="h-5 w-5" /></button>
+          <motion.div initial={{ x: isRTL(lang) ? "100%" : "-100%" }} animate={{ x: 0 }} exit={{ x: isRTL(lang) ? "100%" : "-100%" }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className={`fixed ${isRTL(lang) ? "right-0" : "left-0"} top-0 z-50 flex h-full w-80 flex-col glass ${isRTL(lang) ? "border-l" : "border-r"} border-border/40 overflow-hidden`} dir={dir}>
+            {/* Aurora glow */}
+            <div className="pointer-events-none absolute inset-0 opacity-60" style={{ background: "radial-gradient(circle at 50% -10%, hsl(var(--erfan-gold) / 0.18), transparent 55%), radial-gradient(circle at 0% 100%, hsl(var(--erfan-green) / 0.12), transparent 50%)" }} />
+
+            {/* Brand header */}
+            <div className="relative flex items-center justify-between px-5 pt-5 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="relative h-9 w-9 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, hsl(var(--erfan-gold)), hsl(var(--erfan-green)))" }}>
+                  <Sparkles className="h-4.5 w-4.5 text-background" strokeWidth={2.5} />
+                  <div className="absolute inset-0 rounded-xl animate-pulse-glow" />
+                </div>
+                <div className="flex flex-col leading-tight">
+                  <span className="text-base font-bold text-foreground">ErfanAI</span>
+                  <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">workspace</span>
+                </div>
+              </div>
+              <button onClick={onClose} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"><X className="h-4.5 w-4.5" /></button>
             </div>
-            <nav className="p-3 space-y-1">
-              {[
-                { icon: Plus, labelKey: "sidebar.new_task", isAccent: true, action: "new_task" },
-                { icon: Bot, labelKey: "sidebar.agents", isAccent: false, action: "agents" },
-                { icon: Search, labelKey: "sidebar.search", isAccent: false, action: "search" },
-                { icon: Sparkles, labelKey: "sidebar.discover", isAccent: false, action: "discover" },
-              ].map((item) => (
-                <button key={item.labelKey} onClick={() => { if (item.action === "new_task") { onNewTask(); onClose(); } else { onNavigate(item.action); onClose(); } }} className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${item.isAccent ? "bg-accent text-accent-foreground" : "text-foreground hover:bg-secondary"}`}>
-                  <item.icon className="h-5 w-5" />
-                  {t(lang, item.labelKey)}
-                </button>
-              ))}
-            </nav>
+
+            {/* Primary CTA */}
+            <div className="relative px-4 pb-3">
+              <button onClick={() => { onNewTask(); onClose(); }} className="group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl px-4 py-3 text-sm font-semibold text-background transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ background: "linear-gradient(135deg, hsl(var(--erfan-gold)), hsl(var(--erfan-gold) / 0.85))" }}>
+                <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-background/20"><Plus className="h-4 w-4" /></div>
+                <span className="flex-1 text-start">{t(lang, "sidebar.new_task")}</span>
+                <kbd className="rounded-md bg-background/20 px-1.5 py-0.5 text-[10px] font-mono">⌘N</kbd>
+              </button>
+            </div>
+
+            {/* Quick nav */}
+            <div className="relative px-3">
+              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">{t(lang, "sidebar.discover")}</p>
+              <nav className="grid grid-cols-3 gap-1.5">
+                {[
+                  { icon: Bot, labelKey: "sidebar.agents", action: "agents" },
+                  { icon: Search, labelKey: "sidebar.search", action: "search" },
+                  { icon: Sparkles, labelKey: "sidebar.discover", action: "discover" },
+                ].map((item) => (
+                  <button key={item.labelKey} onClick={() => { onNavigate(item.action); onClose(); }} className="group flex flex-col items-center gap-1.5 rounded-xl border border-border/40 bg-card/40 px-2 py-3 text-[11px] font-medium text-muted-foreground transition-all hover:border-accent/50 hover:bg-card/80 hover:text-foreground">
+                    <item.icon className="h-4 w-4 text-accent group-hover:scale-110 transition-transform" />
+                    <span className="truncate">{t(lang, item.labelKey)}</span>
+                  </button>
+                ))}
+              </nav>
+            </div>
+
             {/* Conversation History */}
             {conversations && conversations.length > 0 && (
-              <div className="flex-1 overflow-y-auto px-3 pb-3">
-                <p className="px-4 py-2 text-xs font-semibold text-muted-foreground">{t(lang, "sidebar.chats")}</p>
+              <div className="relative mt-4 flex-1 overflow-y-auto px-3 pb-3">
+                <div className="sticky top-0 z-10 flex items-center justify-between px-3 py-2 backdrop-blur-md bg-background/60">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">{t(lang, "sidebar.chats")}</p>
+                  <span className="text-[10px] font-medium text-muted-foreground/60">{conversations.length}</span>
+                </div>
                 <div className="space-y-0.5">
                   {conversations.map((conv) => (
-                    <div key={conv.id} className="group flex items-center gap-1">
+                    <div key={conv.id} className="group relative flex items-center gap-1">
                       {editingId === conv.id ? (
                         <div className="flex-1 flex items-center gap-1 px-2">
                           <input
@@ -433,9 +463,10 @@ const Sidebar = ({ isOpen, onClose, onNewTask, onNavigate, conversations, onSele
                         </div>
                       ) : (
                         <>
+                          <span className={`absolute ${isRTL(lang) ? "right-1" : "left-1"} top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-accent/0 group-hover:bg-accent transition-colors`} />
                           <button
                             onClick={() => { onSelectConversation?.(conv.id); onClose(); }}
-                            className="flex-1 truncate rounded-lg px-4 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors text-start"
+                            className={`flex-1 truncate rounded-lg ${isRTL(lang) ? "pr-5 pl-3" : "pl-5 pr-3"} py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-card/60 transition-colors text-start`}
                           >
                             <span className="truncate block">{conv.title}</span>
                           </button>
@@ -459,7 +490,7 @@ const Sidebar = ({ isOpen, onClose, onNewTask, onNavigate, conversations, onSele
               </div>
             )}
             {!conversations || conversations.length === 0 ? <div className="flex-1" /> : null}
-            <div className="border-t border-border p-4">
+            <div className="relative border-t border-border/40 p-3 backdrop-blur-md bg-card/30">
               <div className="flex items-center gap-3">
                 <SidebarUserInfo />
               </div>
@@ -3830,65 +3861,81 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         <AnimatePresence>
         </AnimatePresence>
 
-        {/* Input Card */}
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-6 card-gold-border rounded-2xl bg-card p-4">
-          {activeChips.length > 0 && (
-            <div className="mb-2 flex flex-wrap gap-1.5">
-              {activeChips.map((label) => (
-                <span key={label} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium" style={{ background: "hsl(217 91% 50%)", color: "#fff" }}>
-                  {label}
-                  <button onClick={() => toggleChip(label)} className="hover:opacity-70"><X className="h-3 w-3" /></button>
-                </span>
-              ))}
+        {/* Input Card — Asymmetric composer with side rail */}
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="relative mt-6 overflow-hidden rounded-3xl border border-border/60 bg-card shadow-[0_8px_40px_-12px_hsl(var(--erfan-gold)/0.25)]">
+          {/* Top accent stripe */}
+          <div className="absolute inset-x-0 top-0 h-[2px]" style={{ background: "linear-gradient(90deg, transparent, hsl(var(--erfan-gold) / 0.6), hsl(var(--erfan-green) / 0.6), transparent)" }} />
+
+          <div className="flex">
+            {/* Side rail (tools) */}
+            <div className={`relative flex flex-col items-center gap-1 ${isRTL(lang) ? "border-l" : "border-r"} border-border/50 bg-secondary/30 px-2 py-3`}>
+              <div className="relative">
+                <button onClick={() => setIsPlusMenuOpen(!isPlusMenuOpen)} className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${isPlusMenuOpen ? "bg-accent text-accent-foreground scale-110" : "text-muted-foreground hover:bg-card hover:text-accent"}`}>
+                  <Plus className={`h-[18px] w-[18px] transition-transform ${isPlusMenuOpen ? "rotate-45" : ""}`} />
+                </button>
+                <AnimatePresence>
+                  {isPlusMenuOpen && (
+                    <>
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-30" onClick={() => setIsPlusMenuOpen(false)} />
+                      <motion.div initial={{ opacity: 0, y: 8, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.95 }} transition={{ duration: 0.15 }} className={`absolute bottom-12 ${isRTL(lang) ? "right-0" : "left-0"} z-40 w-48 rounded-xl border border-border bg-card p-1.5 shadow-xl`} dir={dir}>
+                        <button onClick={() => imageInputRef.current?.click()} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
+                          <Image className="h-4 w-4 text-accent" />
+                          <span>{t(lang, "plus.upload_image")}</span>
+                        </button>
+                        <button onClick={() => fileInputRef.current?.click()} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
+                          <FileText className="h-4 w-4 text-accent" />
+                          <span>{t(lang, "plus.upload_file")}</span>
+                        </button>
+                        <button onClick={() => cameraInputRef.current?.click()} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
+                          <Camera className="h-4 w-4 text-accent" />
+                          <span>{t(lang, "plus.open_camera")}</span>
+                        </button>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+                <input ref={fileInputRef} type="file" className="hidden" multiple onChange={handleFileSelect} />
+                <input ref={imageInputRef} type="file" accept="image/*" className="hidden" multiple onChange={handleFileSelect} />
+                <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileSelect} />
+              </div>
+              <button onClick={() => setIsRecordingDialogOpen(true)} className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground hover:bg-card hover:text-accent transition-colors"><SlidersHorizontal className="h-[18px] w-[18px]" /></button>
+              <button onClick={handleMic} className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${isRecording ? "bg-red-500/15 text-red-500 animate-pulse" : "text-muted-foreground hover:bg-card hover:text-accent"}`}><Mic className="h-[18px] w-[18px]" /></button>
             </div>
-          )}
-          <textarea value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder={activeChips.length > 0 ? `${t(lang, "app.active_tasks")} ${activeChips.join("، ")}` : t(lang, "landing.input_placeholder")} rows={3} className="w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none leading-relaxed" dir={dir} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }} />
-          {attachedFiles.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {attachedFiles.map((file, index) => (
-                <div key={index} className="flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-2.5 py-1.5 text-xs text-foreground">
-                  {file.type.startsWith("image/") ? <Image className="h-3.5 w-3.5 text-accent" /> : <FileText className="h-3.5 w-3.5 text-accent" />}
-                  <span className="max-w-[120px] truncate">{file.name}</span>
-                  <button onClick={() => removeFile(index)} className="hover:text-destructive transition-colors"><X className="h-3 w-3" /></button>
+
+            {/* Content column */}
+            <div className="flex-1 p-4">
+              {activeChips.length > 0 && (
+                <div className="mb-2 flex flex-wrap gap-1.5">
+                  {activeChips.map((label) => (
+                    <span key={label} className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent">
+                      {label}
+                      <button onClick={() => toggleChip(label)} className="hover:opacity-70"><X className="h-3 w-3" /></button>
+                    </span>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-          {/* Bottom toolbar */}
-          <div className="mt-3 flex items-center justify-between">
-            <div className="relative">
-              <button onClick={() => setIsPlusMenuOpen(!isPlusMenuOpen)} className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${isPlusMenuOpen ? "bg-accent text-accent-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
-                <Plus className={`h-5 w-5 transition-transform ${isPlusMenuOpen ? "rotate-45" : ""}`} />
-              </button>
-              <AnimatePresence>
-                {isPlusMenuOpen && (
-                  <>
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-30" onClick={() => setIsPlusMenuOpen(false)} />
-                    <motion.div initial={{ opacity: 0, y: 8, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.95 }} transition={{ duration: 0.15 }} className={`absolute bottom-12 ${isRTL(lang) ? "right-0" : "left-0"} z-40 w-48 rounded-xl border border-border bg-card p-1.5 shadow-xl`} dir={dir}>
-                      <button onClick={() => imageInputRef.current?.click()} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
-                        <Image className="h-4 w-4 text-accent" />
-                        <span>{t(lang, "plus.upload_image")}</span>
-                      </button>
-                      <button onClick={() => fileInputRef.current?.click()} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
-                        <FileText className="h-4 w-4 text-accent" />
-                        <span>{t(lang, "plus.upload_file")}</span>
-                      </button>
-                      <button onClick={() => cameraInputRef.current?.click()} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
-                        <Camera className="h-4 w-4 text-accent" />
-                        <span>{t(lang, "plus.open_camera")}</span>
-                      </button>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-              <input ref={fileInputRef} type="file" className="hidden" multiple onChange={handleFileSelect} />
-              <input ref={imageInputRef} type="file" accept="image/*" className="hidden" multiple onChange={handleFileSelect} />
-              <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileSelect} />
-            </div>
-            <div className="flex items-center gap-1">
-              <button onClick={() => setIsRecordingDialogOpen(true)} className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"><SlidersHorizontal className="h-[18px] w-[18px]" /></button>
-              <button onClick={handleMic} className={`rounded-lg p-2 transition-colors ${isRecording ? "text-red-500 bg-red-500/10 animate-pulse" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}><Mic className="h-[18px] w-[18px]" /></button>
-              <button onClick={handleSend} className={`${isRTL(lang) ? "mr-1" : "ml-1"} flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-muted-foreground transition-colors hover:text-foreground hover:bg-accent hover:text-accent-foreground disabled:opacity-30`} disabled={!inputValue.trim() && attachedFiles.length === 0}><Send className="h-[18px] w-[18px]" /></button>
+              )}
+              <textarea value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder={activeChips.length > 0 ? `${t(lang, "app.active_tasks")} ${activeChips.join("، ")}` : t(lang, "landing.input_placeholder")} rows={3} className="w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none leading-relaxed" dir={dir} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }} />
+              {attachedFiles.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {attachedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-2.5 py-1.5 text-xs text-foreground">
+                      {file.type.startsWith("image/") ? <Image className="h-3.5 w-3.5 text-accent" /> : <FileText className="h-3.5 w-3.5 text-accent" />}
+                      <span className="max-w-[120px] truncate">{file.name}</span>
+                      <button onClick={() => removeFile(index)} className="hover:text-destructive transition-colors"><X className="h-3 w-3" /></button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Bottom row: hint + send pill */}
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <span className="text-[11px] text-muted-foreground/70 hidden sm:inline">
+                  <kbd className="rounded-md border border-border/60 bg-secondary/60 px-1.5 py-0.5 font-mono text-[10px]">Enter</kbd> {t(lang, "landing.input_placeholder").slice(0, 0)}↵
+                </span>
+                <button onClick={handleSend} disabled={!inputValue.trim() && attachedFiles.length === 0} className="group flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-background transition-all hover:scale-[1.03] active:scale-95 disabled:opacity-30 disabled:hover:scale-100" style={{ background: "linear-gradient(135deg, hsl(var(--erfan-gold)), hsl(var(--erfan-green)))" }}>
+                  <span>{t(lang, "landing.send_button") || "Send"}</span>
+                  <Send className={`h-4 w-4 ${isRTL(lang) ? "rotate-180" : ""} transition-transform group-hover:translate-x-0.5`} />
+                </button>
+              </div>
             </div>
           </div>
         </motion.div>
