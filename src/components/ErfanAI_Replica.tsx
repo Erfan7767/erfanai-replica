@@ -394,31 +394,61 @@ const Sidebar = ({ isOpen, onClose, onNewTask, onNavigate, conversations, onSele
       {isOpen && (
         <>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-40" style={{ background: "hsl(0 0% 0% / 0.7)" }} />
-          <motion.div initial={{ x: isRTL(lang) ? "100%" : "-100%" }} animate={{ x: 0 }} exit={{ x: isRTL(lang) ? "100%" : "-100%" }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className={`fixed ${isRTL(lang) ? "right-0" : "left-0"} top-0 z-50 flex h-full w-72 flex-col bg-background ${isRTL(lang) ? "border-l" : "border-r"} border-border`} dir={dir}>
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <h2 className="text-lg font-bold text-accent">ErfanAI</h2>
-              <button onClick={onClose} className="rounded-lg p-2 text-muted-foreground hover:bg-secondary transition-colors"><X className="h-5 w-5" /></button>
+          <motion.div initial={{ x: isRTL(lang) ? "100%" : "-100%" }} animate={{ x: 0 }} exit={{ x: isRTL(lang) ? "100%" : "-100%" }} transition={{ type: "spring", damping: 25, stiffness: 300 }} className={`fixed ${isRTL(lang) ? "right-0" : "left-0"} top-0 z-50 flex h-full w-80 flex-col glass ${isRTL(lang) ? "border-l" : "border-r"} border-border/40 overflow-hidden`} dir={dir}>
+            {/* Aurora glow */}
+            <div className="pointer-events-none absolute inset-0 opacity-60" style={{ background: "radial-gradient(circle at 50% -10%, hsl(var(--erfan-gold) / 0.18), transparent 55%), radial-gradient(circle at 0% 100%, hsl(var(--erfan-green) / 0.12), transparent 50%)" }} />
+
+            {/* Brand header */}
+            <div className="relative flex items-center justify-between px-5 pt-5 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="relative h-9 w-9 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, hsl(var(--erfan-gold)), hsl(var(--erfan-green)))" }}>
+                  <Sparkles className="h-4.5 w-4.5 text-background" strokeWidth={2.5} />
+                  <div className="absolute inset-0 rounded-xl animate-pulse-glow" />
+                </div>
+                <div className="flex flex-col leading-tight">
+                  <span className="text-base font-bold text-foreground">ErfanAI</span>
+                  <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">workspace</span>
+                </div>
+              </div>
+              <button onClick={onClose} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"><X className="h-4.5 w-4.5" /></button>
             </div>
-            <nav className="p-3 space-y-1">
-              {[
-                { icon: Plus, labelKey: "sidebar.new_task", isAccent: true, action: "new_task" },
-                { icon: Bot, labelKey: "sidebar.agents", isAccent: false, action: "agents" },
-                { icon: Search, labelKey: "sidebar.search", isAccent: false, action: "search" },
-                { icon: Sparkles, labelKey: "sidebar.discover", isAccent: false, action: "discover" },
-              ].map((item) => (
-                <button key={item.labelKey} onClick={() => { if (item.action === "new_task") { onNewTask(); onClose(); } else { onNavigate(item.action); onClose(); } }} className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${item.isAccent ? "bg-accent text-accent-foreground" : "text-foreground hover:bg-secondary"}`}>
-                  <item.icon className="h-5 w-5" />
-                  {t(lang, item.labelKey)}
-                </button>
-              ))}
-            </nav>
+
+            {/* Primary CTA */}
+            <div className="relative px-4 pb-3">
+              <button onClick={() => { onNewTask(); onClose(); }} className="group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl px-4 py-3 text-sm font-semibold text-background transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ background: "linear-gradient(135deg, hsl(var(--erfan-gold)), hsl(var(--erfan-gold) / 0.85))" }}>
+                <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-background/20"><Plus className="h-4 w-4" /></div>
+                <span className="flex-1 text-start">{t(lang, "sidebar.new_task")}</span>
+                <kbd className="rounded-md bg-background/20 px-1.5 py-0.5 text-[10px] font-mono">⌘N</kbd>
+              </button>
+            </div>
+
+            {/* Quick nav */}
+            <div className="relative px-3">
+              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">{t(lang, "sidebar.discover")}</p>
+              <nav className="grid grid-cols-3 gap-1.5">
+                {[
+                  { icon: Bot, labelKey: "sidebar.agents", action: "agents" },
+                  { icon: Search, labelKey: "sidebar.search", action: "search" },
+                  { icon: Sparkles, labelKey: "sidebar.discover", action: "discover" },
+                ].map((item) => (
+                  <button key={item.labelKey} onClick={() => { onNavigate(item.action); onClose(); }} className="group flex flex-col items-center gap-1.5 rounded-xl border border-border/40 bg-card/40 px-2 py-3 text-[11px] font-medium text-muted-foreground transition-all hover:border-accent/50 hover:bg-card/80 hover:text-foreground">
+                    <item.icon className="h-4 w-4 text-accent group-hover:scale-110 transition-transform" />
+                    <span className="truncate">{t(lang, item.labelKey)}</span>
+                  </button>
+                ))}
+              </nav>
+            </div>
+
             {/* Conversation History */}
             {conversations && conversations.length > 0 && (
-              <div className="flex-1 overflow-y-auto px-3 pb-3">
-                <p className="px-4 py-2 text-xs font-semibold text-muted-foreground">{t(lang, "sidebar.chats")}</p>
+              <div className="relative mt-4 flex-1 overflow-y-auto px-3 pb-3">
+                <div className="sticky top-0 z-10 flex items-center justify-between px-3 py-2 backdrop-blur-md bg-background/60">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">{t(lang, "sidebar.chats")}</p>
+                  <span className="text-[10px] font-medium text-muted-foreground/60">{conversations.length}</span>
+                </div>
                 <div className="space-y-0.5">
                   {conversations.map((conv) => (
-                    <div key={conv.id} className="group flex items-center gap-1">
+                    <div key={conv.id} className="group relative flex items-center gap-1">
                       {editingId === conv.id ? (
                         <div className="flex-1 flex items-center gap-1 px-2">
                           <input
@@ -433,9 +463,10 @@ const Sidebar = ({ isOpen, onClose, onNewTask, onNavigate, conversations, onSele
                         </div>
                       ) : (
                         <>
+                          <span className={`absolute ${isRTL(lang) ? "right-1" : "left-1"} top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-accent/0 group-hover:bg-accent transition-colors`} />
                           <button
                             onClick={() => { onSelectConversation?.(conv.id); onClose(); }}
-                            className="flex-1 truncate rounded-lg px-4 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors text-start"
+                            className={`flex-1 truncate rounded-lg ${isRTL(lang) ? "pr-5 pl-3" : "pl-5 pr-3"} py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-card/60 transition-colors text-start`}
                           >
                             <span className="truncate block">{conv.title}</span>
                           </button>
@@ -459,7 +490,7 @@ const Sidebar = ({ isOpen, onClose, onNewTask, onNavigate, conversations, onSele
               </div>
             )}
             {!conversations || conversations.length === 0 ? <div className="flex-1" /> : null}
-            <div className="border-t border-border p-4">
+            <div className="relative border-t border-border/40 p-3 backdrop-blur-md bg-card/30">
               <div className="flex items-center gap-3">
                 <SidebarUserInfo />
               </div>
