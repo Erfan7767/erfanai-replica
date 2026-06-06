@@ -3861,65 +3861,81 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         <AnimatePresence>
         </AnimatePresence>
 
-        {/* Input Card */}
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-6 card-gold-border rounded-2xl bg-card p-4">
-          {activeChips.length > 0 && (
-            <div className="mb-2 flex flex-wrap gap-1.5">
-              {activeChips.map((label) => (
-                <span key={label} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium" style={{ background: "hsl(217 91% 50%)", color: "#fff" }}>
-                  {label}
-                  <button onClick={() => toggleChip(label)} className="hover:opacity-70"><X className="h-3 w-3" /></button>
-                </span>
-              ))}
+        {/* Input Card — Asymmetric composer with side rail */}
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="relative mt-6 overflow-hidden rounded-3xl border border-border/60 bg-card shadow-[0_8px_40px_-12px_hsl(var(--erfan-gold)/0.25)]">
+          {/* Top accent stripe */}
+          <div className="absolute inset-x-0 top-0 h-[2px]" style={{ background: "linear-gradient(90deg, transparent, hsl(var(--erfan-gold) / 0.6), hsl(var(--erfan-green) / 0.6), transparent)" }} />
+
+          <div className="flex">
+            {/* Side rail (tools) */}
+            <div className={`relative flex flex-col items-center gap-1 ${isRTL(lang) ? "border-l" : "border-r"} border-border/50 bg-secondary/30 px-2 py-3`}>
+              <div className="relative">
+                <button onClick={() => setIsPlusMenuOpen(!isPlusMenuOpen)} className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${isPlusMenuOpen ? "bg-accent text-accent-foreground scale-110" : "text-muted-foreground hover:bg-card hover:text-accent"}`}>
+                  <Plus className={`h-[18px] w-[18px] transition-transform ${isPlusMenuOpen ? "rotate-45" : ""}`} />
+                </button>
+                <AnimatePresence>
+                  {isPlusMenuOpen && (
+                    <>
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-30" onClick={() => setIsPlusMenuOpen(false)} />
+                      <motion.div initial={{ opacity: 0, y: 8, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.95 }} transition={{ duration: 0.15 }} className={`absolute bottom-12 ${isRTL(lang) ? "right-0" : "left-0"} z-40 w-48 rounded-xl border border-border bg-card p-1.5 shadow-xl`} dir={dir}>
+                        <button onClick={() => imageInputRef.current?.click()} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
+                          <Image className="h-4 w-4 text-accent" />
+                          <span>{t(lang, "plus.upload_image")}</span>
+                        </button>
+                        <button onClick={() => fileInputRef.current?.click()} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
+                          <FileText className="h-4 w-4 text-accent" />
+                          <span>{t(lang, "plus.upload_file")}</span>
+                        </button>
+                        <button onClick={() => cameraInputRef.current?.click()} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
+                          <Camera className="h-4 w-4 text-accent" />
+                          <span>{t(lang, "plus.open_camera")}</span>
+                        </button>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+                <input ref={fileInputRef} type="file" className="hidden" multiple onChange={handleFileSelect} />
+                <input ref={imageInputRef} type="file" accept="image/*" className="hidden" multiple onChange={handleFileSelect} />
+                <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileSelect} />
+              </div>
+              <button onClick={() => setIsRecordingDialogOpen(true)} className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground hover:bg-card hover:text-accent transition-colors"><SlidersHorizontal className="h-[18px] w-[18px]" /></button>
+              <button onClick={handleMic} className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${isRecording ? "bg-red-500/15 text-red-500 animate-pulse" : "text-muted-foreground hover:bg-card hover:text-accent"}`}><Mic className="h-[18px] w-[18px]" /></button>
             </div>
-          )}
-          <textarea value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder={activeChips.length > 0 ? `${t(lang, "app.active_tasks")} ${activeChips.join("، ")}` : t(lang, "landing.input_placeholder")} rows={3} className="w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none leading-relaxed" dir={dir} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }} />
-          {attachedFiles.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {attachedFiles.map((file, index) => (
-                <div key={index} className="flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-2.5 py-1.5 text-xs text-foreground">
-                  {file.type.startsWith("image/") ? <Image className="h-3.5 w-3.5 text-accent" /> : <FileText className="h-3.5 w-3.5 text-accent" />}
-                  <span className="max-w-[120px] truncate">{file.name}</span>
-                  <button onClick={() => removeFile(index)} className="hover:text-destructive transition-colors"><X className="h-3 w-3" /></button>
+
+            {/* Content column */}
+            <div className="flex-1 p-4">
+              {activeChips.length > 0 && (
+                <div className="mb-2 flex flex-wrap gap-1.5">
+                  {activeChips.map((label) => (
+                    <span key={label} className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 text-xs font-medium text-accent">
+                      {label}
+                      <button onClick={() => toggleChip(label)} className="hover:opacity-70"><X className="h-3 w-3" /></button>
+                    </span>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-          {/* Bottom toolbar */}
-          <div className="mt-3 flex items-center justify-between">
-            <div className="relative">
-              <button onClick={() => setIsPlusMenuOpen(!isPlusMenuOpen)} className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${isPlusMenuOpen ? "bg-accent text-accent-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
-                <Plus className={`h-5 w-5 transition-transform ${isPlusMenuOpen ? "rotate-45" : ""}`} />
-              </button>
-              <AnimatePresence>
-                {isPlusMenuOpen && (
-                  <>
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-30" onClick={() => setIsPlusMenuOpen(false)} />
-                    <motion.div initial={{ opacity: 0, y: 8, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.95 }} transition={{ duration: 0.15 }} className={`absolute bottom-12 ${isRTL(lang) ? "right-0" : "left-0"} z-40 w-48 rounded-xl border border-border bg-card p-1.5 shadow-xl`} dir={dir}>
-                      <button onClick={() => imageInputRef.current?.click()} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
-                        <Image className="h-4 w-4 text-accent" />
-                        <span>{t(lang, "plus.upload_image")}</span>
-                      </button>
-                      <button onClick={() => fileInputRef.current?.click()} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
-                        <FileText className="h-4 w-4 text-accent" />
-                        <span>{t(lang, "plus.upload_file")}</span>
-                      </button>
-                      <button onClick={() => cameraInputRef.current?.click()} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
-                        <Camera className="h-4 w-4 text-accent" />
-                        <span>{t(lang, "plus.open_camera")}</span>
-                      </button>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
-              <input ref={fileInputRef} type="file" className="hidden" multiple onChange={handleFileSelect} />
-              <input ref={imageInputRef} type="file" accept="image/*" className="hidden" multiple onChange={handleFileSelect} />
-              <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileSelect} />
-            </div>
-            <div className="flex items-center gap-1">
-              <button onClick={() => setIsRecordingDialogOpen(true)} className="rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"><SlidersHorizontal className="h-[18px] w-[18px]" /></button>
-              <button onClick={handleMic} className={`rounded-lg p-2 transition-colors ${isRecording ? "text-red-500 bg-red-500/10 animate-pulse" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}><Mic className="h-[18px] w-[18px]" /></button>
-              <button onClick={handleSend} className={`${isRTL(lang) ? "mr-1" : "ml-1"} flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-muted-foreground transition-colors hover:text-foreground hover:bg-accent hover:text-accent-foreground disabled:opacity-30`} disabled={!inputValue.trim() && attachedFiles.length === 0}><Send className="h-[18px] w-[18px]" /></button>
+              )}
+              <textarea value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder={activeChips.length > 0 ? `${t(lang, "app.active_tasks")} ${activeChips.join("، ")}` : t(lang, "landing.input_placeholder")} rows={3} className="w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none leading-relaxed" dir={dir} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }} />
+              {attachedFiles.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {attachedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-2.5 py-1.5 text-xs text-foreground">
+                      {file.type.startsWith("image/") ? <Image className="h-3.5 w-3.5 text-accent" /> : <FileText className="h-3.5 w-3.5 text-accent" />}
+                      <span className="max-w-[120px] truncate">{file.name}</span>
+                      <button onClick={() => removeFile(index)} className="hover:text-destructive transition-colors"><X className="h-3 w-3" /></button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Bottom row: hint + send pill */}
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <span className="text-[11px] text-muted-foreground/70 hidden sm:inline">
+                  <kbd className="rounded-md border border-border/60 bg-secondary/60 px-1.5 py-0.5 font-mono text-[10px]">Enter</kbd> {t(lang, "landing.input_placeholder").slice(0, 0)}↵
+                </span>
+                <button onClick={handleSend} disabled={!inputValue.trim() && attachedFiles.length === 0} className="group flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-background transition-all hover:scale-[1.03] active:scale-95 disabled:opacity-30 disabled:hover:scale-100" style={{ background: "linear-gradient(135deg, hsl(var(--erfan-gold)), hsl(var(--erfan-green)))" }}>
+                  <span>{t(lang, "landing.send_button") || "Send"}</span>
+                  <Send className={`h-4 w-4 ${isRTL(lang) ? "rotate-180" : ""} transition-transform group-hover:translate-x-0.5`} />
+                </button>
+              </div>
             </div>
           </div>
         </motion.div>
