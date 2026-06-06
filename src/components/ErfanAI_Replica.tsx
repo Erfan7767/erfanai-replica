@@ -1115,7 +1115,7 @@ const SettingsPanel = ({ isOpen, onClose, onChangeModel, onClearHistory, onLogou
           <motion.div
             initial={{ opacity: 0, scale: 0.97, y: 12 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97, y: 12 }}
             transition={{ type: "spring", damping: 26, stiffness: 320 }}
-            className="pointer-events-auto w-[90%] max-w-[500px] max-h-[90vh] flex flex-col rounded-3xl border border-border bg-card shadow-2xl overflow-y-auto"
+            className="pointer-events-auto w-[560px] h-[640px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)] flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden"
             dir={dir}
           >
             {/* Header */}
