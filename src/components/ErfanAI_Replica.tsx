@@ -3925,23 +3925,29 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
             {/* Side rail (tools) */}
             <div className={`relative flex flex-col items-center gap-1 ${isRTL(lang) ? "border-l" : "border-r"} border-border/50 bg-secondary/30 px-2 py-3`}>
               <div className="relative">
-                <button onClick={() => setIsPlusMenuOpen(!isPlusMenuOpen)} className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${isPlusMenuOpen ? "bg-accent text-accent-foreground scale-110" : "text-muted-foreground hover:bg-card hover:text-accent"}`}>
-                  <Plus className={`h-[18px] w-[18px] transition-transform ${isPlusMenuOpen ? "rotate-45" : ""}`} />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  onContextMenu={(e) => { e.preventDefault(); setIsPlusMenuOpen(!isPlusMenuOpen); }}
+                  aria-label={t(lang, "plus.upload_file")}
+                  title={t(lang, "plus.upload_file")}
+                  className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground hover:bg-card hover:text-accent transition-all active:scale-95"
+                >
+                  <Plus className="h-[18px] w-[18px]" />
                 </button>
                 <AnimatePresence>
                   {isPlusMenuOpen && (
                     <>
                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-30" onClick={() => setIsPlusMenuOpen(false)} />
                       <motion.div initial={{ opacity: 0, y: 8, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.95 }} transition={{ duration: 0.15 }} className={`absolute bottom-12 ${isRTL(lang) ? "right-0" : "left-0"} z-40 w-48 rounded-xl border border-border bg-card p-1.5 shadow-xl`} dir={dir}>
-                        <button onClick={() => imageInputRef.current?.click()} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
+                        <button onClick={() => { setIsPlusMenuOpen(false); imageInputRef.current?.click(); }} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
                           <Image className="h-4 w-4 text-accent" />
                           <span>{t(lang, "plus.upload_image")}</span>
                         </button>
-                        <button onClick={() => fileInputRef.current?.click()} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
+                        <button onClick={() => { setIsPlusMenuOpen(false); fileInputRef.current?.click(); }} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
                           <FileText className="h-4 w-4 text-accent" />
                           <span>{t(lang, "plus.upload_file")}</span>
                         </button>
-                        <button onClick={() => cameraInputRef.current?.click()} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
+                        <button onClick={() => { setIsPlusMenuOpen(false); cameraInputRef.current?.click(); }} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-secondary transition-colors">
                           <Camera className="h-4 w-4 text-accent" />
                           <span>{t(lang, "plus.open_camera")}</span>
                         </button>
@@ -3949,7 +3955,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
                     </>
                   )}
                 </AnimatePresence>
-                <input ref={fileInputRef} type="file" className="hidden" multiple onChange={handleFileSelect} />
+                <input ref={fileInputRef} type="file" accept="image/*,application/pdf,.doc,.docx,.txt,.csv,.xlsx,.xls,.ppt,.pptx,.json,.md,.zip" className="hidden" multiple onChange={handleFileSelect} />
                 <input ref={imageInputRef} type="file" accept="image/*" className="hidden" multiple onChange={handleFileSelect} />
                 <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileSelect} />
               </div>
