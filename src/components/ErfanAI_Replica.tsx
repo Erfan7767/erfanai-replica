@@ -3501,34 +3501,46 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
 
   const handleSend = async () => {
     if (!inputValue.trim() && attachedFiles.length === 0) return;
+    if (uploadingCount > 0) {
+      toast.info(lang === "العربية" ? "جارٍ رفع الملفات، انتظر قليلاً..." : "Files are still uploading...");
+      return;
+    }
     if (!canConsume(2)) return;
-    
+
     const userMsg = inputValue.trim();
+    const currentUploads = [...uploadedAttachments];
+    const attachmentsBlock = currentUploads.length > 0
+      ? "\n\n" + (lang === "العربية" ? "📎 المرفقات:" : "📎 Attachments:") + "\n" +
+        currentUploads.map(u => `- [${u.name}](${u.url}) (${u.type || "file"}, ${(u.size / 1024).toFixed(1)} KB)`).join("\n")
+      : "";
+    const fullMsgForAI = userMsg + attachmentsBlock;
+
     setMessages(prev => [...prev, { text: userMsg, isUser: true, files: attachedFiles.length > 0 ? [...attachedFiles] : undefined }]);
     setInputValue("");
     setAttachedFiles([]);
+    setUploadedAttachments([]);
 
     // Create or reuse conversation
     let convId = conversationIdRef.current;
     if (!convId) {
       convId = await createConversation(currentModel, chatMode, userMsg);
     }
-    // Save user message to DB
+    // Save user message to DB (with attachment links so history retains them)
     if (convId) {
-      saveMessage(convId, "user", userMsg);
+      saveMessage(convId, "user", fullMsgForAI);
     }
     
     // Track credit usage
     consumeCredits(2);
     // Track analytics event
-    import("@/hooks/useAnalyticsTracker").then(m => m.trackEvent("message", "message_sent", { model: currentModel, mode: chatMode, length: userMsg.length }));
+    import("@/hooks/useAnalyticsTracker").then(m => m.trackEvent("message", "message_sent", { model: currentModel, mode: chatMode, length: userMsg.length, attachments: currentUploads.length }));
 
     // Build conversation history for AI with knowledge context
     const knowledgeContext = getEnabledContext();
     const conversationHistory = messages
       .filter(m => m.text)
       .map(m => ({ role: m.isUser ? "user" as const : "assistant" as const, content: m.text }));
-    conversationHistory.push({ role: "user", content: userMsg });
+    conversationHistory.push({ role: "user", content: fullMsgForAI });
 
     // Show execution panel with real progress
     setIsExecuting(true);
