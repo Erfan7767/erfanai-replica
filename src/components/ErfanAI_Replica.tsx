@@ -3246,6 +3246,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [morePanel, setMorePanel] = useState<string | null>(null);
   const [upgradeHighlight, setUpgradeHighlight] = useState<string | null>(null);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [uploadedAttachments, setUploadedAttachments] = useState<Array<{ name: string; path: string; url: string; type: string; size: number }>>([]);
+  const [uploadingCount, setUploadingCount] = useState(0);
   const [chatMode, setChatMode] = useState("standard");
   const [isStreaming, setIsStreaming] = useState(false);
   const {
