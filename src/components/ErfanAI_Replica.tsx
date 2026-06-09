@@ -3444,16 +3444,57 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      setAttachedFiles(prev => [...prev, ...files]);
-      toast.success(`${t(lang, "app.files_attached")} ${files.length} ${t(lang, "app.file")}`);
-    }
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const files = Array.from(e.target.files);
+    e.target.value = "";
     setIsPlusMenuOpen(false);
+
+    if (!user) {
+      toast.error(lang === "ar" ? "يجب تسجيل الدخول لرفع الملفات" : "Please sign in to upload files");
+      return;
+    }
+
+    setAttachedFiles(prev => [...prev, ...files]);
+    setUploadingCount(c => c + files.length);
+    toast.success(`${t(lang, "app.files_attached")} ${files.length} ${t(lang, "app.file")}`);
+
+    for (const file of files) {
+      try {
+        const ext = file.name.includes(".") ? file.name.split(".").pop() : "bin";
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const path = `${user.id}/uploads/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safeName}`;
+        const { error: upErr } = await supabase.storage.from("user-files").upload(path, file, {
+          contentType: file.type || `application/${ext}`,
+          upsert: false,
+        });
+        if (upErr) throw upErr;
+        const { data: signed, error: sErr } = await supabase.storage.from("user-files").createSignedUrl(path, 60 * 60 * 24 * 7);
+        if (sErr) throw sErr;
+        setUploadedAttachments(prev => [...prev, { name: file.name, path, url: signed.signedUrl, type: file.type, size: file.size }]);
+      } catch (err: any) {
+        console.error("Upload failed:", err);
+        toast.error(`${lang === "ar" ? "فشل رفع" : "Failed to upload"} ${file.name}: ${err.message || ""}`);
+        setAttachedFiles(prev => prev.filter(f => f !== file));
+      } finally {
+        setUploadingCount(c => Math.max(0, c - 1));
+      }
+    }
   };
 
-  const removeFile = (index: number) => setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  const removeFile = (index: number) => {
+    const file = attachedFiles[index];
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+    if (file) {
+      setUploadedAttachments(prev => {
+        const idx = prev.findIndex(u => u.name === file.name && u.size === file.size);
+        if (idx === -1) return prev;
+        const target = prev[idx];
+        supabase.storage.from("user-files").remove([target.path]).catch(() => {});
+        return prev.filter((_, i) => i !== idx);
+      });
+    }
+  };
 
   const conversationIdRef = useRef<string | null>(currentConversationId);
   useEffect(() => { conversationIdRef.current = currentConversationId; }, [currentConversationId]);
