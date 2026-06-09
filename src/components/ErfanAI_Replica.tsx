@@ -3972,13 +3972,23 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
               <textarea value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder={activeChips.length > 0 ? `${t(lang, "app.active_tasks")} ${activeChips.join("، ")}` : t(lang, "landing.input_placeholder")} rows={3} className="w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none leading-relaxed" dir={dir} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }} />
               {attachedFiles.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {attachedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-2.5 py-1.5 text-xs text-foreground">
-                      {file.type.startsWith("image/") ? <Image className="h-3.5 w-3.5 text-accent" /> : <FileText className="h-3.5 w-3.5 text-accent" />}
-                      <span className="max-w-[120px] truncate">{file.name}</span>
-                      <button onClick={() => removeFile(index)} className="hover:text-destructive transition-colors"><X className="h-3 w-3" /></button>
-                    </div>
-                  ))}
+                  {attachedFiles.map((file, index) => {
+                    const uploaded = uploadedAttachments.find(u => u.name === file.name && u.size === file.size);
+                    const isUploading = !uploaded;
+                    return (
+                      <div key={index} className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs text-foreground ${isUploading ? "border-accent/40 bg-accent/5" : "border-border bg-secondary"}`}>
+                        {isUploading ? (
+                          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+                        ) : file.type.startsWith("image/") ? (
+                          <Image className="h-3.5 w-3.5 text-accent" />
+                        ) : (
+                          <FileText className="h-3.5 w-3.5 text-accent" />
+                        )}
+                        <span className="max-w-[120px] truncate">{file.name}</span>
+                        <button onClick={() => removeFile(index)} className="hover:text-destructive transition-colors"><X className="h-3 w-3" /></button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               {/* Bottom row: hint + send pill */}
