@@ -3451,7 +3451,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
     setIsPlusMenuOpen(false);
 
     if (!user) {
-      toast.error(lang === "ar" ? "يجب تسجيل الدخول لرفع الملفات" : "Please sign in to upload files");
+      toast.error(lang === "العربية" ? "يجب تسجيل الدخول لرفع الملفات" : "Please sign in to upload files");
       return;
     }
 
@@ -3474,7 +3474,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         setUploadedAttachments(prev => [...prev, { name: file.name, path, url: signed.signedUrl, type: file.type, size: file.size }]);
       } catch (err: any) {
         console.error("Upload failed:", err);
-        toast.error(`${lang === "ar" ? "فشل رفع" : "Failed to upload"} ${file.name}: ${err.message || ""}`);
+        toast.error(`${lang === "العربية" ? "فشل رفع" : "Failed to upload"} ${file.name}: ${err.message || ""}`);
         setAttachedFiles(prev => prev.filter(f => f !== file));
       } finally {
         setUploadingCount(c => Math.max(0, c - 1));
