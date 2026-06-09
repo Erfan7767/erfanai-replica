@@ -3246,6 +3246,8 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const [morePanel, setMorePanel] = useState<string | null>(null);
   const [upgradeHighlight, setUpgradeHighlight] = useState<string | null>(null);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [uploadedAttachments, setUploadedAttachments] = useState<Array<{ name: string; path: string; url: string; type: string; size: number }>>([]);
+  const [uploadingCount, setUploadingCount] = useState(0);
   const [chatMode, setChatMode] = useState("standard");
   const [isStreaming, setIsStreaming] = useState(false);
   const {
@@ -3442,50 +3444,103 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      setAttachedFiles(prev => [...prev, ...files]);
-      toast.success(`${t(lang, "app.files_attached")} ${files.length} ${t(lang, "app.file")}`);
-    }
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const files = Array.from(e.target.files);
+    e.target.value = "";
     setIsPlusMenuOpen(false);
+
+    if (!user) {
+      toast.error(lang === "العربية" ? "يجب تسجيل الدخول لرفع الملفات" : "Please sign in to upload files");
+      return;
+    }
+
+    setAttachedFiles(prev => [...prev, ...files]);
+    setUploadingCount(c => c + files.length);
+    toast.success(`${t(lang, "app.files_attached")} ${files.length} ${t(lang, "app.file")}`);
+
+    for (const file of files) {
+      try {
+        const ext = file.name.includes(".") ? file.name.split(".").pop() : "bin";
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const path = `${user.id}/uploads/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safeName}`;
+        const { error: upErr } = await supabase.storage.from("user-files").upload(path, file, {
+          contentType: file.type || `application/${ext}`,
+          upsert: false,
+        });
+        if (upErr) throw upErr;
+        const { data: signed, error: sErr } = await supabase.storage.from("user-files").createSignedUrl(path, 60 * 60 * 24 * 7);
+        if (sErr) throw sErr;
+        setUploadedAttachments(prev => [...prev, { name: file.name, path, url: signed.signedUrl, type: file.type, size: file.size }]);
+      } catch (err: any) {
+        console.error("Upload failed:", err);
+        toast.error(`${lang === "العربية" ? "فشل رفع" : "Failed to upload"} ${file.name}: ${err.message || ""}`);
+        setAttachedFiles(prev => prev.filter(f => f !== file));
+      } finally {
+        setUploadingCount(c => Math.max(0, c - 1));
+      }
+    }
   };
 
-  const removeFile = (index: number) => setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  const removeFile = (index: number) => {
+    const file = attachedFiles[index];
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+    if (file) {
+      setUploadedAttachments(prev => {
+        const idx = prev.findIndex(u => u.name === file.name && u.size === file.size);
+        if (idx === -1) return prev;
+        const target = prev[idx];
+        supabase.storage.from("user-files").remove([target.path]).catch(() => {});
+        return prev.filter((_, i) => i !== idx);
+      });
+    }
+  };
 
   const conversationIdRef = useRef<string | null>(currentConversationId);
   useEffect(() => { conversationIdRef.current = currentConversationId; }, [currentConversationId]);
 
   const handleSend = async () => {
     if (!inputValue.trim() && attachedFiles.length === 0) return;
+    if (uploadingCount > 0) {
+      toast.info(lang === "العربية" ? "جارٍ رفع الملفات، انتظر قليلاً..." : "Files are still uploading...");
+      return;
+    }
     if (!canConsume(2)) return;
-    
+
     const userMsg = inputValue.trim();
+    const currentUploads = [...uploadedAttachments];
+    const attachmentsBlock = currentUploads.length > 0
+      ? "\n\n" + (lang === "العربية" ? "📎 المرفقات:" : "📎 Attachments:") + "\n" +
+        currentUploads.map(u => `- [${u.name}](${u.url}) (${u.type || "file"}, ${(u.size / 1024).toFixed(1)} KB)`).join("\n")
+      : "";
+    const fullMsgForAI = userMsg + attachmentsBlock;
+
     setMessages(prev => [...prev, { text: userMsg, isUser: true, files: attachedFiles.length > 0 ? [...attachedFiles] : undefined }]);
     setInputValue("");
     setAttachedFiles([]);
+    setUploadedAttachments([]);
 
     // Create or reuse conversation
     let convId = conversationIdRef.current;
     if (!convId) {
       convId = await createConversation(currentModel, chatMode, userMsg);
     }
-    // Save user message to DB
+    // Save user message to DB (with attachment links so history retains them)
     if (convId) {
-      saveMessage(convId, "user", userMsg);
+      saveMessage(convId, "user", fullMsgForAI);
     }
     
     // Track credit usage
     consumeCredits(2);
     // Track analytics event
-    import("@/hooks/useAnalyticsTracker").then(m => m.trackEvent("message", "message_sent", { model: currentModel, mode: chatMode, length: userMsg.length }));
+    import("@/hooks/useAnalyticsTracker").then(m => m.trackEvent("message", "message_sent", { model: currentModel, mode: chatMode, length: userMsg.length, attachments: currentUploads.length }));
 
     // Build conversation history for AI with knowledge context
     const knowledgeContext = getEnabledContext();
     const conversationHistory = messages
       .filter(m => m.text)
       .map(m => ({ role: m.isUser ? "user" as const : "assistant" as const, content: m.text }));
-    conversationHistory.push({ role: "user", content: userMsg });
+    conversationHistory.push({ role: "user", content: fullMsgForAI });
 
     // Show execution panel with real progress
     setIsExecuting(true);
@@ -3917,13 +3972,23 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
               <textarea value={inputValue} onChange={(e) => setInputValue(e.target.value)} placeholder={activeChips.length > 0 ? `${t(lang, "app.active_tasks")} ${activeChips.join("، ")}` : t(lang, "landing.input_placeholder")} rows={3} className="w-full resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none leading-relaxed" dir={dir} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }} />
               {attachedFiles.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {attachedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-2.5 py-1.5 text-xs text-foreground">
-                      {file.type.startsWith("image/") ? <Image className="h-3.5 w-3.5 text-accent" /> : <FileText className="h-3.5 w-3.5 text-accent" />}
-                      <span className="max-w-[120px] truncate">{file.name}</span>
-                      <button onClick={() => removeFile(index)} className="hover:text-destructive transition-colors"><X className="h-3 w-3" /></button>
-                    </div>
-                  ))}
+                  {attachedFiles.map((file, index) => {
+                    const uploaded = uploadedAttachments.find(u => u.name === file.name && u.size === file.size);
+                    const isUploading = !uploaded;
+                    return (
+                      <div key={index} className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs text-foreground ${isUploading ? "border-accent/40 bg-accent/5" : "border-border bg-secondary"}`}>
+                        {isUploading ? (
+                          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+                        ) : file.type.startsWith("image/") ? (
+                          <Image className="h-3.5 w-3.5 text-accent" />
+                        ) : (
+                          <FileText className="h-3.5 w-3.5 text-accent" />
+                        )}
+                        <span className="max-w-[120px] truncate">{file.name}</span>
+                        <button onClick={() => removeFile(index)} className="hover:text-destructive transition-colors"><X className="h-3 w-3" /></button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               {/* Bottom row: hint + send pill */}
