@@ -3879,7 +3879,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
               isExpanded={isExecutionExpanded}
               onToggleExpand={() => setIsExecutionExpanded(!isExecutionExpanded)}
               onToggleGroup={(id) => setExecutionGroups(prev => prev.map(g => g.id === id ? { ...g, isExpanded: !g.isExpanded } : g))}
-              /* finalMessage intentionally omitted — main screen must not render assistant text. Streaming text is shown exclusively inside the isolated AgentWorkPanel. */
+              finalMessage={executionFinalMessage}
               elapsedSeconds={executionElapsed}
               onContinue={() => {
                 toast.success(t(lang, "execution.can_continue"));
@@ -4004,7 +4004,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         </motion.div>
 
         {/* Quick Action Chips */}
-        {true && (
+        {messages.length === 0 && (
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mt-5 flex flex-wrap justify-center gap-2.5">
             {chipItems.map((chip) => {
               const label = t(lang, chip.key);
@@ -4051,7 +4051,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         )}
 
         {/* Bottom Customize Carousel */}
-        {true && (
+        {messages.length === 0 && (
           <CustomizeCarousel lang={lang} dir={dir} />
         )}
       </div>
