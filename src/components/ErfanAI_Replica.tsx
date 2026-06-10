@@ -3868,15 +3868,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
           </div>
         </motion.div>
 
-        {messages.length > 0 ? (
-          <div className="mt-6 space-y-1">
-            {messages.map((msg, i) => (
-              <ChatMessage key={i} message={msg.text} isUser={msg.isUser} files={msg.files} steps={msg.steps} isStreaming={msg.isStreaming} />
-            ))}
-          </div>
-        ) : (
-          <motion.h1 initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-8 text-center text-2xl font-bold text-accent leading-relaxed">{t(lang, "landing.how_can_i_help")}</motion.h1>
-        )}
+        <motion.h1 initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-8 text-center text-2xl font-bold text-accent leading-relaxed">{t(lang, "landing.how_can_i_help")}</motion.h1>
 
         {/* Execution Panel - Appears above input when executing */}
         <AnimatePresence>
