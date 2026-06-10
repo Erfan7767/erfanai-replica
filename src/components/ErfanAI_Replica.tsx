@@ -4004,7 +4004,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         </motion.div>
 
         {/* Quick Action Chips */}
-        {messages.length === 0 && (
+        {true && (
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mt-5 flex flex-wrap justify-center gap-2.5">
             {chipItems.map((chip) => {
               const label = t(lang, chip.key);
