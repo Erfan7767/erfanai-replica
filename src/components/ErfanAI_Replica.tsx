@@ -3879,7 +3879,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
               isExpanded={isExecutionExpanded}
               onToggleExpand={() => setIsExecutionExpanded(!isExecutionExpanded)}
               onToggleGroup={(id) => setExecutionGroups(prev => prev.map(g => g.id === id ? { ...g, isExpanded: !g.isExpanded } : g))}
-              finalMessage={executionFinalMessage}
+              /* finalMessage intentionally omitted — main screen must not render assistant text. Streaming text is shown exclusively inside the isolated AgentWorkPanel. */
               elapsedSeconds={executionElapsed}
               onContinue={() => {
                 toast.success(t(lang, "execution.can_continue"));
