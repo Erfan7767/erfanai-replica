@@ -4051,7 +4051,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
         )}
 
         {/* Bottom Customize Carousel */}
-        {messages.length === 0 && (
+        {true && (
           <CustomizeCarousel lang={lang} dir={dir} />
         )}
       </div>
