@@ -3870,43 +3870,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
 
         <motion.h1 initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-8 text-center text-2xl font-bold text-accent leading-relaxed">{t(lang, "landing.how_can_i_help")}</motion.h1>
 
-        {/* Execution Panel - Appears above input when executing */}
-        <AnimatePresence>
-          {isExecuting && (
-            <ExecutionPanel
-              taskGroups={executionGroups}
-              isVisible={isExecuting}
-              isExpanded={isExecutionExpanded}
-              onToggleExpand={() => setIsExecutionExpanded(!isExecutionExpanded)}
-              onToggleGroup={(id) => setExecutionGroups(prev => prev.map(g => g.id === id ? { ...g, isExpanded: !g.isExpanded } : g))}
-              finalMessage={executionFinalMessage}
-              elapsedSeconds={executionElapsed}
-              onContinue={() => {
-                toast.success(t(lang, "execution.can_continue"));
-                setIsExecuting(false);
-                setExecutionGroups([]);
-                setExecutionFinalMessage("");
-                setExecutionElapsed(0);
-                if (executionTimerRef.current) clearInterval(executionTimerRef.current);
-              }}
-            />
-          )}
-        </AnimatePresence>
-
-        {/* Agent Work Panel — Sandbox + Multi-Agent live view */}
-        <AgentWorkPanel
-          open={agentPanelOpen}
-          onClose={() => setAgentPanelOpen(false)}
-          taskTitle={agentTaskTitle}
-          elapsedSec={executionElapsed}
-          todos={agentTodos}
-          events={agentEvents}
-          activeAgent={agentRole}
-          isRunning={isExecuting}
-        />
-        {/* sentinel */}
-        <AnimatePresence>
-        </AnimatePresence>
+        {/* Conversation, execution panel, and agent work panel are intentionally hidden from the main screen. */}
 
         {/* Input Card — Asymmetric composer with side rail */}
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="relative mt-6 overflow-hidden rounded-3xl border border-border/60 bg-card shadow-[0_8px_40px_-12px_hsl(var(--erfan-gold)/0.25)]">
