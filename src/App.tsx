@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import ResetPassword from "./pages/ResetPassword";
 import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
+import Workspace from "./pages/Workspace";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/workspace" element={<Workspace />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
