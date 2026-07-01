@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { type Lang, t, isRTL } from "@/lib/translations";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import {
   Hand, Mail, Menu, X, Plus, Search, Bot, Upload, Mic, Globe,
   ArrowLeft, Settings, LogOut, Sparkles, Zap, MessageSquare, Bell,
@@ -3402,7 +3403,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   });
 
   const { user } = useAuth();
-  const navigate = (typeof window !== "undefined") ? ((path: string) => { window.location.href = path; }) : (_: string) => {};
+  const navigate = useNavigate();
   const authName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
   const authEmail = user?.email || "";
   const authAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
@@ -3502,15 +3503,16 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
 
   const handleSend = async () => {
     if (!inputValue.trim() && attachedFiles.length === 0) return;
+
+    // Navigate INSTANTLY to the response screen before any async checks
+    try { sessionStorage.setItem("erfan:lastPrompt", inputValue.trim()); } catch {}
+    navigate("/workspace");
+
     if (uploadingCount > 0) {
       toast.info(lang === "العربية" ? "جارٍ رفع الملفات، انتظر قليلاً..." : "Files are still uploading...");
       return;
     }
     if (!canConsume(2)) return;
-
-    // Open the response/workspace screen
-    try { sessionStorage.setItem("erfan:lastPrompt", inputValue.trim()); } catch {}
-    navigate("/workspace");
 
 
     const userMsg = inputValue.trim();
