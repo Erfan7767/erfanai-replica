@@ -82,11 +82,16 @@ export function Sidebar() {
 export default function Workspace() {
   const navigate = useNavigate();
   const [showCode, setShowCode] = useState(false); // mobile toggle for code panel
+  const [exiting, setExiting] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const handleBack = () => {
-    if (window.history.length > 1) navigate(-1);
-    else navigate("/");
+    if (exiting) return;
+    setExiting(true);
+    setTimeout(() => {
+      if (window.history.length > 1) navigate(-1);
+      else navigate("/");
+    }, 280);
   };
 
   useEffect(() => {
@@ -95,7 +100,9 @@ export default function Workspace() {
 
   return (
     <div
-      className="flex h-screen w-full font-cairo"
+      className={`flex h-screen w-full font-cairo ${
+        exiting ? "animate-slide-out-right" : "animate-slide-in-right"
+      }`}
       style={{ background: COLORS.bg, color: COLORS.text }}
       dir="rtl"
     >
