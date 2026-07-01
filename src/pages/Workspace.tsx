@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
+  ArrowRight,
   Menu,
   ChevronDown,
   Sparkles,
