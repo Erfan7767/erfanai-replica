@@ -113,6 +113,13 @@ export default function Workspace() {
         >
           <div className="flex items-center gap-2">
             <button
+              onClick={handleBack}
+              className="p-2 rounded-lg hover:bg-[#1A1A1E] transition-colors"
+              aria-label="رجوع"
+            >
+              <ArrowRight className="h-5 w-5" style={{ color: COLORS.text }} />
+            </button>
+            <button
               className="p-2 rounded-lg hover:bg-[#1A1A1E] transition-colors"
               aria-label="Menu"
             >
