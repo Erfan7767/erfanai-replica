@@ -3503,15 +3503,16 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
 
   const handleSend = async () => {
     if (!inputValue.trim() && attachedFiles.length === 0) return;
+
+    // Navigate INSTANTLY to the response screen before any async checks
+    try { sessionStorage.setItem("erfan:lastPrompt", inputValue.trim()); } catch {}
+    navigate("/workspace");
+
     if (uploadingCount > 0) {
       toast.info(lang === "العربية" ? "جارٍ رفع الملفات، انتظر قليلاً..." : "Files are still uploading...");
       return;
     }
     if (!canConsume(2)) return;
-
-    // Open the response/workspace screen
-    try { sessionStorage.setItem("erfan:lastPrompt", inputValue.trim()); } catch {}
-    navigate("/workspace");
 
 
     const userMsg = inputValue.trim();
