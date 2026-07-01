@@ -80,8 +80,14 @@ export function Sidebar() {
 `;
 
 export default function Workspace() {
+  const navigate = useNavigate();
   const [showCode, setShowCode] = useState(false); // mobile toggle for code panel
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const handleBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate("/");
+  };
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
