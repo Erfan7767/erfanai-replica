@@ -3403,7 +3403,7 @@ const AppScreen = ({ onLogout }: { onLogout: () => void }) => {
   });
 
   const { user } = useAuth();
-  const navigate = (typeof window !== "undefined") ? ((path: string) => { window.location.href = path; }) : (_: string) => {};
+  const navigate = useNavigate();
   const authName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
   const authEmail = user?.email || "";
   const authAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
