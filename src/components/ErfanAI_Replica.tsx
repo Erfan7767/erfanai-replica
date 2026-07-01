@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { type Lang, t, isRTL } from "@/lib/translations";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import {
   Hand, Mail, Menu, X, Plus, Search, Bot, Upload, Mic, Globe,
   ArrowLeft, Settings, LogOut, Sparkles, Zap, MessageSquare, Bell,
