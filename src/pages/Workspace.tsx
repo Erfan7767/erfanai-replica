@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
+  ArrowRight,
   Menu,
   ChevronDown,
   Sparkles,
@@ -78,8 +80,14 @@ export function Sidebar() {
 `;
 
 export default function Workspace() {
+  const navigate = useNavigate();
   const [showCode, setShowCode] = useState(false); // mobile toggle for code panel
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const handleBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate("/");
+  };
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
@@ -104,6 +112,13 @@ export default function Workspace() {
           style={{ borderColor: COLORS.border }}
         >
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleBack}
+              className="p-2 rounded-lg hover:bg-[#1A1A1E] transition-colors"
+              aria-label="رجوع"
+            >
+              <ArrowRight className="h-5 w-5" style={{ color: COLORS.text }} />
+            </button>
             <button
               className="p-2 rounded-lg hover:bg-[#1A1A1E] transition-colors"
               aria-label="Menu"
